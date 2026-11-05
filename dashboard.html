@@ -1667,9 +1667,27 @@ pages.directory.init = async () => {
 // ================== 🛒 TRO SHOP ==================
 pages.shop = () => `<h1>🛒 TRO Shop</h1><div class="sub">Kelola produk (Robux, asset, script, map, jasa), katalog otomatis, dan order. Di tiket, staff bisa catat order pakai <code>/order catat</code>.</div>
   <div class="grid g4" id="sh-stats"></div>
+  <details class="card" id="sh-tr" style="margin-top:16px"><summary style="cursor:pointer;font-weight:600">🛒 TROlley — panel order, price list, panduan & review</summary><div id="sh-tr-body" style="margin-top:12px"></div></details>
   <div class="tabs" style="margin-top:16px"><button class="on sh-tab" data-t="orders">🧾 Order</button><button class="sh-tab" data-t="products">📦 Produk</button><button class="sh-tab" data-t="settings">⚙️ Pengaturan</button></div><div id="sh-body"></div>`;
 pages.shop.init = async () => {
   let D = await api('/shop'); let tab = 'orders';
+  const rv = await api('/shop/reviews').catch(() => ({ count: 0, avg: 0, items: [] }));
+  { const c = D.cfg;
+    $('#sh-tr-body').innerHTML = `<div class="grid g2" style="gap:16px"><div>
+      <label>Nama toko</label><input id="tr-brand" value="${esc(c.brand || 'TROlley')}">
+      <label>Channel panel order (tombol buka tiket)</label><select id="tr-panel">${chOptions(c.panelChannelId)}</select>
+      <label>Channel price list Robux</label><select id="tr-price">${chOptions(c.priceChannelId)}</select>
+      <label>Channel panduan order</label><select id="tr-guide">${chOptions(c.guideChannelId)}</select>
+      <label>Channel review pembeli</label><select id="tr-rev">${chOptions(c.reviewChannelId)}</select>
+      <label>Role staff shop yang di-ping saat form order masuk</label>${roleChips('tr-staff', c.staffRoleIds || [])}
+      <label class="row" style="text-transform:none"><input type="checkbox" id="tr-dm" ${c.dmBuyer ? 'checked' : ''} style="width:auto"> DM pembeli tiap status order berubah</label>
+      <label class="row" style="text-transform:none"><input type="checkbox" id="tr-ask" ${c.askReview ? 'checked' : ''} style="width:auto"> Minta review bintang setelah order selesai</label></div>
+    <div><label>Info pembayaran (tampil di tiket & price list)</label><textarea id="tr-pay" style="min-height:80px;font-family:inherit">${esc(c.payInfo || '')}</textarea>
+      <label>Panduan order</label><textarea id="tr-gtext" style="min-height:220px;font-family:inherit">${esc(c.guideText || '')}</textarea>
+      <div class="hint">Rating sekarang: <b>${rv.count ? rv.avg.toFixed(1) + ' ⭐ dari ' + rv.count + ' review' : 'belum ada review'}</b></div></div></div>
+    <div class="actions"><button class="primary" id="tr-save">Simpan & pasang semua panel</button></div>`;
+    $('#tr-save').onclick = (e) => busy(e.target, async () => { await api('/shop/trolley', { method: 'PUT', body: { brand: $('#tr-brand').value, panelChannelId: $('#tr-panel').value, priceChannelId: $('#tr-price').value, guideChannelId: $('#tr-guide').value, reviewChannelId: $('#tr-rev').value, staffRoleIds: readChips('tr-staff'), dmBuyer: $('#tr-dm').checked, askReview: $('#tr-ask').checked, payInfo: $('#tr-pay').value, guideText: $('#tr-gtext').value } }); const r = await api('/shop/trolley/post', { method: 'POST', body: {} }); toast('✅ Panel TROlley dipasang: ' + Object.entries(r).map(([k, v]) => `${k} ${v}`).join(', ')); });
+  }
   const rp = (n) => 'Rp ' + Math.round(+n || 0).toLocaleString('id-ID');
   const stats = () => { const s = D.summary; $('#sh-stats').innerHTML = [['💰', rp(s.thisMonth), 'Pendapatan bulan ini'], ['🏦', rp(s.total), 'Total pendapatan'], ['✅', s.count, 'Order selesai'], ['⏳', s.open, 'Order aktif']].map(([i, n, l]) => `<div class="card stat"><span class="ic2">${i}</span><div class="num" style="font-size:24px">${n}</div><div class="lbl">${l}</div></div>`).join(''); };
   const catOpts = (v) => Object.entries(D.cats).map(([k, n]) => `<option value="${k}" ${k === v ? 'selected' : ''}>${n}</option>`).join('');

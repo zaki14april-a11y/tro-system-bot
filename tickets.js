@@ -44,6 +44,7 @@ function setup({ client, baseEmbed }) {
     new ButtonBuilder().setCustomId('tro-tk:close').setLabel('Tutup tiket').setEmoji('🔒').setStyle(ButtonStyle.Danger),
   )];
 
+  client.openTicket = (it, typeId) => openTicket(it, typeId);
   async function openTicket(it, typeId) {
     const t = T(), d = D();
     if (!t.enabled) return it.reply({ content: '⛔ Tiket sedang ditutup.', flags: MessageFlags.Ephemeral });
@@ -73,8 +74,8 @@ function setup({ client, baseEmbed }) {
     cfg.save();
     await ch.send({
       content: `<@${it.user.id}> ${t.staffRoleIds.map((r) => `<@&${r}>`).join(' ')}`,
-      embeds: [baseEmbed({ title: `${type.emoji || '🎫'} Tiket #${num} — ${type.label}`, description: fill(t.welcome, it.user), thumbnail: it.user.displayAvatarURL({ size: 128 }) })],
-      components: controls(),
+      embeds: [baseEmbed({ title: `${type.emoji || '🎫'} Tiket #${num} — ${type.label}`, description: fill(t.welcome, it.user) + (client.isOrderType?.(type.id) ? '\n\n🛒 **Mau order?** Klik **Isi form order** di bawah biar pesanan langsung tercatat & total harga keluar otomatis.' : ''), thumbnail: it.user.displayAvatarURL({ size: 128 }) })],
+      components: [...controls(), ...(client.isOrderType?.(type.id) ? [new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`tro-shop:form:${type.id}`).setLabel('Isi form order').setEmoji('📝').setStyle(ButtonStyle.Success), new ButtonBuilder().setCustomId('tro-shop:prices').setLabel('Lihat harga').setEmoji('💰').setStyle(ButtonStyle.Secondary))] : [])],
       allowedMentions: { users: [it.user.id], roles: t.staffRoleIds },
     });
     cfg.addLog('Tiket dibuka', `#${num} ${type.label} oleh ${it.user.username}`);
