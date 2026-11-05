@@ -162,7 +162,12 @@ function setup({ client, baseEmbed, securityLog }) {
     const g = client.guilds.cache.get(process.env.GUILD_ID);
     const member = await g.members.fetch(app.userId).catch(() => null);
     if (!member) throw new Error('User sudah keluar dari server');
-    const roles = app.type === 'guest' ? v.guestRoleIds : v.memberRoleIds;
+    const roles = [...(app.type === 'guest' ? v.guestRoleIds : v.memberRoleIds)];
+    if (app.gender) {
+      const gid = genderRoleId(g, app.gender), other = genderRoleId(g, app.gender === 'femme' ? 'gent' : 'femme');
+      if (gid) roles.push(gid);
+      if (other && member.roles.cache.has(other)) await member.roles.remove(other, 'TRO SYSTEM: gender diperbarui').catch(() => {});
+    }
     if (roles.length) await member.roles.add(roles, `TRO SYSTEM: verifikasi di-ACC ${reviewer}`);
     if (v.unverifiedRoleId) await member.roles.remove(v.unverifiedRoleId).catch(() => {});
     Object.assign(app, { status: 'accepted', reviewedBy: reviewer, reviewedAt: new Date().toISOString() });
@@ -351,8 +356,13 @@ function setup({ client, baseEmbed, securityLog }) {
         return openForm(it, type);
       }
       if (it.isModalSubmit() && it.customId.startsWith('tro-verify-modal:')) {
-        const [, type, flag] = it.customId.split(':');
-        return submitApp(it, type, readAnswers(it, questionsFor(type)), flag === 'update');
+        const [, type, flag, gender] = it.customId.split(':');
+        return submitApp(it, type, readAnswers(it, questionsFor(type)), flag === 'update', GENDER[gender] ? gender : undefined);
+      }
+      // --- tombol pilih gender → buka form ---
+      if (it.isButton() && it.customId.startsWith('tro-gender:')) {
+        const [, type, flag, gender] = it.customId.split(':');
+        return openForm(it, type, flag === 'update', gender);
       }
 
       // --- tombol "Isi data sekarang" (DM / channel) ---
@@ -517,19 +527,28 @@ function setup({ client, baseEmbed, securityLog }) {
     return job;
   }
 
-  async function openForm(it, type, update = false) {
+  // 🚻 gender dipilih dulu (tombol) → lalu form. Role Femme / Gentleman dipasang otomatis saat ACC.
+  const GENDER = { femme: { label: 'Femme (cewek)', emoji: '💃', role: 'Femme' }, gent: { label: 'Gentleman (cowok)', emoji: '🎩', role: 'Gentleman' } };
+  const genderRoleId = (g, key) => g.roles.cache.find((r) => r.name === GENDER[key]?.role)?.id;
+  async function openForm(it, type, update = false, gender) {
     const v = cfg.get().verify;
+    if (!gender) {
+      return it.reply({ content: '🚻 **Pilih gender kamu dulu** — nanti role otomatis dipasang setelah di-ACC:', components: [new ActionRowBuilder().addComponents(
+        ...Object.entries(GENDER).map(([k, x]) => new ButtonBuilder().setCustomId(`tro-gender:${type}:${update ? 'update' : 'new'}:${k}`).setLabel(x.label).setEmoji(x.emoji).setStyle(k === 'femme' ? ButtonStyle.Danger : ButtonStyle.Primary)),
+      )], flags: it.inGuild() ? MessageFlags.Ephemeral : undefined });
+    }
     const qs = questionsFor(type);
-    if (!qs.length) return submitApp(it, type, [], update);
-    return it.showModal(buildModal(`tro-verify-modal:${type}${update ? ':update' : ''}`, update ? 'Update Data Anggota TRO' : type === 'member' ? 'Pengajuan Masuk Anggota TRO' : `Verifikasi — ${v.guestLabel}`, qs));
+    if (!qs.length) return submitApp(it, type, [], update, gender);
+    return it.showModal(buildModal(`tro-verify-modal:${type}:${update ? 'update' : 'new'}:${gender}`, update ? 'Update Data Anggota TRO' : type === 'member' ? 'Pengajuan Masuk Anggota TRO' : `Verifikasi — ${v.guestLabel}`, qs));
   }
 
-  async function submitApp(it, type, answers, update = false) {
+  async function submitApp(it, type, answers, update = false, gender) {
     const s = cfg.get(), v = s.verify;
+    if (gender && GENDER[gender]) answers = [{ q: 'Gender', a: `${GENDER[gender].emoji} ${GENDER[gender].label}`, key: 'gender' }, ...answers];
     const app = {
       id: newId(), userId: it.user.id, username: it.user.username,
       avatar: it.user.displayAvatarURL({ size: 256 }), accountCreated: it.user.createdTimestamp,
-      type, answers, birth: birthOf(answers), status: 'pending', createdAt: new Date().toISOString(), update,
+      type, answers, birth: birthOf(answers), gender: gender || '', status: 'pending', createdAt: new Date().toISOString(), update,
     };
     if (answers.some((a) => a.key === 'birthdate') && !app.birth) {
       return it.reply({ content: '❌ Format tanggal lahir tidak dikenali. Contoh: **23/03/2000** atau **23 Maret 2000**. Silakan isi ulang.', flags: MessageFlags.Ephemeral });
@@ -554,6 +573,15 @@ function setup({ client, baseEmbed, securityLog }) {
     cfg.addLog(update ? 'Update data anggota' : 'Pengajuan baru', `<@${app.userId}> ${update ? 'mengirim update data' : `mengajukan ${typeLabel(type)}`}`);
     return it.reply({ content: update ? '✅ Data kamu terkirim! Terima kasih sudah update data anggota TRO 🦉' : `📨 Pengajuan **${typeLabel(type)}** terkirim! Tunggu ACC admin ya — kamu akan dapat DM kalau sudah diproses.`, flags: MessageFlags.Ephemeral });
   }
+
+  client.once('ready', async () => {
+    const g = client.guilds.cache.get(process.env.GUILD_ID); if (!g) return;
+    if (!g.roles.cache.find((r) => r.name === 'Gentleman')) {
+      const femme = g.roles.cache.find((r) => r.name === 'Femme');
+      const r = await g.roles.create({ name: 'Gentleman', color: 0x5b8def, hoist: femme?.hoist ?? true, mentionable: false, reason: 'TRO SYSTEM: role gender (pasangan Femme)' }).catch(() => null);
+      if (r && femme) await r.setPosition(femme.position).catch(() => {});
+    }
+  });
 
   const commands = [
     new SlashCommandBuilder().setName('daftar').setDescription('Isi form pengajuan masuk TRO')
