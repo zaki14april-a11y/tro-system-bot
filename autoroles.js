@@ -85,6 +85,8 @@ function setup(bot) {
   async function sweep() {
     const g = client.guilds.cache.get(process.env.GUILD_ID);
     if (!g) return;
+    // ID role hilang (mis. data dimuat ulang saat bot baru nyala) → cari lagi berdasarkan nama
+    if (!D().verifiedId || Object.keys(D().zodiac || {}).length < 12) await ensureRoles(g).catch((e) => err(e));
     const members = await client.fetchMembers(g);
     let n = 0, checked = 0;
     for (const m of members.values()) { checked++; const c = await sync(m).catch((e) => err(e)); if (c) { n += c; await sleep(400); } }
@@ -94,6 +96,7 @@ function setup(bot) {
   }
 
   client.once('ready', async () => {
+    await sleep(8000); // tunggu data selesai dimuat modul lain
     const g = client.guilds.cache.get(process.env.GUILD_ID);
     if (!g) return;
     await ensureRoles(g).catch((e) => console.error('  ⚠️ autoroles:', e.message));
