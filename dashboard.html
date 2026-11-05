@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TRO SYSTEM — Dashboard</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦉</text></svg>">
-<script>try{document.documentElement.dataset.theme=localStorage.getItem('tro-theme')||'pro'}catch(e){document.documentElement.dataset.theme='pro'}</script>
+<script>(function(){var t='pro';try{t=localStorage.getItem('tro-theme')||'pro'}catch(e){}var d=document.documentElement;d.dataset.theme=t;d.dataset.mode=['light','fajar','kertas'].indexOf(t)>-1?'light':'dark'})()</script>
 <style>
 :root{
   --bg:#0f0f12;--panel:#17171c;--panel2:#1e1e25;--line:#2a2a33;--text:#ececf1;--muted:#9a9aa8;
@@ -418,9 +418,9 @@ button.primary:hover:before,.login a.btn:hover:before{left:130%}
    TEMA PROFESIONAL & TERANG  (default: pro · pilih di header)
    ===================================================================== */
 html:not([data-theme=ordo]){--bg:#16181d;--panel:#1d2027;--panel2:#252932;--line:#2e333d;--line2:#2e333d;--hover:#454c59;--text:#e7e9ee;--muted:#8d95a3;--silver:#b3b9c4;
-  --gold:#c9a24b;--gold2:#dcbb6c;--red:#e5534b;--green:#3fb27f;--radius:10px;--display:var(--body);--ring:rgba(201,162,75,.22)}
+  --gold:#c9a24b;--gold2:#dcbb6c;--red:#e5534b;--green:#3fb27f;--radius:10px;--display:var(--body);--ring:rgba(201,162,75,.22);--on-accent:#1a1405}
 html[data-theme=light]{--bg:#f4f5f7;--panel:#ffffff;--panel2:#f0f2f5;--line:#e1e4e9;--line2:#e1e4e9;--hover:#c4c9d2;--text:#1b1f27;--muted:#6b7280;--silver:#4b5260;
-  --gold:#a17a1c;--gold2:#8a6912;--red:#c9372c;--green:#1f8a5b;--ring:rgba(161,122,28,.2)}
+  --gold:#a17a1c;--gold2:#8a6912;--red:#c9372c;--green:#1f8a5b;--ring:rgba(161,122,28,.2);--on-accent:#fff}
 html:not([data-theme=ordo]) body{background:var(--bg);font-size:14px;letter-spacing:0}
 html:not([data-theme=ordo]) ::selection{background:var(--ring)}
 html:not([data-theme=ordo]) #intro,html:not([data-theme=ordo]) #motes,html:not([data-theme=ordo]) aside:before,html:not([data-theme=ordo]) .card:before,html:not([data-theme=ordo]) .tile:after,html:not([data-theme=ordo]) .feat:after,html:not([data-theme=ordo]) .card.stat:after,html:not([data-theme=ordo]) .hero:before,html:not([data-theme=ordo]) .hero:after,html:not([data-theme=ordo]) .ripple,
@@ -469,8 +469,7 @@ html:not([data-theme=ordo]) input:focus,html:not([data-theme=ordo]) textarea:foc
 html:not([data-theme=ordo]) button{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;font-weight:600}
 html:not([data-theme=ordo]) button:hover{border-color:var(--hover);color:var(--text)}
 html:not([data-theme=ordo]) button:active{transform:none}
-html:not([data-theme=ordo]) button.primary{background:var(--gold);border-color:var(--gold);color:#1a1405;box-shadow:none;text-shadow:none}
-html[data-theme=light] button.primary{color:#fff}
+html:not([data-theme=ordo]) button.primary{background:var(--gold);border-color:var(--gold);color:var(--on-accent);box-shadow:none;text-shadow:none}
 html:not([data-theme=ordo]) button.primary:hover{filter:brightness(1.07);color:inherit}
 html:not([data-theme=ordo]) button.danger{background:transparent;color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,transparent)}
 html:not([data-theme=ordo]) button.danger:hover{background:color-mix(in srgb,var(--red) 10%,transparent);color:var(--red)}
@@ -502,14 +501,14 @@ html:not([data-theme=ordo]) .dot.on{animation:none;box-shadow:none}
 html:not([data-theme=ordo]) .toast{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--green);box-shadow:0 10px 30px rgba(0,0,0,.25);animation:in .2s both}
 html:not([data-theme=ordo]) .toast.err{border-left-color:var(--red)}
 html:not([data-theme=ordo]) .qa div{background:var(--bg)}
-html[data-theme=light] .status.pending,html[data-theme=light] .quota.full{background:#fbf1d9;color:#7a5a0c}
-html[data-theme=light] .status.accepted,html[data-theme=light] .feat .st.on,html[data-theme=light] .quota,html[data-theme=light] .who.m{background:#dcf3e7;color:#17683f}
-html[data-theme=light] .status.rejected{background:#fde4e1;color:#9b2a21}
-html[data-theme=light] .who.Admin{background:#fbf1d9;color:#7a5a0c}
-html[data-theme=light] .who.Staff{background:#e0edfb;color:#1d5ea8}
-html[data-theme=light] .feat .st.off{background:var(--panel2);color:var(--muted)}
-html[data-theme=light] .err-box{background:#fde4e1;color:#9b2a21;border-color:#f3b8b1}
-html[data-theme=light] .toast{box-shadow:0 10px 30px rgba(16,24,40,.12)}
+html[data-mode=light] .status.pending,html[data-mode=light] .quota.full{background:#fbf1d9;color:#7a5a0c}
+html[data-mode=light] .status.accepted,html[data-mode=light] .feat .st.on,html[data-mode=light] .quota,html[data-mode=light] .who.m{background:#dcf3e7;color:#17683f}
+html[data-mode=light] .status.rejected{background:#fde4e1;color:#9b2a21}
+html[data-mode=light] .who.Admin{background:#fbf1d9;color:#7a5a0c}
+html[data-mode=light] .who.Staff{background:#e0edfb;color:#1d5ea8}
+html[data-mode=light] .feat .st.off{background:var(--panel2);color:var(--muted)}
+html[data-mode=light] .err-box{background:#fde4e1;color:#9b2a21;border-color:#f3b8b1}
+html[data-mode=light] .toast{box-shadow:0 10px 30px rgba(16,24,40,.12)}
 /* gerak: cukup fade halus */
 html:not([data-theme=ordo]) .content>*,html:not([data-theme=ordo]) .content .grid>*{animation:fadeonly .18s ease both;animation-delay:0s!important}
 @keyframes fadeonly{from{opacity:0}}
@@ -541,6 +540,32 @@ html:not([data-theme=ordo]) .login a.btn svg{fill:#fff}
 .fl a small{color:var(--muted);margin-left:auto;font-size:12px;text-align:right}
 .fl .dot{flex:none;width:7px;height:7px}
 .themepick{width:auto;padding:5px 8px;font-size:12.5px;border-radius:7px}
+/* ---- varian tema ---- */
+html[data-theme=midnight]{--bg:#0f1623;--panel:#151e2e;--panel2:#1c2739;--line:#26334a;--line2:#26334a;--hover:#3a4a66;--text:#e6ecf5;--muted:#8b9ab3;--silver:#b2bed1;--gold:#4f8cff;--gold2:#7aa8ff;--ring:rgba(79,140,255,.25);--on-accent:#fff}
+html[data-theme=teal]{--bg:#13191b;--panel:#1a2124;--panel2:#222b2f;--line:#2c373c;--line2:#2c373c;--hover:#42525a;--text:#e4ecee;--muted:#8a9a9f;--silver:#b0bec2;--gold:#2fb5a0;--gold2:#57cdb9;--ring:rgba(47,181,160,.25);--on-accent:#04201b}
+html[data-theme=forest]{--bg:#121915;--panel:#18211b;--panel2:#1f2a23;--line:#29372e;--line2:#29372e;--hover:#3e5244;--text:#e4ede6;--muted:#8a9b8f;--silver:#b1c1b5;--gold:#5cbf7f;--gold2:#7fd49c;--green:#5cbf7f;--ring:rgba(92,191,127,.25);--on-accent:#07210f}
+html[data-theme=crimson]{--bg:#171415;--panel:#1f1a1b;--panel2:#282223;--line:#352c2e;--line2:#352c2e;--hover:#4d4043;--text:#efe7e8;--muted:#a0918f;--silver:#c4b6b5;--gold:#d9534f;--gold2:#e57a76;--red:#ff7a6e;--ring:rgba(217,83,79,.25);--on-accent:#fff}
+html[data-theme=royal]{--bg:#15131c;--panel:#1c1926;--panel2:#242031;--line:#2f2a40;--line2:#2f2a40;--hover:#463f5e;--text:#ebe8f3;--muted:#958fab;--silver:#bab4cf;--gold:#8b7cf6;--gold2:#a99cf9;--ring:rgba(139,124,246,.25);--on-accent:#fff}
+html[data-theme=contrast]{--bg:#000;--panel:#0a0a0a;--panel2:#171717;--line:#4d4d4d;--line2:#4d4d4d;--hover:#8c8c8c;--text:#fff;--muted:#cfcfcf;--silver:#ebebeb;--gold:#ffd23f;--gold2:#ffe07a;--red:#ff6b6b;--green:#4ade80;--ring:rgba(255,210,63,.35);--on-accent:#000}
+html[data-theme=fajar]{--bg:#f3f6fb;--panel:#fff;--panel2:#eef2f8;--line:#dde3ec;--line2:#dde3ec;--hover:#bfc9d8;--text:#172033;--muted:#62708a;--silver:#3f4b62;--gold:#2f6fe4;--gold2:#2559b8;--red:#c9372c;--green:#1f8a5b;--ring:rgba(47,111,228,.2);--on-accent:#fff}
+html[data-theme=kertas]{--bg:#f6f5f2;--panel:#fff;--panel2:#f1efea;--line:#e2dfd8;--line2:#e2dfd8;--hover:#c7c2b8;--text:#22201c;--muted:#6f6a61;--silver:#47433c;--gold:#2b2a27;--gold2:#2b2a27;--red:#b8382d;--green:#2f7d4f;--ring:rgba(43,42,39,.15);--on-accent:#fff}
+html[data-mode=light] header{background:color-mix(in srgb,var(--bg) 90%,transparent)}
+html[data-mode=light] .login a.btn{color:#fff}
+/* pemilih tema */
+.tp{position:relative}
+.tp>button{display:flex;align-items:center;gap:8px;padding:6px 11px;font-size:12.5px}
+.tp .sw{display:inline-flex;gap:2px}.tp .sw i{width:10px;height:10px;border-radius:50%;display:block;border:1px solid rgba(127,127,127,.35)}
+.tp .menu{position:absolute;right:0;top:calc(100% + 8px);width:340px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 20px 50px rgba(0,0,0,.35);display:none;z-index:30}
+.tp.open .menu{display:block}
+.tp .menu h4{font-size:12px;font-weight:600;color:var(--muted);margin:2px 4px 8px}
+.tp .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tp .opt{display:block;text-align:left;padding:0;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:var(--bg)}
+.tp .opt.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--ring)}
+.tp .opt .pv{height:42px;display:grid;grid-template-columns:30% 1fr}
+.tp .opt .pv b{display:block}.tp .opt .pv span{display:flex;align-items:flex-end;gap:4px;padding:7px}
+.tp .opt .pv em{display:block;height:7px;border-radius:3px}
+.tp .opt .nm{display:block;padding:7px 9px;font-size:12.5px;font-weight:600;color:var(--text);background:var(--panel)}
+
 @media(max-width:900px){.fl{grid-template-columns:1fr}}
 </style>
 </head>
@@ -656,9 +681,21 @@ const IC = {
   access: '<circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 9.2-9.2M17 6l3 3M15 8l2 2"/>',
 };
 const icon = (k) => `<span class="ni"><svg viewBox="0 0 24 24">${IC[k] || IC.home}</svg></span>`;
-const THEMES = [['pro', 'Profesional'], ['ordo', 'Ordo (emas)'], ['light', 'Terang']];
+// [kunci, nama, panel samping, latar, aksen]
+const THEMES = [
+  ['pro', 'Grafit', '#1d2027', '#16181d', '#c9a24b'], ['midnight', 'Biru Malam', '#151e2e', '#0f1623', '#4f8cff'],
+  ['teal', 'Slate Teal', '#1a2124', '#13191b', '#2fb5a0'], ['forest', 'Hutan', '#18211b', '#121915', '#5cbf7f'],
+  ['crimson', 'Merah TRO', '#1f1a1b', '#171415', '#d9534f'], ['royal', 'Ungu Royal', '#1c1926', '#15131c', '#8b7cf6'],
+  ['contrast', 'Kontras Tinggi', '#0a0a0a', '#000000', '#ffd23f'], ['light', 'Terang Emas', '#ffffff', '#f4f5f7', '#a17a1c'],
+  ['fajar', 'Terang Biru', '#ffffff', '#f3f6fb', '#2f6fe4'], ['kertas', 'Kertas', '#ffffff', '#f6f5f2', '#2b2a27'],
+  ['ordo', 'Ordo (klasik emas)', '#1d1838', '#0d1220', '#c9a24b'],
+];
+const themePicker = () => { const cur = THEMES.find((t) => t[0] === theme()) || THEMES[0];
+  return `<div class="tp" id="tp"><button type="button" onclick="event.stopPropagation();document.getElementById('tp').classList.toggle('open')"><span class="sw"><i style="background:${cur[3]}"></i><i style="background:${cur[2]}"></i><i style="background:${cur[4]}"></i></span>${cur[1]}</button>
+  <div class="menu" onclick="event.stopPropagation()"><h4>Tema dashboard (tersimpan di browser ini)</h4><div class="opts">${THEMES.map(([k, n, side, bg, ac]) => `<button type="button" class="opt ${k === cur[0] ? 'on' : ''}" onclick="setTheme('${k}')"><span class="pv" style="background:${bg}"><b style="background:${side}"></b><span><em style="width:40%;background:${ac}"></em><em style="width:25%;background:${side}"></em></span></span><span class="nm">${n}</span></button>`).join('')}</div></div></div>`; };
+document.addEventListener('click', () => document.getElementById('tp')?.classList.remove('open'));
 const theme = () => document.documentElement.dataset.theme || 'pro';
-function setTheme(t) { document.documentElement.dataset.theme = t; try { localStorage.setItem('tro-theme', t); } catch (e) {} render(); }
+function setTheme(t) { document.documentElement.dataset.theme = t; document.documentElement.dataset.mode = ['light', 'fajar', 'kertas'].includes(t) ? 'light' : 'dark'; try { localStorage.setItem('tro-theme', t); } catch (e) {} render(); }
 // tema non-Ordo: buang emoji di depan judul/tombol biar bersih
 const EMO = /^[\s‍️]*(?:[\p{Extended_Pictographic}\p{Regional_Indicator}][‍️\u{1F3FB}-\u{1F3FF}]*)+[\s‍️]*/u;
 function tidyText(root) {
@@ -686,7 +723,7 @@ function layout(inner) {
     <div class="brand"><img src="${esc(g.icon || g.bot?.avatar || '')}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'crest fb big'}))"><div>TRO <span>SYSTEM</span><small><b>XIII</b>The Resilient Order</small></div></div>
     ${PAGES.map(([grp, all]) => [grp, all.filter(([k]) => (S.me.pages || []).includes(k))]).filter(([, items]) => items.length).map(([grp, items]) => `<div class="navgroup">${grp}</div><nav class="nav">${items.map(([k, ic, n]) => `<a href="#${k}" class="${S.page === k ? 'active' : ''}">${icon(k)}<span class="ne">${ic}</span> ${n}${k === 'applications' && S.pending ? `<span class="badge">${S.pending}</span>` : ''}</a>`).join('')}</nav>`).join('')}
   </aside><main>
-    <header><select class="themepick" title="Ganti tema" onchange="setTheme(this.value)">${THEMES.map(([k, n]) => `<option value="${k}" ${theme() === k ? 'selected' : ''}>Tema: ${n}</option>`).join('')}</select><span class="pill"><span class="dot ${g.online ? 'on' : ''}"></span>${g.online ? 'Bot online' : 'Bot offline'}</span>
+    <header>${themePicker()}<span class="pill"><span class="dot ${g.online ? 'on' : ''}"></span>${g.online ? 'Bot online' : 'Bot offline'}</span>
       <div class="user"><img src="${esc(S.me.user.avatar)}"><b>${esc(S.me.user.username)}</b>${S.me.superAdmin ? '<span class="tag">Super Admin</span>' : ''}</div><a href="/logout"><button class="small">Keluar</button></a></header>
     <div class="content">${inner}</div></main></div>`;
 }
@@ -696,7 +733,7 @@ const pages = {};
 pages.home = () => {
   const g = S.guild, c = S.cfg, sec = c.security, can = (k) => (S.me.pages || []).includes(k);
   const h = new Date(Date.now() + 7 * 3600e3).getUTCHours();
-  const greet = h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam';
+  const greet = h < 4 ? 'Selamat malam' : h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam';
   const lock = g.lockdownUntil > Date.now();
   const feats = [
     ['verify', 'Verifikasi', c.verify.enabled, 'Form Tamu / Member'], ['tickets', 'Tiket', c.tickets?.enabled, 'Order & bantuan'], ['welcome', 'Welcome & goodbye', c.welcome?.enabled, 'Kartu sambutan'],
