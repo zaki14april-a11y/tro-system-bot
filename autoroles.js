@@ -64,7 +64,13 @@ function setup(bot) {
       if (want && !has) { await m.roles.add(d.verifiedId, 'Sudah verifikasi').catch(() => {}); changes++; }
       if (!want && has) { await m.roles.remove(d.verifiedId, 'Belum verifikasi').catch(() => {}); changes++; }
     }
-    const md = cfg.data('birthdays', { users: {}, lastRun: '', roleGiven: [] }).users[m.id];
+    const bd = cfg.data('birthdays', { users: {}, lastRun: '', roleGiven: [] });
+    let md = bd.users[m.id];
+    if (!md) {
+      // ambil dari data pengajuan (tanggal lahir di form verifikasi) → sekalian isi data ulang tahun
+      const app = (cfg.get().applications || []).find((a) => a.userId === m.id && a.birth?.md && a.status !== 'rejected');
+      if (app) { md = app.birth.md; bd.users[m.id] = md; cfg.saveSoon ? cfg.saveSoon() : cfg.save(); }
+    }
     const target = zodiacOf(md);
     for (const [name, id] of Object.entries(d.zodiac)) {
       const has = m.roles.cache.has(id);
