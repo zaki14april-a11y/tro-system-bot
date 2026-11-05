@@ -78,6 +78,7 @@ function setup({ client, baseEmbed }) {
       allowedMentions: { users: [it.user.id], roles: t.staffRoleIds },
     });
     cfg.addLog('Tiket dibuka', `#${num} ${type.label} oleh ${it.user.username}`);
+    client.notifyStaff?.('ticket', { title: `Tiket #${num} — ${type.label}`, description: `<@${it.user.id}> (${it.user.username}) buka tiket **${type.emoji || ''} ${type.label}** di <#${ch.id}>. Perlu dibalas staff.`, url: `https://discord.com/channels/${g.id}/${ch.id}` });
     return it.editReply(`✅ Tiket kamu sudah dibuat: <#${ch.id}>`);
   }
 

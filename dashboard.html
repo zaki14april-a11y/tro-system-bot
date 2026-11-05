@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TRO SYSTEM — Dashboard</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦉</text></svg>">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('tro-theme')||'pro'}catch(e){document.documentElement.dataset.theme='pro'}</script>
 <style>
 :root{
   --bg:#0f0f12;--panel:#17171c;--panel2:#1e1e25;--line:#2a2a33;--text:#ececf1;--muted:#9a9aa8;
@@ -412,6 +413,135 @@ button.primary:hover:before,.login a.btn:hover:before{left:130%}
 .hint.loading,.loading{background:linear-gradient(90deg,rgba(169,176,190,.06),rgba(233,209,139,.12),rgba(169,176,190,.06));background-size:200% 100%;animation:sweep 1.4s linear infinite;border-radius:6px}
 @media (prefers-reduced-motion: reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}#intro,#motes{display:none}.boot .nav a,.boot .navgroup{opacity:1}}
 @media(max-width:900px){.content{padding:22px 16px}h1{font-size:24px}}
+
+/* =====================================================================
+   TEMA PROFESIONAL & TERANG  (default: pro · pilih di header)
+   ===================================================================== */
+html:not([data-theme=ordo]){--bg:#16181d;--panel:#1d2027;--panel2:#252932;--line:#2e333d;--line2:#2e333d;--hover:#454c59;--text:#e7e9ee;--muted:#8d95a3;--silver:#b3b9c4;
+  --gold:#c9a24b;--gold2:#dcbb6c;--red:#e5534b;--green:#3fb27f;--radius:10px;--display:var(--body);--ring:rgba(201,162,75,.22)}
+html[data-theme=light]{--bg:#f4f5f7;--panel:#ffffff;--panel2:#f0f2f5;--line:#e1e4e9;--line2:#e1e4e9;--hover:#c4c9d2;--text:#1b1f27;--muted:#6b7280;--silver:#4b5260;
+  --gold:#a17a1c;--gold2:#8a6912;--red:#c9372c;--green:#1f8a5b;--ring:rgba(161,122,28,.2)}
+html:not([data-theme=ordo]) body{background:var(--bg);font-size:14px;letter-spacing:0}
+html:not([data-theme=ordo]) ::selection{background:var(--ring)}
+html:not([data-theme=ordo]) #intro,html:not([data-theme=ordo]) #motes,html:not([data-theme=ordo]) aside:before,html:not([data-theme=ordo]) .card:before,html:not([data-theme=ordo]) .tile:after,html:not([data-theme=ordo]) .feat:after,html:not([data-theme=ordo]) .card.stat:after,html:not([data-theme=ordo]) .hero:before,html:not([data-theme=ordo]) .hero:after,html:not([data-theme=ordo]) .ripple,
+html:not([data-theme=ordo]) button.primary:before,html:not([data-theme=ordo]) .tabs button.on:before,html:not([data-theme=ordo]) .login a.btn:before,html:not([data-theme=ordo]) .login .box:before,html:not([data-theme=ordo]) .toast:after,html:not([data-theme=ordo]) h1+.sub:before,html:not([data-theme=ordo]) .row>div>h1+.sub:before,html:not([data-theme=ordo]) .navgroup:after,html:not([data-theme=ordo]) .stat .ic2{display:none!important}
+html:not([data-theme=ordo]) .nav .ne{display:none}
+.nav .ni{display:none}
+html:not([data-theme=ordo]) .nav .ni{display:inline-flex;width:18px;justify-content:center}
+.ni svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* sidebar */
+html:not([data-theme=ordo]) aside{width:244px;background:var(--panel);border-right:1px solid var(--line);box-shadow:none;scrollbar-color:var(--line) transparent}
+html:not([data-theme=ordo]) .brand{flex-direction:row;align-items:center;text-align:left;gap:11px;padding:18px 18px 16px;margin:0 0 4px;background:none;border-bottom:1px solid var(--line)}
+html:not([data-theme=ordo]) .brand img,html:not([data-theme=ordo]) .brand .crest.fb.big{width:34px;height:34px;border-radius:8px;clip-path:none;filter:none;animation:none!important;flex:none}
+html:not([data-theme=ordo]) .brand .crest.fb.big:after{font-size:18px}
+html:not([data-theme=ordo]) .brand>div{font-family:var(--body);font-size:14.5px;font-weight:700;letter-spacing:0;line-height:1.25}
+html:not([data-theme=ordo]) .brand span{color:var(--text)}
+html:not([data-theme=ordo]) .brand small{margin-top:1px;font-size:12px;font-weight:500;letter-spacing:0;color:var(--muted);opacity:1}
+html:not([data-theme=ordo]) .brand small b{display:none}
+html:not([data-theme=ordo]) .navgroup{font-family:var(--body);font-size:11.5px;font-weight:600;letter-spacing:.01em;color:var(--muted);opacity:1;margin:18px 20px 6px}
+html:not([data-theme=ordo]) .nav{padding:0 10px}
+html:not([data-theme=ordo]) .nav a{padding:7px 10px;gap:10px;font-size:13.5px;font-weight:500;color:var(--silver);border:0;border-radius:7px;transform:none!important}
+html:not([data-theme=ordo]) .nav a:hover{background:var(--panel2);color:var(--text)}
+html:not([data-theme=ordo]) .nav a.active{background:var(--panel2);color:var(--text);font-weight:600}
+html:not([data-theme=ordo]) .nav a.active:before{left:-10px;top:7px;bottom:7px;width:3px;background:var(--gold);animation:none}
+html:not([data-theme=ordo]) .nav a .badge{animation:none;background:var(--red);box-shadow:none;font-weight:700}
+html:not([data-theme=ordo]) .boot .nav a,html:not([data-theme=ordo]) .boot .navgroup{opacity:1;animation:none}
+/* header & judul */
+html:not([data-theme=ordo]) header{background:color-mix(in srgb,var(--bg) 88%,transparent);border-bottom:1px solid var(--line);padding:10px 28px}
+html:not([data-theme=ordo]) .content{padding:28px 32px 64px;max-width:1180px}
+html:not([data-theme=ordo]) h1,html:not([data-theme=ordo]) h1.shine,html:not([data-theme=ordo]) .hero h1{font-family:var(--body);font-size:22px;font-weight:700;letter-spacing:-.01em;line-height:1.3;margin-bottom:4px;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--text);-webkit-text-fill-color:currentColor;animation:none}
+html:not([data-theme=ordo]) h1+.sub,html:not([data-theme=ordo]) .row>div>h1+.sub{padding-top:0}
+html:not([data-theme=ordo]) .sub{color:var(--muted);font-size:14px;margin-bottom:22px}
+html:not([data-theme=ordo]) h3,html:not([data-theme=ordo]) .card h3{font-family:var(--body);font-weight:600;font-size:15px;letter-spacing:0;color:var(--text)}
+/* panel */
+html:not([data-theme=ordo]) .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:none;backdrop-filter:none}
+html:not([data-theme=ordo]) .tile,html:not([data-theme=ordo]) .card.stat{transition:border-color .15s}
+html:not([data-theme=ordo]) .tile:hover,html:not([data-theme=ordo]) .card.stat:hover{transform:none;box-shadow:none;border-color:var(--hover)}
+html:not([data-theme=ordo]) .tile:hover .ic{animation:none}
+html:not([data-theme=ordo]) .tile .ic{width:34px;height:34px;border-radius:8px;background:var(--panel2);border:0;font-size:17px}
+html:not([data-theme=ordo]) .stat{padding:16px 18px}
+html:not([data-theme=ordo]) .stat .num,html:not([data-theme=ordo]) .stat .num.emo{font-family:var(--body);font-size:26px;font-weight:700;letter-spacing:-.02em;background:none;color:var(--text);-webkit-text-fill-color:currentColor}
+html:not([data-theme=ordo]) .stat .lbl{color:var(--muted);font-size:13px}
+/* form */
+html:not([data-theme=ordo]) label{color:var(--silver);font-size:13px;font-weight:600}
+html:not([data-theme=ordo]) input,html:not([data-theme=ordo]) textarea,html:not([data-theme=ordo]) select{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--text)}
+html:not([data-theme=ordo]) input:focus,html:not([data-theme=ordo]) textarea:focus,html:not([data-theme=ordo]) select:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--ring)}
+html:not([data-theme=ordo]) button{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;font-weight:600}
+html:not([data-theme=ordo]) button:hover{border-color:var(--hover);color:var(--text)}
+html:not([data-theme=ordo]) button:active{transform:none}
+html:not([data-theme=ordo]) button.primary{background:var(--gold);border-color:var(--gold);color:#1a1405;box-shadow:none;text-shadow:none}
+html[data-theme=light] button.primary{color:#fff}
+html:not([data-theme=ordo]) button.primary:hover{filter:brightness(1.07);color:inherit}
+html:not([data-theme=ordo]) button.danger{background:transparent;color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,transparent)}
+html:not([data-theme=ordo]) button.danger:hover{background:color-mix(in srgb,var(--red) 10%,transparent);color:var(--red)}
+html:not([data-theme=ordo]) button.success{background:transparent;color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent)}
+html:not([data-theme=ordo]) .switch span{background:var(--line);border:0}
+html:not([data-theme=ordo]) .switch input:checked+span{background:var(--gold);border:0}
+html:not([data-theme=ordo]) .switch span:before{transition:transform .2s!important}
+html:not([data-theme=ordo]) .chip{background:var(--bg);border:1px solid var(--line);color:var(--silver)}
+html:not([data-theme=ordo]) .chip:hover{border-color:var(--hover)}
+html:not([data-theme=ordo]) .chip.on{background:color-mix(in srgb,var(--gold) 14%,transparent);border-color:var(--gold);color:var(--text)}
+html:not([data-theme=ordo]) .tabs button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+html:not([data-theme=ordo]) code,html:not([data-theme=ordo]) .cmd code{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:1px 6px}
+html:not([data-theme=ordo]) .cmd .ex:hover{color:var(--gold)}
+/* tabel */
+html:not([data-theme=ordo]) th{font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:0;color:var(--muted);background:transparent}
+html:not([data-theme=ordo]) td,html:not([data-theme=ordo]) th{border-bottom:1px solid var(--line)}
+html:not([data-theme=ordo]) tbody tr:hover{background:var(--panel2)}
+html:not([data-theme=ordo]) .tag{background:var(--panel2);color:var(--silver);border:1px solid var(--line)}
+html:not([data-theme=ordo]) .list a:hover{background:var(--panel2)}
+html:not([data-theme=ordo]) .list a.active{border-color:var(--line);background:var(--panel2)}
+html:not([data-theme=ordo]) .feat{background:var(--bg);border:1px solid var(--line);border-radius:8px}
+html:not([data-theme=ordo]) .feat:hover{border-color:var(--hover)}
+html:not([data-theme=ordo]) .day{background:var(--bg);border-color:var(--line)}
+html:not([data-theme=ordo]) .day .dn{font-family:var(--body)}
+html:not([data-theme=ordo]) .day.today{box-shadow:0 0 0 2px var(--gold)}
+html:not([data-theme=ordo]) .day .ev{background:var(--panel2);border-left-color:var(--gold)}
+html:not([data-theme=ordo]) .pill{background:var(--panel);border:1px solid var(--line)}
+html:not([data-theme=ordo]) .dot.on{animation:none;box-shadow:none}
+html:not([data-theme=ordo]) .toast{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--green);box-shadow:0 10px 30px rgba(0,0,0,.25);animation:in .2s both}
+html:not([data-theme=ordo]) .toast.err{border-left-color:var(--red)}
+html:not([data-theme=ordo]) .qa div{background:var(--bg)}
+html[data-theme=light] .status.pending,html[data-theme=light] .quota.full{background:#fbf1d9;color:#7a5a0c}
+html[data-theme=light] .status.accepted,html[data-theme=light] .feat .st.on,html[data-theme=light] .quota,html[data-theme=light] .who.m{background:#dcf3e7;color:#17683f}
+html[data-theme=light] .status.rejected{background:#fde4e1;color:#9b2a21}
+html[data-theme=light] .who.Admin{background:#fbf1d9;color:#7a5a0c}
+html[data-theme=light] .who.Staff{background:#e0edfb;color:#1d5ea8}
+html[data-theme=light] .feat .st.off{background:var(--panel2);color:var(--muted)}
+html[data-theme=light] .err-box{background:#fde4e1;color:#9b2a21;border-color:#f3b8b1}
+html[data-theme=light] .toast{box-shadow:0 10px 30px rgba(16,24,40,.12)}
+/* gerak: cukup fade halus */
+html:not([data-theme=ordo]) .content>*,html:not([data-theme=ordo]) .content .grid>*{animation:fadeonly .18s ease both;animation-delay:0s!important}
+@keyframes fadeonly{from{opacity:0}}
+/* login */
+html:not([data-theme=ordo]) .login{background:var(--bg)}
+html:not([data-theme=ordo]) .login .box{animation:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:36px 34px}
+html:not([data-theme=ordo]) .login .owl{width:64px;height:64px;clip-path:none;border-radius:14px;background:var(--panel2);filter:none;animation:none}
+html:not([data-theme=ordo]) .login .owl:after{width:auto;height:auto;background:none;clip-path:none;font-size:34px}
+html:not([data-theme=ordo]) .login h1{font-size:24px;letter-spacing:0}
+html:not([data-theme=ordo]) .login .motto{font-family:var(--body);color:var(--muted);letter-spacing:0;margin:0 0 6px}
+html:not([data-theme=ordo]) .login a.btn{background:#5865f2;color:#fff;border:0;box-shadow:none;border-radius:9px}
+html:not([data-theme=ordo]) .login a.btn svg{fill:#fff}
+/* ringkasan (halaman utama) */
+.hello{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.hello .sub{margin:0}
+.stat a.more{display:inline-block;margin-top:6px;font-size:12.5px;font-weight:600;color:var(--gold);text-decoration:none}
+.stat a.more:hover{text-decoration:underline}
+.todo{display:grid}
+.todo .it{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--text)}
+.todo .it:last-child{border-bottom:0}
+.todo .n{min-width:30px;height:26px;padding:0 8px;border-radius:7px;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--panel2);color:var(--muted)}
+.todo .it.hot .n{background:color-mix(in srgb,var(--gold) 18%,transparent);color:var(--gold)}
+.todo .t b{display:block;font-size:14px;font-weight:600}
+.todo .t span{font-size:12.5px;color:var(--muted)}
+.todo .go{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--muted)}
+.todo .it:hover .go{color:var(--text)}
+.fl{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+.fl a{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--text);font-size:13.5px}
+.fl a small{color:var(--muted);margin-left:auto;font-size:12px;text-align:right}
+.fl .dot{flex:none;width:7px;height:7px}
+.themepick{width:auto;padding:5px 8px;font-size:12.5px;border-radius:7px}
+@media(max-width:900px){.fl{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -437,7 +567,7 @@ const api = async (url, opt = {}) => {
 function toast(msg, err) {
   const t = document.createElement('div');
   t.className = 'toast' + (err ? ' err' : '');
-  t.textContent = msg;
+  t.textContent = theme() === 'ordo' ? msg : String(msg).replace(EMO, '');
   $('#toast').append(t);
   setTimeout(() => { t.classList.add('bye'); setTimeout(() => t.remove(), 350); }, 4000);
 }
@@ -492,6 +622,53 @@ const roleChips = (id, selected) => `<div class="chips" id="${id}">${S.guild.rol
 const readChips = (id) => [...document.querySelectorAll(`#${id} .chip.on`)].map((c) => c.dataset.id);
 document.addEventListener('click', (e) => { if (e.target.classList.contains('chip')) e.target.classList.toggle('on'); });
 
+// ---- ikon garis untuk tema Profesional/Terang ----
+const IC = {
+  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
+  guide: '<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 19.5V4.5"/><path d="M9 7h7M9 11h5"/>',
+  branding: '<circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><path d="M12 2a10 10 0 1 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 22 10.7C22 5.9 17.5 2 12 2z"/>',
+  status: '<path d="M22 12h-4l-3 8-6-16-3 8H2"/>',
+  verify: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17c.7-1.8 2-2.7 3.5-2.7s2.8.9 3.5 2.7M15 10h3M15 14h3"/>',
+  applications: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',
+  tracker: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+  welcome: '<path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a8 8 0 0 0 16 0v-3a2 2 0 0 0-4 0"/>',
+  autorole: '<path d="M12 2 3 7l9 5 9-5z"/><path d="m3 17 9 5 9-5M3 12l9 5 9-5"/>',
+  invites: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/>',
+  events: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  birthday: '<path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1M2 21h20M7 8v3M12 8v3M17 8v3"/><path d="M7 4h.01M12 4h.01M17 4h.01"/>',
+  tempvoice: '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
+  levels: '<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.2L5.8 21 7 14.2 2 9.3l6.9-1z"/>',
+  giveaway: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v9H5v-9M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/>',
+  selfroles: '<path d="M12 2H2v10l9.3 9.3a1 1 0 0 0 1.4 0l8.6-8.6a1 1 0 0 0 0-1.4z"/><circle cx="7" cy="7" r="1.5"/>',
+  posts: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/>',
+  announce: '<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 8a5 5 0 0 1 0 8M18 5a9 9 0 0 1 0 14"/>',
+  tickets: '<path d="M2 9a3 3 0 0 0 0 6v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a3 3 0 0 0 0-6V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M13 5v2M13 11v2M13 17v2"/>',
+  broadcast: '<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
+  activity: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  directory: '<path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M12 3 2 8h20z"/>',
+  divisions: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  suggest: '<path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>',
+  shop: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>',
+  notify: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+  security: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  moderation: '<path d="m16 16 3-8 3 8c-.9.7-1.9 1-3 1s-2.1-.3-3-1zM2 16l3-8 3 8c-.9.7-1.9 1-3 1s-2.1-.3-3-1zM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+  logs: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  access: '<circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 9.2-9.2M17 6l3 3M15 8l2 2"/>',
+};
+const icon = (k) => `<span class="ni"><svg viewBox="0 0 24 24">${IC[k] || IC.home}</svg></span>`;
+const THEMES = [['pro', 'Profesional'], ['ordo', 'Ordo (emas)'], ['light', 'Terang']];
+const theme = () => document.documentElement.dataset.theme || 'pro';
+function setTheme(t) { document.documentElement.dataset.theme = t; try { localStorage.setItem('tro-theme', t); } catch (e) {} render(); }
+// tema non-Ordo: buang emoji di depan judul/tombol biar bersih
+const EMO = /^[\s‍️]*(?:[\p{Extended_Pictographic}\p{Regional_Indicator}][‍️\u{1F3FB}-\u{1F3FF}]*)+[\s‍️]*/u;
+function tidyText(root) {
+  if (theme() === 'ordo') return;
+  root.querySelectorAll('h1,h3,button,th,.tabs button,label').forEach((el) => {
+    const n = [...el.childNodes].find((x) => x.nodeType === 3 && x.textContent.trim()) ; if (!n || n !== [...el.childNodes].find((x) => x.nodeType !== 3 || x.textContent.trim())) return;
+    const t = n.textContent.replace(EMO, ''); if (t.trim()) n.textContent = t;
+  });
+}
+
 // ================== halaman ==================
 const PAGES = [
   ['Umum', [['home', '🏠', 'Utama'], ['guide', '📖', 'Tutorial & Command Center'], ['branding', '🎨', 'Tampilan Bot'], ['status', '🟢', 'Status Bot']]],
@@ -499,7 +676,7 @@ const PAGES = [
   ['Komunitas', [['invites', '🗓️', 'Undangan Fams'], ['events', '📅', 'Jadwal Event'], ['birthday', '🎂', 'Ultah & Statistik'], ['tempvoice', '🔊', 'Custom Voice']]],
   ['Engagement', [['levels', '⭐', 'Level & XP'], ['giveaway', '🎉', 'Giveaway'], ['selfroles', '🏷️', 'Self-Role Panel']]],
   ['Pesan & Support', [['posts', '📜', 'Postingan Resmi'], ['announce', '📢', 'Pengumuman'], ['tickets', '🎫', 'Ticket']]],
-  ['Manajemen', [['broadcast', '📨', 'DM Massal'], ['activity', '💤', 'Keaktifan Member'], ['directory', '🏛️', 'Struktur & Data'], ['divisions', '🗂️', 'Divisi & Tugas'], ['suggest', '💡', 'Saran Aktivitas'], ['shop', '🛒', 'TRO Shop']]],
+  ['Manajemen', [['broadcast', '📨', 'DM Massal'], ['activity', '💤', 'Keaktifan & Daftar'], ['directory', '🏛️', 'Struktur & Data'], ['divisions', '🗂️', 'Divisi & Tugas'], ['suggest', '💡', 'Saran Aktivitas'], ['shop', '🛒', 'TRO Shop'], ['notify', '🔔', 'Notif Staff & Rapat']]],
   ['Keamanan', [['security', '🛡️', 'Anti Hack & Raid'], ['moderation', '⚖️', 'Moderasi & Warn'], ['logs', '🧾', 'Log Aktivitas'], ['access', '👑', 'Akses Dashboard']]],
 ];
 
@@ -507,31 +684,55 @@ function layout(inner) {
   const g = S.guild;
   return `<div class="app"><aside>
     <div class="brand"><img src="${esc(g.icon || g.bot?.avatar || '')}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'crest fb big'}))"><div>TRO <span>SYSTEM</span><small><b>XIII</b>The Resilient Order</small></div></div>
-    ${PAGES.map(([grp, all]) => [grp, all.filter(([k]) => (S.me.pages || []).includes(k))]).filter(([, items]) => items.length).map(([grp, items]) => `<div class="navgroup">${grp}</div><nav class="nav">${items.map(([k, ic, n]) => `<a href="#${k}" class="${S.page === k ? 'active' : ''}">${ic} ${n}${k === 'applications' && S.pending ? `<span class="badge">${S.pending}</span>` : ''}</a>`).join('')}</nav>`).join('')}
+    ${PAGES.map(([grp, all]) => [grp, all.filter(([k]) => (S.me.pages || []).includes(k))]).filter(([, items]) => items.length).map(([grp, items]) => `<div class="navgroup">${grp}</div><nav class="nav">${items.map(([k, ic, n]) => `<a href="#${k}" class="${S.page === k ? 'active' : ''}">${icon(k)}<span class="ne">${ic}</span> ${n}${k === 'applications' && S.pending ? `<span class="badge">${S.pending}</span>` : ''}</a>`).join('')}</nav>`).join('')}
   </aside><main>
-    <header><span class="pill"><span class="dot ${g.online ? 'on' : ''}"></span>${g.online ? 'Bot online' : 'Bot offline'}</span>
-      <div class="user"><img src="${esc(S.me.user.avatar)}"><b>${esc(S.me.user.username)}</b>${S.me.superAdmin ? '<span class="tag" style="color:var(--gold2)">👑 Super Admin</span>' : ''}</div><a href="/logout"><button class="small">Keluar</button></a></header>
+    <header><select class="themepick" title="Ganti tema" onchange="setTheme(this.value)">${THEMES.map(([k, n]) => `<option value="${k}" ${theme() === k ? 'selected' : ''}>Tema: ${n}</option>`).join('')}</select><span class="pill"><span class="dot ${g.online ? 'on' : ''}"></span>${g.online ? 'Bot online' : 'Bot offline'}</span>
+      <div class="user"><img src="${esc(S.me.user.avatar)}"><b>${esc(S.me.user.username)}</b>${S.me.superAdmin ? '<span class="tag">Super Admin</span>' : ''}</div><a href="/logout"><button class="small">Keluar</button></a></header>
     <div class="content">${inner}</div></main></div>`;
 }
 
 const pages = {};
 
 pages.home = () => {
-  const g = S.guild, c = S.cfg, sec = c.security;
-  const on = (b) => b ? '✅' : '⛔';
-  return `<div class="card hero"><div class="row"><img class="crest" src="${esc(g.icon || '')}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'crest fb'}))"><div><h1>${esc(g.name)}</h1><div class="sub" style="margin:0">Dashboard resmi TRO SYSTEM • In wisdom, we endure. 🦉</div></div></div></div>
-  <div class="grid g4" style="margin-top:16px">
-    <div class="card stat"><span class="ic2">👥</span><div class="num">${g.memberCount}</div><div class="lbl">Total member</div></div>
-    <div class="card stat"><span class="ic2">📥</span><div class="num">${S.pending || 0}</div><div class="lbl">Pengajuan menunggu ACC</div></div>
-    <div class="card stat"><span class="ic2">🗓️</span><div class="num">${S.invToday ?? 0}<span style="font-size:16px">/${c.invitesLimit || 3}</span></div><div class="lbl">Undangan fams hari ini</div></div>
-    <div class="card stat"><div class="num emo">${g.lockdownUntil > Date.now() ? '🔒' : '🛡️'}</div><div class="lbl">${g.lockdownUntil > Date.now() ? 'Lockdown aktif' : 'Server aman'}</div></div>
+  const g = S.guild, c = S.cfg, sec = c.security, can = (k) => (S.me.pages || []).includes(k);
+  const h = new Date(Date.now() + 7 * 3600e3).getUTCHours();
+  const greet = h < 11 ? 'Selamat pagi' : h < 15 ? 'Selamat siang' : h < 18 ? 'Selamat sore' : 'Selamat malam';
+  const lock = g.lockdownUntil > Date.now();
+  const feats = [
+    ['verify', 'Verifikasi', c.verify.enabled, 'Form Tamu / Member'], ['tickets', 'Tiket', c.tickets?.enabled, 'Order & bantuan'], ['welcome', 'Welcome & goodbye', c.welcome?.enabled, 'Kartu sambutan'],
+    ['levels', 'Level & XP', c.levels?.enabled, 'Chat + voice'], ['autorole', 'Auto role', c.autorole.enabled, `${c.autorole.roleIds.length} role`], ['security', 'Anti spam & raid', sec.antiSpam.enabled && sec.antiRaid.enabled, sec.antiNuke.enabled ? 'Anti-nuke aktif' : ''],
+    ['notify', 'Notif staff', c.notify?.enabled !== false, 'DM ke admin & owner'], ['events', 'Jadwal event', c.events?.enabled !== false, 'Pengingat otomatis'],
+  ].filter(([k]) => can(k));
+  return `<div class="hello"><div><h1>${greet}, ${esc(S.me.user.username)}</h1><div class="sub">${esc(g.name)} · ${g.memberCount} member · bot ${g.online ? 'online' : 'offline'}</div></div></div>
+  <div class="grid g4">
+    <div class="card stat"><div class="num">${g.memberCount}</div><div class="lbl">Total member</div>${can('directory') ? '<a class="more" href="#directory">Lihat struktur</a>' : ''}</div>
+    <div class="card stat"><div class="num">${S.pending || 0}</div><div class="lbl">Pengajuan menunggu ACC</div>${can('applications') ? '<a class="more" href="#applications">Periksa</a>' : ''}</div>
+    <div class="card stat"><div class="num" id="hm-tk">–</div><div class="lbl">Tiket terbuka</div>${can('tickets') ? '<a class="more" href="#tickets">Buka tiket</a>' : ''}</div>
+    <div class="card stat"><div class="num">${S.invToday ?? 0}<span style="font-size:15px;color:var(--muted)"> / ${c.invitesLimit || 3}</span></div><div class="lbl">Undangan fams hari ini</div>${can('invites') ? '<a class="more" href="#invites">Jadwal</a>' : ''}</div>
   </div>
-  <h3 style="margin:26px 0 12px">Fitur</h3>
-  <div class="grid g3">
-    ${[['guide', '📖', 'Tutorial & Command Center', 'Semua command + panduan admin'], ['verify', '🪪', 'Verifikasi', `${on(c.verify.enabled)} pilih Tamu / Member Baru + pertanyaan`], ['applications', '📥', 'Pengajuan Member', `${S.pending || 0} menunggu ACC admin`], ['invites', '🗓️', 'Jadwal Undangan Fams', 'Catat undangan, maks 3/hari kerja'], ['tickets', '🎫', 'Ticket', `${on(c.tickets.enabled)} panel tiket & transcript`], ['levels', '⭐', 'Level & XP', `${on(c.levels.enabled)} chat + voice XP`], ['giveaway', '🎉', 'Giveaway', 'Tombol ikut & undi otomatis'], ['events', '📅', 'Jadwal Event', 'Reminder otomatis + ping'], ['moderation', '⚖️', 'Moderasi & Warn', 'Kasus, auto-sanksi'], ['selfroles', '🏷️', 'Self-Role', `${c.selfroles.panels.length} panel`], ['posts', '📜', 'Postingan Resmi', 'Edit rules, price list, dll & publish'], ['announce', '📢', 'Pengumuman', 'Bikin embed cantik & kirim'], ['welcome', '👋', 'Welcome & Goodbye', `${on(c.welcome.enabled)} welcome • ${on(c.goodbye.enabled)} goodbye`],
-      ['autorole', '🎭', 'Auto Role', `${on(c.autorole.enabled)} ${c.autorole.roleIds.length} role`], ['security', '🛡️', 'Anti Hack & Raid', `${on(sec.antiSpam.enabled)} spam • ${on(sec.antiLink.enabled)} link • ${on(sec.antiRaid.enabled)} raid • ${on(sec.antiNuke.enabled)} nuke`], ['status', '🟢', 'Status Bot', `${c.status.items.length} status bergantian`]]
-      .filter(([k]) => (S.me.pages || []).includes(k)).map(([k, ic, t, d]) => `<a href="#${k}" style="text-decoration:none;color:inherit"><div class="card tile"><div class="ic">${ic}</div><h3>${t}</h3><div class="hint">${d}</div></div></a>`).join('')}
+  <div class="grid" style="grid-template-columns:1.15fr 1fr;margin-top:16px">
+    <div class="card"><h3>Perlu tindakan</h3><div class="hint" style="margin-bottom:4px">Hal yang menunggu keputusan staff.</div><div class="todo" id="hm-todo"><div class="hint loading" style="height:40px;margin-top:10px"></div></div></div>
+    <div class="card"><h3>Status fitur</h3><div class="hint" style="margin-bottom:4px">${lock ? '<b style="color:var(--red)">Lockdown sedang aktif.</b>' : 'Server aman, tidak ada lockdown.'}</div>
+      <div class="fl">${feats.map(([k, n, on, d]) => `<a href="#${k}"><span class="dot ${on ? 'on' : ''}"></span>${n}<small>${on ? esc(d || 'Aktif') : 'Nonaktif'}</small></a>`).join('')}</div></div>
   </div>`;
+};
+pages.home.init = async () => {
+  const can = (k) => (S.me.pages || []).includes(k);
+  const [tk, sh, sg, nt] = await Promise.all([can('tickets') && api('/tickets').catch(() => null), can('shop') && api('/shop').catch(() => null), can('suggest') && api('/suggest').catch(() => null), can('notify') && api('/notify').catch(() => null)]);
+  if (tk) $('#hm-tk').textContent = tk.open.length; else $('#hm-tk').textContent = '–';
+  const orders = sh ? sh.orders.filter((o) => ['baru', 'dibayar'].includes(o.status)).length : 0;
+  const sugg = sg ? sg.items.filter((x) => x.status === 'open').length : 0;
+  const meet = nt ? nt.meetings.filter((m) => !m.cancelled && m.at > Date.now()).sort((a, b) => a.at - b.at)[0] : null;
+  const rows = [
+    can('applications') && ['applications', S.pending || 0, 'Pengajuan member & tamu', 'ACC atau tolak di halaman Pengajuan'],
+    tk && ['tickets', tk.open.length, 'Tiket terbuka', 'Order Robux, asset, dan bantuan member'],
+    sh && ['shop', orders, 'Order belum diproses', 'Status baru / sudah dibayar'],
+    sg && ['suggest', sugg, 'Saran aktivitas', 'Menunggu diterima atau ditolak'],
+    nt && ['notify', meet ? '1' : 0, meet ? `Rapat: ${meet.title}` : 'Rapat mendatang', meet ? new Date(meet.at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : 'Belum ada rapat terjadwal'],
+  ].filter(Boolean);
+  const hot = rows.filter((r) => Number(r[1]) > 0);
+  $('#hm-todo').innerHTML = rows.map(([k, n, t, d]) => `<a class="it ${Number(n) > 0 ? 'hot' : ''}" href="#${k}"><span class="n">${n}</span><span class="t"><b>${esc(t)}</b><span>${esc(d)}</span></span><span class="go">Buka</span></a>`).join('')
+    + (hot.length ? '' : '<div class="hint" style="padding:10px 2px 0">Semua beres, tidak ada yang menunggu.</div>');
 };
 
 pages.branding = () => `<h1>🎨 Tampilan Bot</h1><div class="sub">Warna & footer yang dipakai semua embed TRO SYSTEM.</div>
@@ -1335,30 +1536,38 @@ pages.broadcast.init = async () => {
 };
 
 // ================== 💤 KEAKTIFAN MEMBER ==================
-pages.activity = () => `<h1>💤 Keaktifan Member</h1><div class="sub">Bot mencatat chat & voice tiap member. Lihat siapa yang lama tidak aktif, kirim DM tanya keaktifan (tombol ✅ aktif / ⏸️ izin / 👋 keluar), lalu cabut role atau kick.</div>
-  <div class="card"><div class="grid g3" style="gap:12px;align-items:end"><div><label>Tidak aktif minimal (hari)</label><input type="number" id="ac-days" min="1"></div><div><label>Filter role (kosong = semua)</label><select id="ac-role"><option value="">— Semua member —</option>${S.guild.roles.map((r) => `<option value="${r.id}">@${esc(r.name)}</option>`).join('')}</select></div><div class="actions" style="margin:0"><button class="primary" id="ac-load">🔍 Tampilkan</button></div></div>
-    <label>Role yang tidak dicek (staff, bot, dll)</label><div id="ac-ign"></div>
-    <label>Pesan DM cek keaktifan</label><textarea id="ac-msg" rows="4"></textarea><div class="actions"><button id="ac-save">💾 Simpan pengaturan</button></div></div>
-  <div class="card" style="margin-top:16px;padding:0;overflow:auto"><div class="row" style="padding:16px 20px 0;flex-wrap:wrap;gap:8px"><h3>📋 Member tidak aktif <span class="hint" id="ac-n"></span></h3><div class="spacer"></div>
-    <button class="small" id="ac-all">☑️ Pilih semua</button><button class="small primary" id="ac-check">📨 DM cek aktif</button>
-    <select id="ac-unrole" style="width:200px"><option value="">— Role yang dicabut —</option>${S.guild.roles.map((r) => `<option value="${r.id}">@${esc(r.name)}</option>`).join('')}</select><button class="small danger" id="ac-un">Cabut role</button><button class="small danger" id="ac-kick">👢 Kick</button></div>
-    <table><thead><tr><th></th><th>Member</th><th>Role</th><th>Terakhir aktif</th><th>Tidak aktif</th><th>Chat</th><th>Jawaban DM</th></tr></thead><tbody id="ac-list"><tr><td colspan="7" class="hint" style="text-align:center;padding:30px">Klik <b>Tampilkan</b>.</td></tr></tbody></table></div>`;
+pages.activity = () => `<h1>💤 Keaktifan & Daftar Member</h1><div class="sub">Lihat siapa yang aktif dan tidak, pisah antara member dan visitor, plus akun kosong (belum verifikasi). Dari sini bisa DM cek keaktifan, cabut role, atau kick.</div>
+  <div class="tabs" id="ac-tabs"></div>
+  <div class="card" style="padding:0;overflow:auto"><div class="row" style="padding:16px 20px 12px;flex-wrap:wrap;gap:8px"><h3 id="ac-title">Daftar</h3><span class="hint" id="ac-n"></span><div class="spacer"></div>
+    <label style="margin:0">Tidak aktif ≥</label><input type="number" id="ac-days" min="1" style="width:76px"><span class="hint">hari</span><button class="small" id="ac-load">Muat ulang</button></div>
+    <div class="row" style="padding:0 20px 14px;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line)"><button class="small" id="ac-all">Pilih semua</button><button class="small primary" id="ac-check">DM cek aktif</button>
+      <select id="ac-unrole" style="width:200px"><option value="">— Role yang dicabut —</option>${S.guild.roles.map((r) => `<option value="${r.id}">@${esc(r.name)}</option>`).join('')}</select><button class="small danger" id="ac-un">Cabut role</button><button class="small danger" id="ac-kick">Kick</button>
+      <div class="spacer"></div><span class="hint" id="ac-scan-st"></span><button class="small" id="ac-scan">Scan riwayat chat</button></div>
+    <table><thead><tr><th></th><th>Member</th><th>Role</th><th>Terakhir aktif</th><th>Tidak aktif</th><th>Chat</th><th>Catatan</th><th>Jawaban DM</th></tr></thead><tbody id="ac-list"></tbody></table></div>
+  <details class="card" style="margin-top:16px"><summary style="cursor:pointer;font-weight:600">Pengaturan cek keaktifan</summary>
+    <label>Role yang selalu dianggap aktif (staff, dll)</label><div id="ac-ign"></div>
+    <label>Pesan DM cek keaktifan</label><textarea id="ac-msg" rows="4"></textarea><div class="actions"><button id="ac-save">💾 Simpan pengaturan</button></div></details>`;
 pages.activity.init = async () => {
   const ANS = { sent: '📨 menunggu', 'dm-closed': '🔒 DM tertutup', yes: '✅ masih aktif', izin: '⏸️ izin/sibuk', leave: '👋 mau keluar' };
-  let list = [], conf = {};
+  const VIEWS = [['member_inactive', 'Member tidak aktif'], ['member_active', 'Member aktif'], ['visitor_inactive', 'Visitor tidak aktif'], ['visitor_active', 'Visitor aktif'], ['empty', 'Akun kosong']];
+  let view = sessionStorage.getItem('ac-view') || 'member_inactive', list = [], counts = {};
   const first = await api('/members/activity?days=99999');
-  conf = first.cfg; $('#ac-days').value = conf.inactiveDays; $('#ac-msg').value = conf.checkMessage; $('#ac-ign').innerHTML = roleChips('ac-ignc', conf.ignoreRoleIds || []);
-    const picked = () => [...document.querySelectorAll('.ac-cb:checked')].map((c) => c.value);
+  const conf = first.cfg; $('#ac-days').value = conf.inactiveDays; $('#ac-msg').value = conf.checkMessage; $('#ac-ign').innerHTML = roleChips('ac-ignc', conf.ignoreRoleIds || []);
+  const picked = () => [...document.querySelectorAll('.ac-cb:checked')].map((c) => c.value);
+  const tabs = () => { $('#ac-tabs').innerHTML = VIEWS.map(([k, n]) => `<button class="${k === view ? 'on' : ''}" data-v="${k}">${n} <span style="opacity:.7">${counts[k] ?? ''}</span></button>`).join(''); document.querySelectorAll('#ac-tabs button').forEach((b) => b.onclick = () => { view = b.dataset.v; sessionStorage.setItem('ac-view', view); load(); }); };
   const draw = () => {
-    $('#ac-n').textContent = `(${list.length})`;
-    $('#ac-list').innerHTML = list.length ? list.map((m) => `<tr><td><input type="checkbox" class="ac-cb" value="${m.id}" style="width:auto"></td><td><div class="row" style="gap:8px"><img src="${esc(m.avatar)}" style="width:28px;height:28px;border-radius:50%"><div><b>${esc(m.name)}</b><div class="hint">@${esc(m.username)}</div></div></div></td><td>${m.roles.map((r) => `<span class="tag" style="border-left:3px solid ${r.color}">${esc(r.name)}</span>`).join(' ')}</td><td>${m.lastActive ? fmtDT(m.lastActive) : '<span class="hint">belum tercatat</span>'}</td><td><b>${m.idleDays}</b> hari</td><td>${m.msgs}</td><td>${m.check ? (ANS[m.check.status] || m.check.status) : '—'}</td></tr>`).join('') : emptyRow(7, 'Semua member aktif 🎉');
+    $('#ac-title').textContent = VIEWS.find(([k]) => k === view)[1]; $('#ac-n').textContent = `${list.length} orang`;
+    $('#ac-list').innerHTML = list.length ? list.map((m) => `<tr><td><input type="checkbox" class="ac-cb" value="${m.id}" style="width:auto"></td><td><div class="row" style="gap:8px;flex-wrap:nowrap"><img src="${esc(m.avatar)}" style="width:28px;height:28px;border-radius:50%"><div><b>${esc(m.name)}</b><div class="hint">@${esc(m.username)}</div></div></div></td><td>${m.roles.map((r) => `<span class="tag" style="border-left:3px solid ${r.color}">${esc(r.name)}</span>`).join(' ') || '<span class="hint">tanpa role</span>'}</td><td>${m.lastActive ? fmtDT(m.lastActive) : '<span class="hint">belum tercatat</span>'}</td><td><b>${m.idleDays}</b> hari</td><td>${m.msgs}</td><td>${m.flags.map((f) => `<span class="tag">${esc(f)}</span>`).join(' ') || '<span class="hint">—</span>'}</td><td>${m.check ? (ANS[m.check.status] || m.check.status) : '—'}</td></tr>`).join('') : emptyRow(8, view === 'empty' ? 'Tidak ada akun kosong.' : view.endsWith('inactive') ? 'Tidak ada yang tidak aktif.' : 'Belum ada data.');
   };
-  const load = async () => { const r = await api(`/members/activity?days=${$('#ac-days').value}&roles=${$('#ac-role').value}`); list = r.list; draw(); };
+  const load = async () => { const r = await api(`/members/list?view=${view}&days=${$('#ac-days').value}`); list = r.list; counts = r.counts; tabs(); draw(); tidyText($('#root')); };
+  const scanSt = async () => { const r = await api('/members/scan').catch(() => null); if (!r || !$('#ac-scan-st')) return; if (r.running) { $('#ac-scan-st').textContent = `Scan ${r.done}/${r.channels} channel…`; setTimeout(scanSt, 3000); } else { $('#ac-scan-st').textContent = r.scannedAt || r.messages ? 'Riwayat chat sudah di-scan' : 'Riwayat chat belum di-scan'; if (r.messages) load(); } };
+  tabs(); await load(); scanSt();
   $('#ac-load').onclick = (e) => busy(e.target, load);
+  $('#ac-scan').onclick = (e) => busy(e.target, async () => { await api('/members/scan', { method: 'POST', body: {} }); toast('Scan riwayat chat dimulai'); setTimeout(scanSt, 1500); });
   $('#ac-all').onclick = () => { const cbs = [...document.querySelectorAll('.ac-cb')]; const on = cbs.some((c) => !c.checked); cbs.forEach((c) => c.checked = on); };
-  $('#ac-save').onclick = (e) => busy(e.target, async () => { await api('/members/activity', { method: 'PUT', body: { inactiveDays: $('#ac-days').value, ignoreRoleIds: readChips('ac-ignc'), checkMessage: $('#ac-msg').value } }); toast('✅ Disimpan'); });
-  $('#ac-check').onclick = (e) => { const ids = picked(); if (!ids.length) return toast('Pilih member dulu', true); if (!confirm(`Kirim DM cek keaktifan ke ${ids.length} member?`)) return; busy(e.target, async () => { await api('/members/activity/check', { method: 'POST', body: { userIds: ids } }); toast('📨 DM cek aktif sedang dikirim'); }); };
-  const act = (action) => (e) => { const ids = picked(); const role = $('#ac-unrole').value; if (!ids.length) return toast('Pilih member dulu', true); if (action === 'unrole' && !role) return toast('Pilih role yang dicabut', true); if (!confirm(action === 'kick' ? `KICK ${ids.length} member?` : `Cabut role @${roleName(role)} dari ${ids.length} member?`)) return; busy(e.target, async () => { const r = await api('/members/activity/action', { method: 'POST', body: { userIds: ids, action, roleIds: [role] } }); toast(`✅ ${r.ok} member diproses`); load(); }); };
+  $('#ac-save').onclick = (e) => busy(e.target, async () => { await api('/members/activity', { method: 'PUT', body: { inactiveDays: $('#ac-days').value, ignoreRoleIds: readChips('ac-ignc'), checkMessage: $('#ac-msg').value } }); toast('✅ Disimpan'); load(); });
+  $('#ac-check').onclick = (e) => { const ids = picked(); if (!ids.length) return toast('Pilih member dulu', true); if (!confirm(`Kirim DM cek keaktifan ke ${ids.length} orang?`)) return; busy(e.target, async () => { await api('/members/activity/check', { method: 'POST', body: { userIds: ids } }); toast('📨 DM cek aktif sedang dikirim'); }); };
+  const act = (action) => (e) => { const ids = picked(); const role = $('#ac-unrole').value; if (!ids.length) return toast('Pilih member dulu', true); if (action === 'unrole' && !role) return toast('Pilih role yang dicabut', true); if (!confirm(action === 'kick' ? `KICK ${ids.length} orang?` : `Cabut role @${roleName(role)} dari ${ids.length} orang?`)) return; busy(e.target, async () => { const r = await api('/members/activity/action', { method: 'POST', body: { userIds: ids, action, roleIds: [role] } }); toast(`✅ ${r.ok} orang diproses`); load(); }); };
   $('#ac-un').onclick = act('unrole'); $('#ac-kick').onclick = act('kick');
 };
 
@@ -1368,9 +1577,14 @@ pages.directory = () => `<h1>🏛️ Struktur & Data Member</h1><div class="sub"
     <label>Role yang ditampilkan (urut sesuai klik / posisi role)</label><div id="dr-roles"></div>
     <div class="actions"><button class="primary" id="dr-save">💾 Simpan & kirim</button></div></div>
   <div class="card"><h3>🎟️ Data visitor / tamu</h3><div class="hint">Setiap Tamu yang di-ACC otomatis dibuatkan kartu data di channel ini.</div><label>Channel data visitor</label>${sel('dr-vis', chOptions('', '— Tidak dikirim —'))}
-    <h3 style="margin-top:22px">🦉 Data member</h3><div class="hint">Channel data anggota sekarang: <b id="dr-mem"></b>. Ubah di menu <a href="#verify">Verifikasi</a>.</div></div></div>`;
+    <h3 style="margin-top:22px">🦉 Data member</h3><div class="hint">Channel data anggota sekarang: <b id="dr-mem"></b>. Ubah di menu <a href="#verify">Verifikasi</a>.</div></div></div>
+  <div class="card" style="margin-top:16px"><h3>🗄️ Sinkron data lama</h3><div class="hint">Kirim ulang semua data yang sudah ada ke sistem baru: member & tamu yang sudah di-ACC dibuatkan kartu di data-member / data-visitor, dan member lama yang sudah punya role (verif dari bot lama) ikut dicatat. Yang kartunya sudah ada di channel tidak dikirim dobel.</div>
+    <div class="actions"><button class="primary" id="dr-sync">Sinkronkan sekarang</button><span class="hint" id="dr-sync-st"></span></div></div>`;
 pages.directory.init = async () => {
   const d = await api('/members/directory');
+  const showSync = async () => { const r = await api('/members/sync').catch(() => null); if (!r || !$('#dr-sync-st')) return; if (r.running) { $('#dr-sync-st').textContent = `Berjalan… ${r.done}/${r.total} kartu`; $('#dr-sync').disabled = true; setTimeout(showSync, 3000); } else if (r.finishedAt) { $('#dr-sync-st').textContent = `Selesai: ${r.posted} kartu dikirim, ${r.created} member lama dicatat.`; $('#dr-sync').disabled = false; } };
+  showSync();
+  $('#dr-sync').onclick = (e) => busy(e.target, async () => { const r = await api('/members/sync', { method: 'POST', body: {} }); toast(`✅ Sinkron dimulai: ${r.total} kartu akan dikirim, ${r.created} member lama dicatat`); setTimeout(showSync, 1500); });
   $('#dr-title').value = d.title; $('#dr-ch').value = d.structureChannelId; $('#dr-vis').value = d.visitorChannelId;
   $('#dr-mem').textContent = S.cfg.verify.dataChannelId ? '#' + chName(S.cfg.verify.dataChannelId) : 'belum diatur';
   const order = [...d.structureRoleIds];
@@ -1467,6 +1681,51 @@ pages.suggest.init = async () => {
 };
 
 
+// ================== 🔔 NOTIF STAFF & RAPAT ==================
+pages.notify = () => `<h1>🔔 Notif Staff & Rapat</h1><div class="sub">DM otomatis ke owner dan admin kalau ada yang perlu disetujui atau penting. Rapat diumumkan di channel + undangan DM dengan tombol Hadir / Izin, lalu pengingat otomatis sebelum mulai.</div>
+  <div class="grid g2">
+    <div class="card"><h3>Penerima DM <span class="row" style="gap:8px;font-size:13px;font-weight:500">Aktif ${toggle('nf-on', true)}</span></h3><div class="hint" id="nf-count">Owner server dan super admin selalu dapat.</div>
+      <label>Role yang dapat notif</label><div id="nf-roles"></div>
+      <label>Tambahan user (ID Discord, pisah koma)</label><input id="nf-users" placeholder="contoh: 563752367305261107">
+      <div class="actions"><button class="primary" id="nf-save">💾 Simpan</button><button id="nf-test">Kirim DM tes</button></div></div>
+    <div class="card"><h3>Jenis notifikasi</h3><div id="nf-kinds"></div>
+      <label>Ingatkan pengajuan yang belum di-ACC setelah (jam)</label><div class="row"><input type="number" id="nf-ph" min="1" max="168" style="width:110px"><button class="small" id="nf-pnow">Kirim pengingat sekarang</button></div></div>
+  </div>
+  <div class="grid" style="grid-template-columns:380px 1fr;margin-top:16px">
+    <div class="card"><h3>📅 Umumkan rapat</h3>
+      <label>Judul rapat</label><input id="mt-title" placeholder="contoh: Rapat bulanan staff">
+      <label>Waktu (WIB)</label><input type="datetime-local" id="mt-at">
+      <label>Tempat</label>${sel('mt-vc', vcOptions(''))}
+      <label>Agenda</label><textarea id="mt-agenda" style="min-height:90px;font-family:inherit" placeholder="1. Evaluasi event&#10;2. Rencana bulan depan"></textarea>
+      <label>Peserta (kosong = role penerima di atas)</label><div id="mt-roles"></div>
+      <label>Channel pengumuman</label>${sel('mt-ch', chOptions('', '— Hanya DM —'))}
+      <label>Pengingat sebelum mulai (menit)</label><input type="number" id="mt-rm" min="5" max="1440" style="width:110px">
+      <div class="actions"><button class="primary" id="mt-go">Umumkan & kirim undangan</button></div>
+      <div class="hint">Bisa juga dari Discord: <code>/rapat buat</code>, <code>/rapat list</code>, <code>/rapat batal</code>, dan <code>/rapat penting</code> untuk info penting ke semua admin.</div></div>
+    <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Rapat</th><th>Waktu</th><th>Hadir</th><th>Izin</th><th></th></tr></thead><tbody id="mt-list"></tbody></table></div>
+  </div>`;
+pages.notify.init = async () => {
+  const r = await api('/notify'); const n = r.cfg;
+  $('#nf-on').checked = n.enabled; $('#nf-roles').innerHTML = roleChips('nf-rc', n.roleIds); $('#nf-users').value = n.userIds.join(', ');
+  $('#nf-count').textContent = `${r.recipients} orang akan menerima DM (owner & super admin selalu termasuk).`;
+  $('#nf-kinds').innerHTML = Object.entries(r.kinds).map(([k, t]) => `<div class="row" style="justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)"><span>${esc(t)}</span>${toggle('nk-' + k, n.kinds[k] !== false)}</div>`).join('');
+  $('#nf-ph').value = n.pendingHours; $('#mt-rm').value = n.remindMinutes; $('#mt-ch').value = n.meetingChannelId; $('#mt-roles').innerHTML = roleChips('mt-rc', n.meetingRoleIds);
+  const body = () => ({ enabled: $('#nf-on').checked, roleIds: readChips('nf-rc'), userIds: $('#nf-users').value.split(/[\s,]+/).filter(Boolean), kinds: Object.fromEntries(Object.keys(r.kinds).map((k) => [k, $('#nk-' + k).checked])), pendingHours: $('#nf-ph').value, remindMinutes: $('#mt-rm').value, meetingChannelId: $('#mt-ch').value, meetingRoleIds: readChips('mt-rc') });
+  $('#nf-save').onclick = (e) => busy(e.target, async () => { await api('/notify', { method: 'PUT', body: body() }); toast('✅ Pengaturan notif disimpan'); render(); });
+  $('#nf-test').onclick = (e) => busy(e.target, async () => { await api('/notify', { method: 'PUT', body: body() }); const x = await api('/notify/test', { method: 'POST', body: {} }); toast(`✅ DM tes terkirim ke ${x.ok} orang`); });
+  $('#nf-pnow').onclick = (e) => busy(e.target, async () => { await api('/notify/pending', { method: 'POST', body: {} }); toast('✅ Pengingat dikirim (kalau ada pengajuan yang menunggu)'); });
+  const list = r.meetings.filter((m) => m.at > Date.now() - 86400e3 * 14);
+  $('#mt-list').innerHTML = list.length ? list.map((m) => { const v = Object.values(m.rsvp || {}); return `<tr><td><b>${esc(m.title)}</b>${m.cancelled ? ' <span class="tag">dibatalkan</span>' : ''}<div class="hint">${esc(m.by)}</div></td><td>${new Date(m.at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</td><td>${v.filter((x) => x === 'hadir').length}</td><td>${v.filter((x) => x === 'izin').length}</td><td>${!m.cancelled && m.at > Date.now() ? `<button class="small danger" data-cancel="${m.id}">Batalkan</button>` : ''}</td></tr>`; }).join('') : emptyRow(5, 'Belum ada rapat. Buat dari form di samping.');
+  document.querySelectorAll('[data-cancel]').forEach((b) => b.onclick = () => busy(b, async () => { if (!confirm('Batalkan rapat ini? Peserta akan dikabari lewat DM.')) return; await api(`/meetings/${b.dataset.cancel}/cancel`, { method: 'POST', body: {} }); toast('Rapat dibatalkan'); render(); }));
+  $('#mt-go').onclick = (e) => busy(e.target, async () => {
+    const v = $('#mt-at').value; if (!$('#mt-title').value.trim() || !v) throw new Error('Isi judul dan waktu rapat');
+    await api('/notify', { method: 'PUT', body: body() });
+    const vc = $('#mt-vc').value;
+    const m = await api('/meetings', { method: 'POST', body: { title: $('#mt-title').value, when: Date.parse(v + ':00+07:00'), placeId: vc, agenda: $('#mt-agenda').value, roleIds: readChips('mt-rc'), channelId: $('#mt-ch').value } });
+    toast(`✅ Rapat diumumkan, undangan DM ke ${m.dmSent} orang`); render();
+  });
+};
+
 // ================== efek animasi ==================
 const fx = (() => {
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1489,8 +1748,8 @@ const fx = (() => {
     const c = $('.content'); if (!c) return;
     [...c.children].forEach((el, i) => el.style.setProperty('--i', Math.min(i, 8)));
     c.querySelectorAll('.grid').forEach((g) => [...g.children].forEach((el, j) => el.style.setProperty('--j', Math.min(j, 12))));
-    const h = c.querySelector('h1'); if (h) h.classList.add('shine');
-    if (!calm) c.querySelectorAll('.stat .num:not(.emo)').forEach(countUp);
+    const h = c.querySelector('h1'); if (h && theme() === 'ordo') h.classList.add('shine');
+    if (!calm && theme() === 'ordo') c.querySelectorAll('.stat .num:not(.emo)').forEach(countUp);
   };
 
   // cahaya ikut kursor di kartu
@@ -1509,7 +1768,7 @@ const fx = (() => {
 
   // partikel emas melayang (ringan, berhenti saat tab tidak aktif)
   const cv = $('#motes');
-  if (cv && !calm) {
+  if (cv && !calm && theme() === 'ordo') {
     const ctx = cv.getContext('2d'); let W, H, dots = [];
     const size = () => { const dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px'; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       dots = Array.from({ length: Math.round(W * H / 38000) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.6 + .4, v: Math.random() * .25 + .06, a: Math.random() * Math.PI * 2, s: Math.random() * .02 + .005 })); };
@@ -1536,7 +1795,8 @@ function render() {
   S.page = pages[page] && (S.me.pages || []).includes(page) ? page : 'home';
   if (S.page === 'posts' && sub) S.postKey = sub;
   $('#root').innerHTML = layout(pages[S.page]());
-  pages[S.page].init?.();
+  tidyText($('#root'));
+  Promise.resolve(pages[S.page].init?.()).finally(() => tidyText($('#root')));
   window.scrollTo(0, 0);
   fx.page();
 }

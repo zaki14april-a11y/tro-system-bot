@@ -66,6 +66,7 @@ function setup({ client, baseEmbed }) {
     const p = d.products.find((x) => x.id === b.productId);
     const qty = Math.max(1, Number(b.qty) || 1);
     let o = b.id && d.orders.find((x) => x.id === b.id);
+    const isNew = !o;
     if (!o) { d.counter += 1; o = { id: newId(), no: String(d.counter).padStart(4, '0'), createdAt: new Date().toISOString(), createdBy: by, status: 'baru', history: [] }; d.orders.unshift(o); }
     Object.assign(o, {
       customerId: String(b.customerId || o.customerId || '').replace(/\D/g, ''), customerName: String(b.customerName ?? o.customerName ?? '').slice(0, 80),
@@ -76,6 +77,7 @@ function setup({ client, baseEmbed }) {
     if (b.status && b.status !== o.status) { o.history.push({ from: o.status, to: b.status, by, at: new Date().toISOString() }); o.status = b.status; if (['proses', 'selesai'].includes(b.status)) o.handledBy = by; if (b.status === 'selesai') { o.doneAt = new Date().toISOString(); if (p && p.stock !== '' && p.stock != null) p.stock = Math.max(0, Number(p.stock) - qty); } }
     cfg.save();
     logOrder(o, b.status ? `Status → ${STATUS[o.status]} oleh ${by}` : `Order dicatat oleh ${by}`).catch(() => {});
+    if (isNew) client.notifyStaff?.('order', { title: `Order #${o.no} — ${o.productName}`, description: `**Pembeli:** ${o.customerId ? `<@${o.customerId}>` : ''} ${o.customerName || ''}\n**Jumlah:** ${o.qty} · **Total:** Rp${Number(o.total || 0).toLocaleString('id-ID')}\n**Dicatat oleh:** ${by}${o.ticketChannelId ? `\n**Tiket:** <#${o.ticketChannelId}>` : ''}` });
     return o;
   }
 

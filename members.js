@@ -61,6 +61,74 @@ function setup({ client, baseEmbed }) {
     return out.sort((a, b) => b.idleDays - a.idleDays);
   }
 
+  // 📋 daftar per kategori: member/visitor aktif & tidak aktif + akun kosong
+  async function memberList(view, days) {
+    const g = guild(); if (!g) return { list: [], counts: {} };
+    const members = await g.members.fetch().catch(() => g.members.cache);
+    const v = cfg.get().verify, A = AC(), now = Date.now(), ign = ACT().ignoreRoleIds || [];
+    const apps = cfg.get().applications || [];
+    const counts = { member_active: 0, member_inactive: 0, visitor_active: 0, visitor_inactive: 0, empty: 0 };
+    const out = [];
+    for (const m of members.values()) {
+      if (m.user.bot) continue;
+      const isMember = v.memberRoleIds.some((r) => m.roles.cache.has(r));
+      const isGuest = !isMember && v.guestRoleIds.some((r) => m.roles.cache.has(r));
+      const u = A.users[m.id] || {};
+      const last = Math.max(u.msg || 0, u.voice || 0);
+      const idle = Math.floor((now - (last || u.joined || m.joinedTimestamp || 0)) / DAY);
+      const flags = [];
+      if (!isMember && !isGuest) flags.push('belum verifikasi');
+      if (!last) flags.push('belum pernah chat/voice');
+      if (!m.user.avatar) flags.push('tanpa foto profil');
+      if (now - m.user.createdTimestamp < 30 * DAY) flags.push('akun baru (<30 hari)');
+      const hasData = apps.some((a) => a.userId === m.id && a.status === 'accepted' && a.answers?.length);
+      if ((isMember || isGuest) && !hasData) flags.push('data belum diisi');
+      let cat;
+      if (!isMember && !isGuest) cat = 'empty';
+      else if (ign.some((r) => m.roles.cache.has(r))) cat = isMember ? 'member_active' : 'visitor_active';
+      else cat = (isMember ? 'member_' : 'visitor_') + (idle >= days ? 'inactive' : 'active');
+      counts[cat]++;
+      if (cat !== view) continue;
+      out.push({ id: m.id, name: m.displayName, username: m.user.username, avatar: m.user.displayAvatarURL({ size: 64 }), lastActive: last || null, idleDays: idle, joinedAt: m.joinedTimestamp, created: m.user.createdTimestamp, msgs: u.msgs || 0, flags,
+        roles: m.roles.cache.filter((r) => r.id !== g.id).sort((a, b) => b.position - a.position).map((r) => ({ id: r.id, name: r.name, color: r.hexColor })).slice(0, 4),
+        check: A.checks[m.id] || null });
+    }
+    out.sort((a, b) => view.endsWith('_active') ? (b.lastActive || 0) - (a.lastActive || 0) : b.idleDays - a.idleDays);
+    return { list: out, counts, scannedAt: A.scannedAt || null };
+  }
+
+  // 🔎 isi data keaktifan dari riwayat chat lama (biar daftar tidak aktif akurat dari awal)
+  let scanning = null;
+  async function scanHistory() {
+    if (scanning?.running) return scanning;
+    const g = guild(); if (!g) throw new Error('Bot belum siap');
+    const chans = g.channels.cache.filter((c) => c.isTextBased() && !c.isThread() && c.viewable && c.permissionsFor(g.members.me)?.has(P.ReadMessageHistory));
+    scanning = { running: true, channels: chans.size, done: 0, messages: 0 };
+    (async () => {
+      const A = AC();
+      for (const ch of chans.values()) {
+        let before;
+        for (let i = 0; i < 10; i++) {
+          const batch = await ch.messages.fetch({ limit: 100, before }).catch(() => null);
+          if (!batch?.size) break;
+          for (const msg of batch.values()) {
+            if (msg.author.bot) continue;
+            const u = A.users[msg.author.id] || (A.users[msg.author.id] = { msgs: 0 });
+            if (!u.msg || msg.createdTimestamp > u.msg) u.msg = msg.createdTimestamp;
+            scanning.messages++;
+          }
+          before = batch.last().id;
+          if (batch.size < 100) break;
+        }
+        scanning.done++;
+      }
+      A.scannedAt = Date.now(); cfg.save(); scanning.running = false;
+      cfg.addLog('Scan riwayat aktivitas', `${scanning.messages} pesan dari ${scanning.channels} channel`);
+    })().catch((e) => { scanning.running = false; scanning.error = e.message; });
+    return scanning;
+  }
+  client.once('ready', () => setTimeout(() => { if (!AC().scannedAt) scanHistory().catch(() => {}); }, 60_000));
+
   const checkRow = () => new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('tro-act:yes').setLabel('Masih aktif').setEmoji('✅').setStyle(ButtonStyle.Success),
     new ButtonBuilder().setCustomId('tro-act:izin').setLabel('Lagi sibuk / izin').setEmoji('⏸️').setStyle(ButtonStyle.Secondary),
@@ -172,6 +240,77 @@ function setup({ client, baseEmbed }) {
 
   client.once('ready', () => { setTimeout(() => postStructure().catch(() => {}), 20_000); setInterval(() => postStructure().catch(() => {}), 30 * 60_000); });
 
+  // 🗄️ sinkron data lama → data-member / data-visitor + catatan di dashboard
+  let syncing = null;
+  async function seenIn(ch) {
+    const ids = new Set(); let before;
+    for (let i = 0; i < 15; i++) {
+      const batch = await ch.messages.fetch({ limit: 100, before }).catch(() => null);
+      if (!batch?.size) break;
+      batch.forEach((m) => { const t = [m.content, ...m.embeds.map((e) => e.description || '')].join(' '); for (const x of t.matchAll(/<@!?(\d{15,})>/g)) ids.add(x[1]); });
+      before = batch.last().id;
+    }
+    return ids;
+  }
+  async function syncOldData(by) {
+    if (syncing?.running) throw new Error('Sinkron masih berjalan');
+    const s = cfg.get(), v = s.verify, g = guild();
+    if (!g) throw new Error('Bot belum siap');
+    const dataCh = v.dataChannelId && await client.channels.fetch(v.dataChannelId).catch(() => null);
+    const visCh = DIR().visitorChannelId && await client.channels.fetch(DIR().visitorChannelId).catch(() => null);
+    if (!dataCh && !visCh) throw new Error('Channel data-member / data-visitor belum diatur');
+    syncing = { running: true, total: 0, done: 0, posted: 0, created: 0, startedAt: Date.now(), by };
+    await g.members.fetch();
+    const seenM = dataCh ? await seenIn(dataCh) : new Set(), seenV = visCh ? await seenIn(visCh) : new Set();
+    const apps = s.applications || (s.applications = []);
+    const jobs = [];
+    // 1) yang sudah di-ACC lewat sistem tapi kartunya belum ada
+    for (const a of apps.filter((x) => x.status === 'accepted')) {
+      if (a.type === 'member' && dataCh && !a.dataCard && !seenM.has(a.userId)) jobs.push({ a, ch: dataCh, kind: 'member' });
+      if (a.type === 'guest' && visCh && !seenV.has(a.userId)) { a.visitorCard = false; jobs.push({ a, ch: visCh, kind: 'guest' }); }
+      if (a.type === 'member' && seenM.has(a.userId)) a.dataCard = true;
+      if (a.type === 'guest' && seenV.has(a.userId)) a.visitorCard = true;
+    }
+    // 2) yang sudah punya role member/tamu dari sistem lama tapi belum tercatat sama sekali
+    const has = (uid, type) => apps.some((x) => x.userId === uid && x.type === type && x.status === 'accepted');
+    for (const m of g.members.cache.values()) {
+      if (m.user.bot) continue;
+      const type = v.memberRoleIds.some((r) => m.roles.cache.has(r)) ? 'member' : v.guestRoleIds.some((r) => m.roles.cache.has(r)) ? 'guest' : null;
+      if (!type || has(m.id, type)) continue;
+      const a = { id: Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5), userId: m.id, username: m.user.username, avatar: m.user.displayAvatarURL({ size: 256 }),
+        accountCreated: m.user.createdTimestamp, type, answers: [], status: 'accepted', legacy: true, manual: true, reviewedBy: 'data lama', createdAt: new Date(m.joinedTimestamp || Date.now()).toISOString(), reviewedAt: new Date(m.joinedTimestamp || Date.now()).toISOString() };
+      apps.push(a); syncing.created++;
+      const ch = type === 'member' ? dataCh : visCh, seen = type === 'member' ? seenM : seenV;
+      if (ch && !seen.has(m.id)) jobs.push({ a, ch, kind: type, m });
+      else if (type === 'member') a.dataCard = true; else a.visitorCard = true;
+    }
+    cfg.save();
+    syncing.total = jobs.length;
+    (async () => {
+      for (const { a, ch, kind, m } of jobs) {
+        const mem = m || g.members.cache.get(a.userId);
+        const fields = (a.answers || []).map((x) => ({ name: x.q || x.key || 'Jawaban', value: String(x.a || '-').slice(0, 1000), inline: String(x.a || '').length < 40 }));
+        if (a.birth?.age != null) fields.push({ name: 'Usia', value: `${a.birth.age} tahun`, inline: true });
+        if (mem) fields.push({ name: 'Role', value: mem.roles.cache.filter((r) => r.id !== g.id).sort((x, y) => y.position - x.position).map((r) => `<@&${r.id}>`).slice(0, 12).join(' ') || '-', inline: false });
+        const joined = Math.floor((mem?.joinedTimestamp || Date.parse(a.reviewedAt || a.createdAt)) / 1000);
+        const note = a.legacy ? '\n-# Data dari sistem lama · formulir belum diisi (bisa diminta lewat dashboard → Pengajuan → Minta data)' : '';
+        const payload = kind === 'member'
+          ? { title: '🦉 DATA ANGGOTA TRO', description: `<@${a.userId}> (${a.username})\n**Bergabung:** <t:${joined}:D>${a.reviewedBy ? ` · di-ACC **${a.reviewedBy}**` : ''}${note}`, color: '#d4af37' }
+          : { title: '🎟️ DATA VISITOR / TAMU TRO', description: `<@${a.userId}> (${a.username})\n**Masuk sebagai tamu:** <t:${joined}:D>${a.reviewedBy ? ` · di-ACC **${a.reviewedBy}**` : ''}${note}`, color: '#e5484d' };
+        const ok = await ch.send({ embeds: [baseEmbed({ ...payload, fields, thumbnail: a.avatar })], allowedMentions: { parse: [] } }).then(() => true).catch(() => false);
+        if (ok) { syncing.posted++; if (kind === 'member') a.dataCard = true; else a.visitorCard = true; }
+        syncing.done++;
+        if (syncing.done % 10 === 0) cfg.save();
+        await new Promise((r) => setTimeout(r, 1300));
+      }
+      cfg.save(); syncing.running = false; syncing.finishedAt = Date.now();
+      cfg.addLog('Sinkron data lama', `${syncing.posted} kartu dikirim, ${syncing.created} member lama dicatat — oleh ${by}`);
+      queueStructure();
+      scanHistory().catch(() => {});
+    })().catch((e) => { syncing.running = false; syncing.error = e.message; });
+    return syncing;
+  }
+
   // ======================= Interaksi =======================
   client.on(Events.InteractionCreate, async (it) => {
     try {
@@ -202,8 +341,13 @@ function setup({ client, baseEmbed }) {
       if (Array.isArray(req.body.structureRoleIds)) { if (req.body.structureChannelId !== undefined && d.structureChannelId !== req.body.prevChannelId) d.structureMessageIds = []; d.structureRoleIds = req.body.structureRoleIds; }
       cfg.save(); res.json({ ok: true });
     });
+    api.post('/members/sync', async (req, res) => { try { res.json(await syncOldData(req.session.user.username)); } catch (e) { res.status(400).json({ error: e.message }); } });
+    api.get('/members/sync', (req, res) => res.json(syncing || { running: false }));
     api.post('/members/directory/post', async (req, res) => { try { res.json({ result: await postStructure() }); } catch (e) { res.status(400).json({ error: e.message }); } });
 
+    api.get('/members/list', async (req, res) => { try { res.json(await memberList(String(req.query.view || 'member_inactive'), Number(req.query.days) || ACT().inactiveDays)); } catch (e) { res.status(400).json({ error: e.message }); } });
+    api.post('/members/scan', async (req, res) => { try { res.json(await scanHistory()); } catch (e) { res.status(400).json({ error: e.message }); } });
+    api.get('/members/scan', (req, res) => res.json(scanning || { running: false, scannedAt: AC().scannedAt || null }));
     api.get('/members/activity', async (req, res) => {
       try { res.json({ cfg: ACT(), list: await inactiveList(Number(req.query.days) || ACT().inactiveDays, String(req.query.roles || '').split(',').filter(Boolean)), running: running && running.kind === 'check' ? running : null }); } catch (e) { res.status(400).json({ error: e.message }); }
     });

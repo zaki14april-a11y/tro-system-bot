@@ -58,6 +58,7 @@ async function securityLog(type, text, color = '#e74c3c') {
   if (!id) return;
   const ch = await client.channels.fetch(id).catch(() => null);
   if (ch) ch.send({ embeds: [baseEmbed({ title: `🛡️ ${type}`, description: text, color, thumbnail: null })], allowedMentions: { parse: [] } }).catch(() => {});
+  if (/🚨|Lockdown|ANTI-NUKE/i.test(type)) client.notifySecurity?.(type, text);
 }
 
 client.setMaxListeners(40);
@@ -65,7 +66,7 @@ client.setMaxListeners(40);
 // ---------------- verifikasi & undangan fams ----------------
 const fams = require('./fams').setup({ client, baseEmbed, securityLog });
 const tracker = require('./tracker').setup({ client, baseEmbed });
-const modules = ['tickets', 'levels', 'engage', 'moderation', 'community', 'guide', 'members', 'shop', 'divisions']
+const modules = ['notify', 'tickets', 'levels', 'engage', 'moderation', 'community', 'guide', 'members', 'shop', 'divisions']
   .map((name) => ({ name, ...require(`./${name}`).setup({ client, baseEmbed, securityLog }) }));
 
 // ---------------- postingan resmi ----------------

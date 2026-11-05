@@ -184,7 +184,7 @@ function setup({ client, baseEmbed, securityLog }) {
         title: '🦉 DATA ANGGOTA TRO',
         description: `<@${app.userId}> (${app.username})\n**Resmi bergabung:** <t:${Math.floor(Date.now() / 1000)}:D> · di-ACC **${app.reviewedBy}**`,
         fields: answerFields(app), thumbnail: app.avatar, color: '#d4af37',
-      })], allowedMentions: { parse: [] } }).catch(() => {});
+      })], allowedMentions: { parse: [] } }).then(() => { app.dataCard = true; cfg.save(); }).catch(() => {});
     }
   }
 
@@ -359,7 +359,7 @@ function setup({ client, baseEmbed, securityLog }) {
       if (it.isButton() && it.customId === 'tro-update:member') {
         const s = cfg.get();
         if (s.applications.find((a) => a.userId === it.user.id && a.type === 'member' && a.status === 'pending')) return it.reply({ content: '⏳ Data kamu sudah terkirim & menunggu ACC admin. Terima kasih!', flags: MessageFlags.Ephemeral });
-        if (s.applications.find((a) => a.userId === it.user.id && a.type === 'member' && a.status === 'accepted')) return it.reply({ content: '✅ Data kamu sudah lengkap. Terima kasih!', flags: MessageFlags.Ephemeral });
+        if (s.applications.find((a) => a.userId === it.user.id && a.type === 'member' && a.status === 'accepted' && !(a.legacy && !a.answers?.length))) return it.reply({ content: '✅ Data kamu sudah lengkap. Terima kasih!', flags: MessageFlags.Ephemeral });
         return openForm(it, 'member', true);
       }
 
@@ -468,7 +468,7 @@ function setup({ client, baseEmbed, securityLog }) {
     await g.members.fetch().catch(() => {});
     const role = roleId || v.memberRoleIds[0];
     if (!role) throw new Error('Pilih role member dulu (dashboard Verifikasi → Role untuk Member Baru)');
-    const done = new Set(s.applications.filter((a) => a.type === 'member' && ['pending', 'accepted'].includes(a.status)).map((a) => a.userId));
+    const done = new Set(s.applications.filter((a) => a.type === 'member' && ['pending', 'accepted'].includes(a.status) && !(a.legacy && !a.answers?.length)).map((a) => a.userId));
     return [...g.members.cache.filter((m) => !m.user.bot && m.roles.cache.has(role) && !done.has(m.id)).values()];
   }
 
@@ -545,6 +545,12 @@ function setup({ client, baseEmbed, securityLog }) {
         if (msg) { app.reviewMessageId = msg.id; app.reviewChannelId = ch.id; cfg.save(); }
       }
     }
+    client.notifyStaff?.('app', {
+      title: update ? `Update data anggota — ${app.username}` : `Pengajuan ${typeLabel(type)} baru — ${app.username}`,
+      description: `<@${app.userId}> (${app.username}) ${update ? 'mengirim update data, perlu diverifikasi' : `mengajukan jadi **${typeLabel(type)}**`}.\n**Akun dibuat:** <t:${Math.floor(app.accountCreated / 1000)}:R>\n\nKlik tombol di bawah lalu **ACC / Tolak** di channel review.`,
+      fields: answers.slice(0, 6).map((a) => ({ name: a.q || a.label || 'Jawaban', value: String(a.a ?? a.value ?? '-').slice(0, 200) || '-', inline: true })),
+      url: app.reviewMessageId ? `https://discord.com/channels/${it.guildId}/${app.reviewChannelId}/${app.reviewMessageId}` : undefined,
+    });
     cfg.addLog(update ? 'Update data anggota' : 'Pengajuan baru', `<@${app.userId}> ${update ? 'mengirim update data' : `mengajukan ${typeLabel(type)}`}`);
     return it.reply({ content: update ? '✅ Data kamu terkirim! Terima kasih sudah update data anggota TRO 🦉' : `📨 Pengajuan **${typeLabel(type)}** terkirim! Tunggu ACC admin ya — kamu akan dapat DM kalau sudah diproses.`, flags: MessageFlags.Ephemeral });
   }

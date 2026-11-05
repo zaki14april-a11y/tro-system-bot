@@ -102,6 +102,7 @@ function setup({ client, baseEmbed }) {
     const ch = await client.channels.fetch(s.channelId);
     const m = await ch.send({ embeds: [sgEmbed(item)], components: [sgRow(item)], allowedMentions: { parse: [] } });
     item.messageId = m.id; d.items.unshift(item); d.items = d.items.slice(0, 300); cfg.save();
+    client.notifyStaff?.('suggest', { title: `Saran #${item.no}: ${item.title}`, description: `Dari <@${userId}>${item.detail ? `\n\n${item.detail}` : ''}\n\nStaff bisa **Terima / Tolak** di channel saran.`, url: `https://discord.com/channels/${ch.guildId}/${ch.id}/${m.id}` });
     // panel dipindah ke bawah biar tetap kelihatan
     const old = s.panelMessageId && await ch.messages.fetch(s.panelMessageId).catch(() => null);
     if (old) { await old.delete().catch(() => {}); s.panelMessageId = ''; }
