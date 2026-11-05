@@ -674,6 +674,9 @@ const IC = {
   divisions: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
   suggest: '<path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>',
   shop: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>',
+  boost: '<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M11 3 8 9l4 12 4-12-3-6M2 9h20"/>',
+  forms: '<path d="M22 6 12 13 2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/>',
+  archive: '<rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/>',
   notify: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
   security: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   moderation: '<path d="m16 16 3-8 3 8c-.9.7-1.9 1-3 1s-2.1-.3-3-1zM2 16l3-8 3 8c-.9.7-1.9 1-3 1s-2.1-.3-3-1zM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
@@ -712,9 +715,9 @@ const PAGES = [
   ['Member Baru', [['verify', '🪪', 'Verifikasi'], ['applications', '📥', 'Pengajuan Member'], ['tracker', '📨', 'Invite Tracker'], ['welcome', '👋', 'Welcome & Goodbye'], ['autorole', '🎭', 'Auto Role']]],
   ['Komunitas', [['invites', '🗓️', 'Undangan Fams'], ['events', '📅', 'Jadwal Event'], ['birthday', '🎂', 'Ultah & Statistik'], ['tempvoice', '🔊', 'Custom Voice']]],
   ['Engagement', [['levels', '⭐', 'Level & XP'], ['giveaway', '🎉', 'Giveaway'], ['selfroles', '🏷️', 'Self-Role Panel']]],
-  ['Pesan & Support', [['posts', '📜', 'Postingan Resmi'], ['announce', '📢', 'Pengumuman'], ['tickets', '🎫', 'Ticket']]],
-  ['Manajemen', [['broadcast', '📨', 'DM Massal'], ['activity', '💤', 'Keaktifan & Daftar'], ['directory', '🏛️', 'Struktur & Data'], ['divisions', '🗂️', 'Divisi & Tugas'], ['suggest', '💡', 'Saran Aktivitas'], ['shop', '🛒', 'TRO Shop'], ['notify', '🔔', 'Notif Staff & Rapat']]],
-  ['Keamanan', [['security', '🛡️', 'Anti Hack & Raid'], ['moderation', '⚖️', 'Moderasi & Warn'], ['logs', '🧾', 'Log Aktivitas'], ['access', '👑', 'Akses Dashboard']]],
+  ['Pesan & Support', [['posts', '📜', 'Postingan Resmi'], ['announce', '📢', 'Pengumuman'], ['tickets', '🎫', 'Ticket'], ['forms', '📮', 'Formulir & Laporan']]],
+  ['Manajemen', [['broadcast', '📨', 'DM Massal'], ['activity', '💤', 'Keaktifan & Daftar'], ['directory', '🏛️', 'Struktur & Data'], ['divisions', '🗂️', 'Divisi & Tugas'], ['suggest', '💡', 'Saran Aktivitas'], ['shop', '🛒', 'TRO Shop'], ['notify', '🔔', 'Notif Staff & Rapat'], ['boost', '💎', 'Nitro Booster']]],
+  ['Keamanan', [['security', '🛡️', 'Anti Hack & Raid'], ['moderation', '⚖️', 'Moderasi & Warn'], ['logs', '🧾', 'Log Aktivitas'], ['archive', '🗂️', 'Arsip Member'], ['access', '👑', 'Akses Dashboard']]],
 ];
 
 function layout(inner) {
@@ -847,22 +850,53 @@ pages.posts.init = () => {
   $('#p-all').onclick = (ev) => busy(ev.target, async () => { const r = await api('/posts/publish-all', { method: 'POST', body: {} }); const bad = r.filter((x) => x.action === 'error'); toast(bad.length ? `⚠️ ${r.length - bad.length} sukses, ${bad.length} gagal: ${bad.map((b) => b.label).join(', ')}` : `✅ ${r.length} postingan dipublish`, bad.length); });
 };
 
-pages.announce = () => `<h1>📢 Pengumuman</h1><div class="sub">Bikin pengumuman embed atas nama TRO SYSTEM.</div>
+const ANN_TPL = {
+  party: { name: 'Undangan event / party', fields: [['ev', 'Nama event', 'KOTA TUA PARTY'], ['sub', 'Kalimat ajakan', 'We are inviting you to attend the Kota Tua Party GRAND OPENING'], ['to', 'Untuk', 'Kalian semua sayang sayangku'], ['date', 'Tanggal', '06 Juni 2026'], ['time', 'Jam', '20.00 WIB – selesai'], ['place', 'Tempat', 'Map Kota Tua Party'], ['hl', 'Highlight (satu per baris)', 'New Layout Experience\nOld Town Night Vibes\nBeautiful Moments\nVIP 1 Robux\nMusic & Celebration', true], ['close', 'Penutup', 'So, grab your friends, turn up the volume, and let\'s make this a night to remember 🔥\nSee you on the dance floor! 💋', true]],
+    links: [['Link map', ''], ['Discord TRO', ''], ['Komunitas Roblox', '']],
+    build: (v) => ({ title: `🥂 ${v.ev}`, description: `**${v.sub}**\n\n**Untuk:** ${v.to}\n**Dari:** THE RESILIENT ORDER\n\n${v.close}`, fields: [{ name: '📅 Tanggal', value: v.date, inline: true }, { name: '⏰ Jam', value: v.time, inline: true }, { name: '📍 Tempat', value: v.place, inline: true }, ...(v.hl.trim() ? [{ name: '✨ Yang bisa kamu nikmati', value: v.hl.split('\n').filter(Boolean).map((x) => `• ${x}`).join('\n') }] : [])] }) },
+  update: { name: 'Info / update server', fields: [['t', 'Judul', 'Update Server TRO'], ['what', 'Apa yang baru (satu per baris)', 'Channel baru untuk ...\nFitur ...', true], ['note', 'Catatan', 'Kalau ada pertanyaan, buka tiket di #buka-tiket', true]],
+    links: [], build: (v) => ({ title: `🔔 ${v.t}`, description: `${v.what.split('\n').filter(Boolean).map((x) => `• ${x}`).join('\n')}${v.note ? `\n\n${v.note}` : ''}`, fields: [] }) },
+  maintenance: { name: 'Maintenance / jadwal tutup', fields: [['what', 'Apa yang maintenance', 'Map On The Rugs Club'], ['date', 'Tanggal', ''], ['time', 'Jam', ''], ['why', 'Alasan', 'Update layout & perbaikan bug', true]],
+    links: [], build: (v) => ({ title: `🛠️ Maintenance: ${v.what}`, description: `${v.why}\n\nMohon maaf atas ketidaknyamanannya 🙏`, fields: [{ name: '📅 Tanggal', value: v.date || '-', inline: true }, { name: '⏰ Jam', value: v.time || '-', inline: true }] }) },
+  recruit: { name: 'Open recruitment', fields: [['pos', 'Posisi', 'Staff Creative Division'], ['req', 'Syarat (satu per baris)', 'Aktif minimal 3x seminggu\nBisa kerja tim', true], ['how', 'Cara daftar', 'Klik tombol di #buka-tiket atau isi form', true], ['dl', 'Batas waktu', '']],
+    links: [['Form daftar', '']], build: (v) => ({ title: `📣 Open Recruitment — ${v.pos}`, description: `**Syarat:**\n${v.req.split('\n').filter(Boolean).map((x) => `• ${x}`).join('\n')}\n\n**Cara daftar:** ${v.how}`, fields: v.dl ? [{ name: '⏳ Batas waktu', value: v.dl, inline: true }] : [] }) },
+};
+pages.announce = () => `<h1>📢 Pengumuman</h1><div class="sub">Pilih template, isi kolomnya, lalu kirim — tampilan otomatis rapi. Atau tulis bebas.</div>
   <div class="grid g2"><div class="card">
-    <label>Channel</label><select id="a-ch">${chOptions('')}</select>
-    <label>Tag role</label><select id="a-role">${roleOptions('')}</select>
-    <label>Judul</label><input id="a-title" value="📢 ">
-    <label>Isi</label><textarea id="a-desc" style="min-height:200px"></textarea>
+    <label>Template</label><select id="a-tpl"><option value="">✍️ Tulis bebas</option>${Object.entries(ANN_TPL).map(([k, t]) => `<option value="${k}">${esc(t.name)}</option>`).join('')}</select>
+    <div id="a-tf"></div>
+    <div id="a-free"><label>Judul</label><input id="a-title" value="📢 "><label>Isi</label><textarea id="a-desc" style="min-height:200px"></textarea></div>
+    <label>Tombol link (opsional)</label><div id="a-links"></div><button class="small" id="a-addlink">+ Tombol link</button>
     <div class="row"><div style="flex:1"><label>Gambar / poster (URL)</label><input id="a-img" placeholder="https://..."></div><div><label>Warna</label><input type="color" id="a-color" value="${esc(S.cfg.branding.color)}"></div></div>
+    <label>Channel</label><select id="a-ch">${chOptions('')}</select>
+    <label>Tag</label><select id="a-role"><option value="">— Tanpa tag —</option><option value="everyone">@everyone</option><option value="here">@here</option>${S.guild.roles.map((r) => `<option value="${r.id}">@${esc(r.name)}</option>`).join('')}</select>
     <label class="row" style="text-transform:none"><input type="checkbox" id="a-plain" style="width:auto"> Kirim sebagai teks biasa (tanpa embed)</label>
-    <div class="actions"><button class="primary" id="a-send">📤 Kirim sekarang</button></div>
-  </div><div><div class="hint" style="margin-bottom:8px">PREVIEW</div><div id="a-prev"></div></div></div>`;
+    <div class="actions"><button class="primary" id="a-send">📢 Kirim pengumuman</button></div>
+  </div><div id="a-prev"></div></div>`;
 pages.announce.init = () => {
-  const read = () => ({ channelId: $('#a-ch').value, roleId: $('#a-role').value, title: $('#a-title').value, description: $('#a-desc').value, image: $('#a-img').value || undefined, color: $('#a-color').value, plain: $('#a-plain').checked });
-  const prev = () => { const d = read(); $('#a-prev').innerHTML = d.plain ? `<div class="dc">${md((d.roleId ? `<@&${d.roleId}>\n` : '') + d.description)}</div>` : preview(d, { content: d.roleId ? `<@&${d.roleId}>` : '' }); };
+  let links = [];
+  const drawLinks = () => { $('#a-links').innerHTML = links.map((l, i) => `<div class="row" style="margin-bottom:6px;flex-wrap:nowrap"><input class="l-lb" data-i="${i}" value="${esc(l[0])}" placeholder="Label" style="width:38%"><input class="l-url" data-i="${i}" value="${esc(l[1])}" placeholder="https://..." style="flex:1"><button class="small l-del" data-i="${i}">✕</button></div>`).join('');
+    document.querySelectorAll('.l-lb').forEach((el) => el.oninput = () => { links[el.dataset.i][0] = el.value; prev(); });
+    document.querySelectorAll('.l-url').forEach((el) => el.oninput = () => { links[el.dataset.i][1] = el.value; prev(); });
+    document.querySelectorAll('.l-del').forEach((el) => el.onclick = () => { links.splice(+el.dataset.i, 1); drawLinks(); prev(); }); };
+  const tplVals = () => Object.fromEntries([...document.querySelectorAll('.tf')].map((el) => [el.dataset.k, el.value]));
+  const read = () => {
+    const t = ANN_TPL[$('#a-tpl').value];
+    const base = t ? t.build(tplVals()) : { title: $('#a-title').value, description: $('#a-desc').value, fields: [] };
+    const buttons = links.filter((l) => l[0] && /^https?:\/\//.test(l[1])).map(([label, url]) => ({ label, url }));
+    return { channelId: $('#a-ch').value, roleId: $('#a-role').value, ...base, image: $('#a-img').value || undefined, color: $('#a-color').value, plain: $('#a-plain').checked, buttons };
+  };
+  const prev = () => { const d = read(); const tag = d.roleId === 'everyone' || d.roleId === 'here' ? `@${d.roleId}` : d.roleId ? `<@&${d.roleId}>` : '';
+    $('#a-prev').innerHTML = (d.plain ? `<div class="dc">${md((tag ? tag + '\n' : '') + d.description)}</div>` : preview(d, { content: tag })) + (d.buttons.length ? `<div class="row" style="margin:8px 0 0 48px;gap:6px">${d.buttons.map((b) => `<span class="tag">🔗 ${esc(b.label)}</span>`).join('')}</div>` : ''); };
+  const pickTpl = () => { const t = ANN_TPL[$('#a-tpl').value]; $('#a-free').style.display = t ? 'none' : '';
+    $('#a-tf').innerHTML = t ? t.fields.map(([k, l, ph, long]) => `<label>${esc(l)}</label>${long ? `<textarea class="tf" data-k="${k}" style="min-height:90px;font-family:inherit">${esc(ph)}</textarea>` : `<input class="tf" data-k="${k}" value="${esc(ph)}">`}`).join('') : '';
+    if (t) { links = t.links.map((l) => [...l]); drawLinks(); }
+    document.querySelectorAll('.tf').forEach((el) => el.oninput = prev); prev(); tidyText($('#a-tf')); };
+  $('#a-tpl').onchange = pickTpl;
+  $('#a-addlink').onclick = () => { if (links.length >= 5) return toast('Maksimal 5 tombol', true); links.push(['', '']); drawLinks(); };
   document.querySelectorAll('#a-ch,#a-role,#a-title,#a-desc,#a-img,#a-color,#a-plain').forEach((el) => el.oninput = el.onchange = prev);
   prev();
-  $('#a-send').onclick = (e) => busy(e.target, async () => { const d = read(); if (d.roleId && !confirm(`Pengumuman ini akan nge-tag @${roleName(d.roleId)}. Lanjut?`)) return; await api('/announce', { method: 'POST', body: d }); toast('✅ Pengumuman terkirim'); });
+  $('#a-send').onclick = (e) => busy(e.target, async () => { const d = read(); if (!d.channelId) throw new Error('Pilih channel dulu'); if (d.roleId && !confirm(`Pengumuman ini akan nge-tag ${d.roleId === 'everyone' || d.roleId === 'here' ? '@' + d.roleId + ' (semua orang)' : '@' + roleName(d.roleId)}. Lanjut?`)) return; await api('/announce', { method: 'POST', body: d }); toast('✅ Pengumuman terkirim'); });
 };
 
 pages.welcome = () => {
@@ -1762,6 +1796,120 @@ pages.notify.init = async () => {
     const m = await api('/meetings', { method: 'POST', body: { title: $('#mt-title').value, when: Date.parse(v + ':00+07:00'), placeId: vc, agenda: $('#mt-agenda').value, roleIds: readChips('mt-rc'), channelId: $('#mt-ch').value } });
     toast(`✅ Rapat diumumkan, undangan DM ke ${m.dmSent} orang`); render();
   });
+};
+
+// ================== 💎 NITRO BOOSTER ==================
+pages.boost = () => `<h1>💎 Nitro Booster</h1><div class="sub">Member yang nge-boost server otomatis dapat role spesial, ucapan terima kasih di channel + DM berisi perks, bonus XP, akses booster-lounge, dan bisa bikin role pribadi (warna & nama sendiri) lewat <code>/booster</code>.</div>
+  <div class="grid g4" id="bs-stats"></div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Pengaturan <span class="row" style="gap:8px;font-size:13px;font-weight:500">Aktif ${toggle('bs-on', true)}</span></h3>
+      <label>Role booster</label><select id="bs-role"><option value="">— Belum ada —</option>${S.guild.roles.map((r) => `<option value="${r.id}">@${esc(r.name)}</option>`).join('')}</select>
+      <label>Channel ucapan terima kasih</label>${sel('bs-th', chOptions('', '— Tidak diposting —'))}
+      <label>Channel booster-lounge</label>${sel('bs-lg', chOptions('', '— Belum ada —'))}
+      <label>Channel penjelasan & Hall of Boosters</label>${sel('bs-pn', chOptions('', '— Tidak diposting —'))}
+      <label>Bonus XP booster (%)</label><input type="number" id="bs-xp" min="0" max="300" style="width:110px">
+      <label class="row" style="text-transform:none"><input type="checkbox" id="bs-dm" style="width:auto"> Kirim DM terima kasih + daftar perks</label>
+      <div class="actions"><button class="primary" id="bs-save">💾 Simpan</button><button id="bs-setup">Buat role & lounge otomatis</button></div></div>
+    <div class="card"><h3>Ucapan & perks</h3>
+      <label>Pesan terima kasih</label><textarea id="bs-msg" style="min-height:80px;font-family:inherit"></textarea><div class="hint">Pakai {user}, {username}, {server}, {boosts}, {tier}</div>
+      <label>Daftar perks (satu per baris)</label><textarea id="bs-perks" style="min-height:150px;font-family:inherit"></textarea>
+      <div class="actions"><button class="primary" id="bs-save2">💾 Simpan & update panel</button><button id="bs-test">Tes ucapan ke DM saya</button></div></div>
+  </div>
+  <div class="card" style="margin-top:16px;padding:0;overflow:auto"><div style="padding:16px 20px 6px"><h3>🏆 Booster sekarang</h3></div><table><thead><tr><th>Member</th><th>Boost sejak</th><th>Role pribadi</th></tr></thead><tbody id="bs-list"></tbody></table></div>`;
+pages.boost.init = async () => {
+  const r = await api('/boost'); const b = r.cfg;
+  $('#bs-stats').innerHTML = `<div class="card stat"><div class="num">${r.count}</div><div class="lbl">Total boost</div></div><div class="card stat"><div class="num">${r.tier}</div><div class="lbl">Level server</div></div><div class="card stat"><div class="num">${r.boosters.length}</div><div class="lbl">Member booster</div></div><div class="card stat"><div class="num">+${b.xpBonus}%</div><div class="lbl">Bonus XP booster</div></div>`;
+  $('#bs-on').checked = b.enabled; $('#bs-role').value = b.roleId; $('#bs-th').value = b.thanksChannelId; $('#bs-lg').value = b.loungeChannelId; $('#bs-pn').value = b.panelChannelId; $('#bs-xp').value = b.xpBonus; $('#bs-dm').checked = b.dm;
+  $('#bs-msg').value = b.thanksMessage; $('#bs-perks').value = b.perks.join('\n');
+  $('#bs-list').innerHTML = r.boosters.length ? r.boosters.sort((a, c) => a.since - c.since).map((m) => `<tr><td><div class="row" style="gap:8px;flex-wrap:nowrap"><img src="${esc(m.avatar)}" style="width:28px;height:28px;border-radius:50%"><div><b>${esc(m.name)}</b><div class="hint">@${esc(m.username)}</div></div></div></td><td>${fmtDT(m.since)}</td><td>${m.custom ? 'sudah dibuat' : '<span class="hint">belum</span>'}</td></tr>`).join('') : emptyRow(3, 'Belum ada booster.');
+  const body = () => ({ enabled: $('#bs-on').checked, roleId: $('#bs-role').value, thanksChannelId: $('#bs-th').value, loungeChannelId: $('#bs-lg').value, panelChannelId: $('#bs-pn').value, xpBonus: $('#bs-xp').value, dm: $('#bs-dm').checked, thanksMessage: $('#bs-msg').value, perks: $('#bs-perks').value.split('\n').map((x) => x.trim()).filter(Boolean) });
+  $('#bs-save').onclick = (e) => busy(e.target, async () => { await api('/boost', { method: 'PUT', body: body() }); toast('✅ Disimpan'); });
+  $('#bs-save2').onclick = (e) => busy(e.target, async () => { await api('/boost', { method: 'PUT', body: body() }); const x = await api('/boost/panel', { method: 'POST', body: {} }); toast(x.result === 'nochannel' ? '✅ Disimpan (pilih channel penjelasan untuk posting panel)' : `✅ Panel booster ${x.result === 'posted' ? 'dikirim' : 'diperbarui'}`); });
+  $('#bs-setup').onclick = (e) => busy(e.target, async () => { await api('/boost', { method: 'PUT', body: body() }); const x = await api('/boost/setup', { method: 'POST', body: {} }); toast(x.done.length ? '✅ ' + x.done.join(', ') : '✅ Semua sudah siap'); const g = await api('/guild'); S.guild = g; render(); });
+  $('#bs-test').onclick = (e) => busy(e.target, async () => { await api('/boost', { method: 'PUT', body: body() }); await api('/boost/test', { method: 'POST', body: {} }); toast('✅ Contoh ucapan terkirim ke DM kamu'); });
+};
+
+// ================== 🗂️ ARSIP MEMBER ==================
+pages.archive = () => `<h1>🗂️ Arsip Member</h1><div class="sub">Riwayat anggota yang keluar, di-kick, di-ban, resign, atau out — tercatat otomatis lengkap dengan role terakhir, data anggota, dan pelakunya (dari audit log). Kalau mantan anggota yang pernah di-ban/out join lagi, staff langsung dapat DM. Dari Discord: <code>/arsip catat</code> (bisa lampirkan bukti) dan <code>/arsip cek</code>.</div>
+  <div class="grid" style="grid-template-columns:360px 1fr">
+    <div><div class="card"><h3>Pengaturan</h3>
+      <label>Channel arsip</label>${sel('ar-ch', chOptions('', '— Pilih channel —'))}
+      <div class="row" style="justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)"><span>Arsip aktif</span>${toggle('ar-on', true)}</div>
+      <div class="row" style="justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)"><span>Catat otomatis yang keluar / kick / ban</span>${toggle('ar-leave', true)}</div>
+      <div class="row" style="justify-content:space-between;padding:10px 0"><span>Kabari staff kalau mantan anggota join lagi</span>${toggle('ar-ret', true)}</div>
+      <div class="actions"><button class="primary" id="ar-save">💾 Simpan</button></div></div>
+    <div class="card" style="margin-top:16px"><h3>Catat manual</h3><div class="hint">Untuk resign, out clan, blacklist, atau data lama. ID boleh kosong kalau orangnya sudah tidak di server — isi nama saja.</div>
+      <label>ID Discord</label><input id="ar-id" placeholder="kosongkan kalau tidak tahu">
+      <label>Nama</label><input id="ar-name" placeholder="contoh: Carmen">
+      <label>Status</label><select id="ar-type"></select>
+      <label>Alasan / keterangan</label><textarea id="ar-reason" style="min-height:70px;font-family:inherit"></textarea>
+      <label>Link bukti (opsional)</label><input id="ar-proof" placeholder="https://...">
+      <div class="actions"><button class="primary" id="ar-add">Catat ke arsip</button></div></div></div>
+    <div class="card" style="padding:0;overflow:auto"><div class="row" style="padding:16px 20px 10px"><h3>Riwayat</h3><span class="hint" id="ar-n"></span><div class="spacer"></div><select id="ar-f" style="width:200px"><option value="">Semua status</option></select><input id="ar-q" placeholder="Cari nama / ID" style="width:180px"></div>
+      <table><thead><tr><th>Anggota</th><th>Status</th><th>Alasan</th><th>Oleh</th><th>Tanggal</th><th></th></tr></thead><tbody id="ar-list"></tbody></table></div>
+  </div>`;
+pages.archive.init = async () => {
+  const r = await api('/archive'); const a = r.cfg;
+  $('#ar-ch').value = a.channelId; $('#ar-on').checked = a.enabled; $('#ar-leave').checked = a.logLeave; $('#ar-ret').checked = a.alertReturn;
+  const opts = Object.entries(r.types).filter(([k]) => k !== 'kembali' && k !== 'unban').map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+  $('#ar-type').innerHTML = opts; $('#ar-f').innerHTML += Object.entries(r.types).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+  const draw = () => {
+    const f = $('#ar-f').value, q = $('#ar-q').value.toLowerCase();
+    const list = r.items.filter((x) => (!f || x.type === f) && (!q || (x.username || '').toLowerCase().includes(q) || x.userId.includes(q)));
+    $('#ar-n').textContent = `${list.length} catatan`;
+    $('#ar-list').innerHTML = list.length ? list.map((x) => `<tr><td><b>${esc(x.username || '-')}</b><div class="hint">${x.userId || 'tanpa ID'}</div></td><td><span class="tag">${esc(r.types[x.type] || x.type)}</span></td><td style="max-width:320px">${esc(x.reason || '-')}${x.proof ? ` <a href="${esc(x.proof)}" target="_blank">bukti</a>` : ''}</td><td>${esc(x.by || (x.auto ? 'otomatis' : '-'))}</td><td>${fmtDT(x.at)}</td><td><button class="small danger" data-del="${x.id}">Hapus</button></td></tr>`).join('') : emptyRow(6, 'Belum ada catatan.');
+    document.querySelectorAll('[data-del]').forEach((b) => b.onclick = () => busy(b, async () => { if (!confirm('Hapus catatan ini (juga pesan di channel arsip)?')) return; await api('/archive/' + b.dataset.del, { method: 'DELETE' }); r.items = r.items.filter((x) => x.id !== b.dataset.del); draw(); }));
+  };
+  $('#ar-f').onchange = draw; $('#ar-q').oninput = draw; draw();
+  $('#ar-save').onclick = (e) => busy(e.target, async () => { await api('/archive', { method: 'PUT', body: { channelId: $('#ar-ch').value, enabled: $('#ar-on').checked, logLeave: $('#ar-leave').checked, alertReturn: $('#ar-ret').checked } }); toast('✅ Disimpan'); });
+  $('#ar-add').onclick = (e) => busy(e.target, async () => { const x = await api('/archive', { method: 'POST', body: { userId: $('#ar-id').value, username: $('#ar-name').value, type: $('#ar-type').value, reason: $('#ar-reason').value, proof: $('#ar-proof').value } }); toast('✅ Dicatat di arsip'); r.items.unshift(x); ['ar-id', 'ar-name', 'ar-reason', 'ar-proof'].forEach((k) => $('#' + k).value = ''); draw(); });
+};
+
+// ================== 📮 FORMULIR & LAPORAN ==================
+pages.forms = () => `<h1>📮 Formulir & Laporan</h1><div class="sub">Ganti "format manual" yang harus diketik ulang dengan tombol + form isian. Member tinggal klik, isi, kirim — hasilnya rapi masuk ke channel staff dengan tombol Tangani / Selesai / Tolak, dan pengirim dapat kabar lewat DM. Bukti screenshot bisa dikirim dengan membalas DM bot.</div>
+  <div class="card"><div class="row"><h3>Cek format manual di server</h3><div class="spacer"></div><button id="fm-scan">Scan channel</button></div><div class="hint">Mencari pesan template yang diketik orang (contoh: "Jenis Laporan: … Pelapor: …") supaya bisa dijadikan form.</div><div id="fm-found" style="margin-top:10px"></div></div>
+  <div class="row" style="margin:18px 0 10px"><h3>Daftar form</h3><div class="spacer"></div><button class="small" id="fm-add">+ Form baru</button><button class="small primary" id="fm-save">💾 Simpan semua</button></div>
+  <div id="fm-list" class="grid" style="gap:16px"></div>
+  <div class="card" style="margin-top:16px;padding:0;overflow:auto"><div style="padding:16px 20px 6px"><h3>Kiriman terbaru</h3></div><table><thead><tr><th>#</th><th>Form</th><th>Pengirim</th><th>Ringkasan</th><th>Status</th><th>Tanggal</th></tr></thead><tbody id="fm-subs"></tbody></table></div>`;
+pages.forms.init = async () => {
+  const r = await api('/forms'); let items = r.items;
+  const blankQ = () => ({ label: '', placeholder: '', long: false, required: true });
+  const card = (f, i) => `<div class="card" data-i="${i}"><div class="row"><input class="f-emoji" value="${esc(f.emoji)}" style="width:60px"><input class="f-name" value="${esc(f.name)}" style="flex:1"><span class="row" style="gap:6px;font-size:13px">Aktif ${toggle('f-on-' + i, f.enabled)}</span><button class="small danger f-del">Hapus</button></div>
+    <div class="grid g2" style="gap:16px"><div>
+      <label>Penjelasan di panel</label><textarea class="f-desc" style="min-height:110px;font-family:inherit">${esc(f.description)}</textarea>
+      <label>Pilihan jenis (jadi tombol, pisah koma — kosong = 1 tombol)</label><input class="f-types" value="${esc((f.types || []).join(', '))}" placeholder="Pelanggaran, Masalah Internal, Konflik">
+      <label>Channel panel (tempat tombol)</label><select class="f-pch">${chOptions(f.panelChannelId)}</select>
+      <label>Channel tujuan (staff)</label><select class="f-tch">${chOptions(f.targetChannelId)}</select>
+      <label>Role staff yang di-ping & boleh proses</label>${roleChips('f-roles-' + i, f.staffRoleIds || [])}
+      <label class="row" style="text-transform:none"><input type="checkbox" class="f-anon" ${f.anonymous ? 'checked' : ''} style="width:auto"> Sembunyikan nama pengirim (anonim)</label></div>
+    <div><label>Pertanyaan (maks 5)</label><div class="f-qs">${f.questions.map((q, j) => `<div class="card" style="padding:10px;margin-bottom:8px" data-j="${j}"><input class="q-label" value="${esc(q.label)}" placeholder="Pertanyaan (maks 45 huruf)" maxlength="45"><input class="q-ph" value="${esc(q.placeholder)}" placeholder="Contoh jawaban" style="margin-top:6px"><div class="row" style="margin-top:6px;gap:14px;font-size:13px"><label class="row" style="margin:0;text-transform:none"><input type="checkbox" class="q-long" ${q.long ? 'checked' : ''} style="width:auto"> jawaban panjang</label><label class="row" style="margin:0;text-transform:none"><input type="checkbox" class="q-req" ${q.required !== false ? 'checked' : ''} style="width:auto"> wajib</label><div class="spacer"></div><button class="small q-del">✕</button></div></div>`).join('')}</div>
+      ${f.questions.length < 5 ? '<button class="small f-addq">+ Pertanyaan</button>' : ''}</div></div>
+    <div class="actions"><button class="primary f-post">Simpan & kirim panel</button></div></div>`;
+  const read = () => { items = [...document.querySelectorAll('#fm-list>.card')].map((el) => { const i = +el.dataset.i; return { ...items[i], emoji: el.querySelector('.f-emoji').value, name: el.querySelector('.f-name').value, enabled: $('#f-on-' + i).checked, description: el.querySelector('.f-desc').value, types: el.querySelector('.f-types').value.split(',').map((x) => x.trim()).filter(Boolean), panelChannelId: el.querySelector('.f-pch').value, targetChannelId: el.querySelector('.f-tch').value, staffRoleIds: readChips('f-roles-' + i), anonymous: el.querySelector('.f-anon').checked,
+    questions: [...el.querySelectorAll('.f-qs>.card')].map((q) => ({ label: q.querySelector('.q-label').value, placeholder: q.querySelector('.q-ph').value, long: q.querySelector('.q-long').checked, required: q.querySelector('.q-req').checked })).filter((q) => q.label.trim()) }; }); return items; };
+  const draw = () => {
+    $('#fm-list').innerHTML = items.length ? items.map(card).join('') : '<div class="card hint">Belum ada form. Klik + Form baru atau Scan channel.</div>';
+    document.querySelectorAll('#fm-list>.card').forEach((el) => { const i = +el.dataset.i;
+      el.querySelector('.f-del').onclick = () => { if (!confirm('Hapus form ini?')) return; read(); items.splice(i, 1); draw(); };
+      el.querySelector('.f-addq')?.addEventListener('click', () => { read(); items[i].questions.push(blankQ()); draw(); });
+      el.querySelectorAll('.q-del').forEach((b) => b.onclick = () => { read(); items[i].questions.splice(+b.closest('[data-j]').dataset.j, 1); draw(); });
+      el.querySelector('.f-post').onclick = (e) => busy(e.target, async () => { read(); const x = await api('/forms', { method: 'PUT', body: { items } }); items = x.items; const p = await api(`/forms/${items[i].id}/panel`, { method: 'POST', body: {} }); toast(`✅ Panel ${p.result === 'posted' ? 'dikirim' : 'diperbarui'}`); draw(); });
+    });
+    tidyText($('#root'));
+  };
+  draw();
+  $('#fm-add').onclick = () => { read(); items.push({ name: 'Form baru', emoji: '📮', description: '', types: [], questions: [blankQ()], panelChannelId: '', targetChannelId: '', staffRoleIds: [], anonymous: false, enabled: true }); draw(); };
+  $('#fm-save').onclick = (e) => busy(e.target, async () => { read(); const x = await api('/forms', { method: 'PUT', body: { items } }); items = x.items; toast('✅ Form disimpan'); draw(); });
+  $('#fm-scan').onclick = (e) => busy(e.target, async () => {
+    $('#fm-found').innerHTML = '<div class="hint loading" style="height:30px"></div>';
+    const found = await api('/forms/scan');
+    $('#fm-found').innerHTML = found.length ? found.map((x, k) => `<div class="feat" style="margin-bottom:8px;align-items:flex-start"><div style="flex:1"><b>#${esc(x.channel)}</b> <span class="hint">· ${esc(x.author)} · ${fmtDT(x.at)}</span><div class="hint" style="white-space:pre-wrap;margin-top:4px">${esc(x.preview.slice(0, 180))}${x.preview.length > 180 ? '…' : ''}</div></div><button class="small" data-mk="${k}">Jadikan form</button></div>`).join('') : '<div class="hint">Tidak ditemukan format manual lain. 👍</div>';
+    document.querySelectorAll('[data-mk]').forEach((b) => b.onclick = () => { const x = found[+b.dataset.mk]; read();
+      items.push({ name: x.channel.replace(/[^\p{L}\p{N} -]/gu, '').replace(/-/g, ' ').trim().replace(/\b\w/g, (c) => c.toUpperCase()).slice(0, 40) || 'Form', emoji: '📮', description: '', types: [], questions: (x.fields.length ? x.fields : ['Isi']).slice(0, 5).map((l) => ({ label: l.slice(0, 45), placeholder: '', long: /kronologi|alasan|jelaskan|detail|catatan/i.test(l), required: !/bukti|opsional/i.test(l) })), panelChannelId: '', targetChannelId: x.channelId, staffRoleIds: [], anonymous: false, enabled: true });
+      draw(); toast('Form dibuat dari format — cek pertanyaannya, pilih channel panel, lalu Simpan & kirim panel'); });
+  });
+  const subs = r.subs; const fname = (id) => items.find((f) => f.id === id)?.name || '-';
+  $('#fm-subs').innerHTML = subs.length ? subs.map((x) => `<tr><td>${x.no}</td><td>${esc(fname(x.formId))}${x.type ? `<div class="hint">${esc(x.type)}</div>` : ''}</td><td>${esc(x.username)}</td><td style="max-width:320px">${esc((x.answers[0]?.a || '').slice(0, 90))}</td><td>${esc(r.statuses[x.status] || x.status)}</td><td>${fmtDT(x.createdAt)}</td></tr>`).join('') : emptyRow(6, 'Belum ada kiriman.');
 };
 
 // ================== efek animasi ==================

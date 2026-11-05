@@ -3,7 +3,7 @@
 // ============================================================
 const {
   Client, GatewayIntentBits, Partials, ActivityType, Events, EmbedBuilder,
-  SlashCommandBuilder, PermissionFlagsBits, MessageFlags, ChannelType, AuditLogEvent,
+  SlashCommandBuilder, PermissionFlagsBits, MessageFlags, ChannelType, AuditLogEvent, ActionRowBuilder, ButtonBuilder, ButtonStyle,
 } = require('discord.js');
 const cfg = require('./config');
 
@@ -19,8 +19,9 @@ const client = new Client({
     GatewayIntentBits.GuildPresences,
     GatewayIntentBits.GuildInvites,
     GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.DirectMessages,
   ],
-  partials: [Partials.GuildMember],
+  partials: [Partials.GuildMember, Partials.Channel, Partials.Message],
 });
 
 // ---------------- util ----------------
@@ -74,7 +75,7 @@ client.fetchMembers = async (g) => {
 // ---------------- verifikasi & undangan fams ----------------
 const fams = require('./fams').setup({ client, baseEmbed, securityLog });
 const tracker = require('./tracker').setup({ client, baseEmbed });
-const modules = ['notify', 'tickets', 'levels', 'engage', 'moderation', 'community', 'guide', 'members', 'shop', 'divisions']
+const modules = ['notify', 'boost', 'archive', 'forms', 'tickets', 'levels', 'engage', 'moderation', 'community', 'guide', 'members', 'shop', 'divisions']
   .map((name) => ({ name, ...require(`./${name}`).setup({ client, baseEmbed, securityLog }) }));
 
 // ---------------- postingan resmi ----------------
@@ -106,14 +107,18 @@ async function publishAll(forceNew = false) {
   return out;
 }
 
-async function announce({ channelId, title, description, color, image, roleId, plain }) {
+async function announce({ channelId, title, description, color, image, roleId, plain, fields, buttons }) {
   const ch = await client.channels.fetch(channelId);
+  const everyone = roleId === 'everyone' || roleId === 'here';
   const payload = {
-    content: roleId ? `<@&${roleId}>` : undefined,
-    allowedMentions: { roles: roleId ? [roleId] : [], parse: [] },
+    content: everyone ? `@${roleId}` : roleId ? `<@&${roleId}>` : undefined,
+    allowedMentions: { roles: roleId && !everyone ? [roleId] : [], parse: everyone ? ['everyone'] : [] },
   };
   if (plain) payload.content = [payload.content, description].filter(Boolean).join('\n');
-  else payload.embeds = [baseEmbed({ title, description, color, image })];
+  else payload.embeds = [baseEmbed({ title, description, color, image, fields })];
+  // tombol link (map, discord, komunitas, dll)
+  const links = (buttons || []).filter((b) => b?.label && /^https?:\/\//.test(b.url || '')).slice(0, 5);
+  if (links.length) payload.components = [new ActionRowBuilder().addComponents(links.map((b) => new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel(String(b.label).slice(0, 80)).setURL(b.url)))];
   const msg = await ch.send(payload);
   cfg.addLog('Pengumuman', `Dikirim ke <#${channelId}>: ${title || description?.slice(0, 60)}`);
   return msg.id;

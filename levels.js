@@ -25,7 +25,7 @@ function setup({ client, baseEmbed }) {
   async function addXp(member, amount, channel) {
     const u = user(member.id);
     const before = levelFromXp(u.xp).level;
-    u.xp += amount;
+    u.xp += Math.round(amount * (client.xpMultiplier?.(member) || 1));
     u.name = member.displayName || member.user.username;
     const after = levelFromXp(u.xp).level;
     cfg.saveSoon();
