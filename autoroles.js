@@ -55,14 +55,16 @@ function setup(bot) {
     return ok.some((id) => m.roles.cache.has(id));
   }
 
+  const errors = []; let lastSweep = null;
+  const err = (e) => { errors.unshift(`${new Date().toISOString().slice(11, 19)} ${e.message}`); errors.splice(20); return 0; };
   async function sync(m) {
     const d = D();
     if (!d.enabled || m.user.bot) return 0;
     let changes = 0;
     if (d.verifiedId) {
       const want = isVerified(m), has = m.roles.cache.has(d.verifiedId);
-      if (want && !has) { await m.roles.add(d.verifiedId, 'Sudah verifikasi').catch(() => {}); changes++; }
-      if (!want && has) { await m.roles.remove(d.verifiedId, 'Belum verifikasi').catch(() => {}); changes++; }
+      if (want && !has) { if (await m.roles.add(d.verifiedId, 'Sudah verifikasi').then(() => 1).catch(err)) changes++; }
+      if (!want && has) { if (await m.roles.remove(d.verifiedId, 'Belum verifikasi').then(() => 1).catch(err)) changes++; }
     }
     const bd = cfg.data('birthdays', { users: {}, lastRun: '', roleGiven: [] });
     let md = bd.users[m.id];
@@ -74,8 +76,8 @@ function setup(bot) {
     const target = zodiacOf(md);
     for (const [name, id] of Object.entries(d.zodiac)) {
       const has = m.roles.cache.has(id);
-      if (name === target && !has) { await m.roles.add(id, `Zodiac dari tanggal lahir ${md}`).catch(() => {}); changes++; }
-      if (name !== target && has && target) { await m.roles.remove(id, 'Zodiac diperbarui').catch(() => {}); changes++; }
+      if (name === target && !has) { if (await m.roles.add(id, `Zodiac dari tanggal lahir ${md}`).then(() => 1).catch(err)) changes++; }
+      if (name !== target && has && target) { if (await m.roles.remove(id, 'Zodiac diperbarui').then(() => 1).catch(err)) changes++; }
     }
     return changes;
   }
@@ -84,9 +86,11 @@ function setup(bot) {
     const g = client.guilds.cache.get(process.env.GUILD_ID);
     if (!g) return;
     const members = await client.fetchMembers(g);
-    let n = 0;
-    for (const m of members.values()) { const c = await sync(m); if (c) { n += c; await sleep(400); } }
+    let n = 0, checked = 0;
+    for (const m of members.values()) { checked++; const c = await sync(m).catch((e) => err(e)); if (c) { n += c; await sleep(400); } }
+    lastSweep = { at: new Date().toISOString(), checked, changes: n };
     if (n) cfg.addLog('Role otomatis', `${n} perubahan role Verified/Zodiac`);
+    return lastSweep;
   }
 
   client.once('ready', async () => {
@@ -106,6 +110,21 @@ function setup(bot) {
     setTimeout(() => newM.guild.members.fetch(newM.id).then(sync).catch(() => {}), 4000);
   });
 
+  // diagnosa dari dashboard
+  client.autoroles = {
+    status: async (userId) => {
+      const d = D(), g = client.guilds.cache.get(process.env.GUILD_ID);
+      const m = userId && await g?.members.fetch(userId).catch(() => null);
+      const bd = cfg.data('birthdays', { users: {} }).users[userId];
+      const app = (cfg.get().applications || []).find((a) => a.userId === userId && a.birth?.md);
+      const me = g?.members.me;
+      const vr = g?.roles.cache.get(d.verifiedId);
+      return { ready, enabled: d.enabled, verifiedId: d.verifiedId, verifiedRole: vr?.name, verifiedPos: vr?.position, botTop: me?.roles.highest.name, botTopPos: me?.roles.highest.position, canManage: me?.permissions.has('ManageRoles'),
+        zodiac: Object.keys(d.zodiac || {}).length, lastSweep, errors, user: m ? { isVerified: isVerified(m), md: bd || app?.birth?.md || null, target: zodiacOf(bd || app?.birth?.md) } : null };
+    },
+    sweepNow: () => sweep(),
+    enable: () => { D().enabled = true; cfg.save(); },
+  };
   return { sync, sweep, zodiacOf };
 }
 
