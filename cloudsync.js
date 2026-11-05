@@ -79,11 +79,11 @@ async function upload() {
   if (pending) { pending = false; schedule(); }
 }
 
-// dipanggil tiap kali data disimpan (dikumpulkan 20 detik biar tidak spam)
+// dipanggil tiap kali data disimpan (dikumpulkan 3 menit biar tidak spam — data utama sudah aman di disk VPS)
 function schedule() {
   if (!on()) return;
   clearTimeout(timer);
-  timer = setTimeout(upload, 20_000);
+  timer = setTimeout(upload, 180_000);
 }
 
 async function flush() { if (on() && timer) { clearTimeout(timer); timer = null; await upload(); } }

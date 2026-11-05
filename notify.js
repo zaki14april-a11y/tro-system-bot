@@ -51,7 +51,7 @@ function setup({ client, baseEmbed }) {
     const n = C(); const ids = new Set([g.ownerId, ...cfg.get().access.superAdminIds, ...n.userIds]);
     const roles = roleIds || n.roleIds;
     if (roles.length) {
-      await g.members.fetch().catch(() => {});
+      await client.fetchMembers(g);
       for (const r of roles) g.roles.cache.get(r)?.members.forEach((m) => { if (!m.user.bot) ids.add(m.id); });
     }
     return [...ids].filter((x) => /^\d{15,}$/.test(x));
@@ -69,12 +69,12 @@ function setup({ client, baseEmbed }) {
   }
 
   // dipanggil modul lain: client.notifyStaff('app', { title, description, url, color })
-  async function notifyStaff(kind, { title, description, url, color, fields } = {}) {
+  async function notifyStaff(kind, { title, description, url, color, fields } = {}, only) {
     const n = C();
-    if (!n.enabled || n.kinds[kind] === false) return 0;
+    if (!only && (!n.enabled || n.kinds[kind] === false)) return 0;
     const e = baseEmbed({ title: `🔔 ${title}`, description, color: color || '#c9a227', fields, thumbnail: null });
     const components = url ? [new ActionRowBuilder().addComponents(new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('Buka di server').setURL(url))] : [];
-    const ok = await dmMany(await recipients(), { content: `**${KINDS[kind] || 'Notif staff'}** · ${guild()?.name || 'TRO'}`, embeds: [e], components });
+    const ok = await dmMany(only || await recipients(), { content: `**${KINDS[kind] || 'Notif staff'}** · ${guild()?.name || 'TRO'}`, embeds: [e], components });
     return ok;
   }
   client.notifyStaff = (kind, data) => notifyStaff(kind, data).catch((e) => console.error('[notify]', e.message));
@@ -124,23 +124,23 @@ function setup({ client, baseEmbed }) {
     const msg = ch && await ch.messages.fetch(mt.messageId).catch(() => null);
     if (msg) await msg.edit({ embeds: [meetEmbed(mt)], components: [meetRow(mt)] }).catch(() => {});
   }
-  async function createMeeting({ title, when, placeId, place, agenda, roleIds, channelId, by }) {
+  async function createMeeting({ title, when, placeId, place, agenda, roleIds, channelId, by, testUserId }) {
     const at = typeof when === 'number' ? when : parseWhen(when);
     if (!at || Number.isNaN(at)) throw new Error('Format waktu salah. Contoh: 07/11/2026 20:00 atau 20:00');
     if (at < Date.now() - 60_000) throw new Error('Waktu rapat sudah lewat');
     const n = C();
-    const mt = { id: newId(), title: String(title).slice(0, 100), at, placeId: placeId || '', place: String(place || '').slice(0, 100), agenda: String(agenda || '').replace(/\\n/g, '\n').slice(0, 1500), roleIds: roleIds?.length ? roleIds : n.meetingRoleIds, by, rsvp: {}, reminded: false, createdAt: new Date().toISOString() };
+    const mt = { id: newId(), test: !!testUserId, title: String(title).slice(0, 100), at, placeId: placeId || '', place: String(place || '').slice(0, 100), agenda: String(agenda || '').replace(/\\n/g, '\n').slice(0, 1500), roleIds: roleIds?.length ? roleIds : n.meetingRoleIds, by, rsvp: {}, reminded: false, createdAt: new Date().toISOString() };
     const chId = channelId || n.meetingChannelId;
     if (chId) {
       const ch = await client.channels.fetch(chId).catch(() => null);
       if (ch) {
-        const m = await ch.send({ content: mt.roleIds.length ? mt.roleIds.map((r) => `<@&${r}>`).join(' ') : undefined, embeds: [meetEmbed(mt)], components: [meetRow(mt)], allowedMentions: { roles: mt.roleIds } }).catch(() => null);
+        const m = await ch.send({ content: testUserId ? '🧪 **[TES]** pengumuman rapat (akan dihapus)' : (mt.roleIds.length ? mt.roleIds.map((r) => `<@&${r}>`).join(' ') : undefined), embeds: [meetEmbed(mt)], components: [meetRow(mt)], allowedMentions: { roles: testUserId ? [] : mt.roleIds } }).catch(() => null);
         if (m) { mt.channelId = ch.id; mt.messageId = m.id; }
       }
     }
     const d = M(); d.items.unshift(mt); d.items = d.items.slice(0, 100); cfg.save();
     const g = guild();
-    const sent = (n.enabled && n.kinds.meeting !== false) ? await dmMany(await recipients(mt.roleIds.length ? mt.roleIds : undefined), {
+    const sent = (testUserId || (n.enabled && n.kinds.meeting !== false)) ? await dmMany(testUserId ? [testUserId] : await recipients(mt.roleIds.length ? mt.roleIds : undefined), {
       content: `📅 **Undangan rapat** · ${g?.name || 'TRO'}`, embeds: [meetEmbed(mt)],
       components: [meetRow(mt), ...(mt.messageId ? [new ActionRowBuilder().addComponents(new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('Lihat pengumuman').setURL(`https://discord.com/channels/${g.id}/${mt.channelId}/${mt.messageId}`))] : [])],
     }) : 0;
@@ -163,7 +163,7 @@ function setup({ client, baseEmbed }) {
       const left = mt.at - Date.now();
       if (left <= n.remindMinutes * 60_000 && left > -10 * 60_000) {
         mt.reminded = true; dirty = true;
-        const ids = (await recipients(mt.roleIds.length ? mt.roleIds : undefined)).filter((x) => mt.rsvp?.[x] !== 'izin');
+        const ids = (mt.test ? [] : await recipients(mt.roleIds.length ? mt.roleIds : undefined)).filter((x) => mt.rsvp?.[x] !== 'izin');
         dmMany(ids, { embeds: [baseEmbed({ title: `⏰ Rapat sebentar lagi: ${mt.title}`, description: `Mulai ${fmtWhen(mt.at)}\n**Tempat:** ${mt.placeId ? `<#${mt.placeId}>` : (mt.place || '-')}`, thumbnail: null })] }).catch(() => {});
       }
     }
@@ -251,7 +251,29 @@ function setup({ client, baseEmbed }) {
       if (b.pendingHours !== undefined) n.pendingHours = Math.max(1, Math.min(168, Number(b.pendingHours) || 6));
       cfg.save(); res.json({ ok: true });
     });
-    api.post('/notify/test', async (req, res) => { const ok = await notifyStaff('important', { title: 'Tes notif TRO SYSTEM', description: `Kalau kamu dapat DM ini, notif staff sudah jalan ✅\n— dikirim dari dashboard oleh ${req.session.user.username}` }); res.json({ ok }); });
+    api.post('/notify/test', async (req, res) => { const ok = await notifyStaff('important', { title: '[TES] Notif TRO SYSTEM', description: `Kalau kamu dapat DM ini, notif staff sudah jalan ✅\nDM tes hanya dikirim ke kamu.` }, [req.session.user.id]); res.json({ ok }); });
+    api.post('/meetings/test', async (req, res) => { try { res.json(await createMeeting({ title: '[TES] Rapat percobaan', when: Date.now() + 2 * 3600_000, agenda: 'Tes sistem rapat — akan dihapus otomatis', channelId: req.body.channelId, by: req.session.user.username, testUserId: req.session.user.id })); } catch (e) { res.status(400).json({ error: e.message }); } });
+    // hapus semua hasil tes: DM tes ke kamu, pengumuman rapat tes, dan datanya
+    api.post('/notify/cleanup', async (req, res) => {
+      let dms = 0, posts = 0;
+      const d = M();
+      for (const mt of d.items.filter((x) => x.test)) {
+        if (mt.channelId && mt.messageId) { const ch = await client.channels.fetch(mt.channelId).catch(() => null); if (await ch?.messages.delete(mt.messageId).then(() => true).catch(() => false)) posts++; }
+      }
+      d.items = d.items.filter((x) => !x.test); cfg.save();
+      const u = await client.users.fetch(req.session.user.id).catch(() => null);
+      const dm = u && await u.createDM().catch(() => null);
+      if (dm) {
+        const msgs = await dm.messages.fetch({ limit: 50 }).catch(() => null);
+        for (const m of msgs?.values() || []) {
+          if (m.author.id !== client.user.id) continue;
+          const t = [m.content, ...m.embeds.map((e) => `${e.title || ''} ${e.description || ''}`)].join(' ');
+          if (/\[TES\]|Tes notif|Tes sistem rapat/i.test(t)) { if (await m.delete().then(() => true).catch(() => false)) dms++; }
+        }
+      }
+      cfg.addLog('Hapus hasil tes', `${dms} DM & ${posts} pengumuman tes dihapus oleh ${req.session.user.username}`);
+      res.json({ dms, posts });
+    });
     api.post('/notify/pending', async (req, res) => { await pendingSweep(true); res.json({ ok: true }); });
     api.post('/meetings', async (req, res) => { try { res.json(await createMeeting({ ...req.body, by: req.session.user.username })); } catch (e) { res.status(400).json({ error: e.message }); } });
     api.post('/meetings/:id/cancel', async (req, res) => { try { res.json(await cancelMeeting(req.params.id, req.session.user.username)); } catch (e) { res.status(400).json({ error: e.message }); } });

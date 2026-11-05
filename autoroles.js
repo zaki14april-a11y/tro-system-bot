@@ -77,7 +77,7 @@ function setup(bot) {
   async function sweep() {
     const g = client.guilds.cache.get(process.env.GUILD_ID);
     if (!g) return;
-    const members = await g.members.fetch().catch(() => g.members.cache);
+    const members = await client.fetchMembers(g);
     let n = 0;
     for (const m of members.values()) { const c = await sync(m); if (c) { n += c; await sleep(400); } }
     if (n) cfg.addLog('Role otomatis', `${n} perubahan role Verified/Zodiac`);

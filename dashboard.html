@@ -1724,7 +1724,7 @@ pages.notify = () => `<h1>🔔 Notif Staff & Rapat</h1><div class="sub">DM otoma
     <div class="card"><h3>Penerima DM <span class="row" style="gap:8px;font-size:13px;font-weight:500">Aktif ${toggle('nf-on', true)}</span></h3><div class="hint" id="nf-count">Owner server dan super admin selalu dapat.</div>
       <label>Role yang dapat notif</label><div id="nf-roles"></div>
       <label>Tambahan user (ID Discord, pisah koma)</label><input id="nf-users" placeholder="contoh: 563752367305261107">
-      <div class="actions"><button class="primary" id="nf-save">💾 Simpan</button><button id="nf-test">Kirim DM tes</button></div></div>
+      <div class="actions"><button class="primary" id="nf-save">💾 Simpan</button><button id="nf-test">Kirim DM tes ke saya</button><button id="nf-clean">Hapus hasil tes</button></div></div>
     <div class="card"><h3>Jenis notifikasi</h3><div id="nf-kinds"></div>
       <label>Ingatkan pengajuan yang belum di-ACC setelah (jam)</label><div class="row"><input type="number" id="nf-ph" min="1" max="168" style="width:110px"><button class="small" id="nf-pnow">Kirim pengingat sekarang</button></div></div>
   </div>
@@ -1749,7 +1749,8 @@ pages.notify.init = async () => {
   $('#nf-ph').value = n.pendingHours; $('#mt-rm').value = n.remindMinutes; $('#mt-ch').value = n.meetingChannelId; $('#mt-roles').innerHTML = roleChips('mt-rc', n.meetingRoleIds);
   const body = () => ({ enabled: $('#nf-on').checked, roleIds: readChips('nf-rc'), userIds: $('#nf-users').value.split(/[\s,]+/).filter(Boolean), kinds: Object.fromEntries(Object.keys(r.kinds).map((k) => [k, $('#nk-' + k).checked])), pendingHours: $('#nf-ph').value, remindMinutes: $('#mt-rm').value, meetingChannelId: $('#mt-ch').value, meetingRoleIds: readChips('mt-rc') });
   $('#nf-save').onclick = (e) => busy(e.target, async () => { await api('/notify', { method: 'PUT', body: body() }); toast('✅ Pengaturan notif disimpan'); render(); });
-  $('#nf-test').onclick = (e) => busy(e.target, async () => { await api('/notify', { method: 'PUT', body: body() }); const x = await api('/notify/test', { method: 'POST', body: {} }); toast(`✅ DM tes terkirim ke ${x.ok} orang`); });
+  $('#nf-test').onclick = (e) => busy(e.target, async () => { await api('/notify', { method: 'PUT', body: body() }); const x = await api('/notify/test', { method: 'POST', body: {} }); toast(x.ok ? '✅ DM tes terkirim ke kamu — cek DM Discord' : '❌ DM gagal, cek apakah DM dari server dibuka'); });
+  $('#nf-clean').onclick = (e) => busy(e.target, async () => { const x = await api('/notify/cleanup', { method: 'POST', body: {} }); toast(`✅ ${x.dms} DM tes & ${x.posts} pengumuman tes dihapus`); render(); });
   $('#nf-pnow').onclick = (e) => busy(e.target, async () => { await api('/notify/pending', { method: 'POST', body: {} }); toast('✅ Pengingat dikirim (kalau ada pengajuan yang menunggu)'); });
   const list = r.meetings.filter((m) => m.at > Date.now() - 86400e3 * 14);
   $('#mt-list').innerHTML = list.length ? list.map((m) => { const v = Object.values(m.rsvp || {}); return `<tr><td><b>${esc(m.title)}</b>${m.cancelled ? ' <span class="tag">dibatalkan</span>' : ''}<div class="hint">${esc(m.by)}</div></td><td>${new Date(m.at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</td><td>${v.filter((x) => x === 'hadir').length}</td><td>${v.filter((x) => x === 'izin').length}</td><td>${!m.cancelled && m.at > Date.now() ? `<button class="small danger" data-cancel="${m.id}">Batalkan</button>` : ''}</td></tr>`; }).join('') : emptyRow(5, 'Belum ada rapat. Buat dari form di samping.');

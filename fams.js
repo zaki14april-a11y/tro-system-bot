@@ -465,7 +465,7 @@ function setup({ client, baseEmbed, securityLog }) {
   async function missingMembers(roleId) {
     const s = cfg.get(), v = s.verify;
     const g = client.guilds.cache.get(process.env.GUILD_ID);
-    await g.members.fetch().catch(() => {});
+    await client.fetchMembers(g);
     const role = roleId || v.memberRoleIds[0];
     if (!role) throw new Error('Pilih role member dulu (dashboard Verifikasi → Role untuk Member Baru)');
     const done = new Set(s.applications.filter((a) => a.type === 'member' && ['pending', 'accepted'].includes(a.status) && !(a.legacy && !a.answers?.length)).map((a) => a.userId));

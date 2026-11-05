@@ -62,6 +62,14 @@ async function securityLog(type, text, color = '#e74c3c') {
 }
 
 client.setMaxListeners(40);
+// ambil semua member maksimal 1x tiap 5 menit (hindari rate limit opcode 8), selebihnya pakai cache
+let _mf = { at: 0, p: null };
+client.fetchMembers = async (g) => {
+  if (_mf.p) return _mf.p;
+  if (Date.now() - _mf.at < 5 * 60_000 && g.members.cache.size > 1) return g.members.cache;
+  _mf.p = g.members.fetch().then((m) => { _mf.at = Date.now(); return m; }).catch(() => g.members.cache).finally(() => { _mf.p = null; });
+  return _mf.p;
+};
 
 // ---------------- verifikasi & undangan fams ----------------
 const fams = require('./fams').setup({ client, baseEmbed, securityLog });
@@ -406,7 +414,7 @@ client.once(Events.ClientReady, async (c) => {
   cfg.load();
   await registerCommands().catch((e) => console.error('Gagal daftar command:', e.message));
   const g = await c.guilds.fetch(GUILD_ID);
-  await g.members.fetch().catch(() => {});
+  await client.fetchMembers(g);
   applyStatus();
   // 🦉 logo TRO: kalau bot masih pakai avatar default, pakai logo server TRO
   if (!c.user.avatar && g.iconURL()) {

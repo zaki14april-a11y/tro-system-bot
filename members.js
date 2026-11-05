@@ -44,7 +44,7 @@ function setup({ client, baseEmbed }) {
 
   async function inactiveList(days, roleIds = []) {
     const g = guild(); if (!g) return [];
-    const members = await g.members.fetch().catch(() => g.members.cache);
+    const members = await client.fetchMembers(g);
     const ign = ACT().ignoreRoleIds || [], now = Date.now(), A = AC();
     const out = [];
     for (const m of members.values()) {
@@ -66,7 +66,7 @@ function setup({ client, baseEmbed }) {
   // 📋 daftar per kategori: member/visitor aktif & tidak aktif + akun kosong
   async function memberList(view, days) {
     const g = guild(); if (!g) return { list: [], counts: {} };
-    const members = await g.members.fetch().catch(() => g.members.cache);
+    const members = await client.fetchMembers(g);
     const v = cfg.get().verify, A = AC(), now = Date.now(), ign = ACT().ignoreRoleIds || [];
     const apps = cfg.get().applications || [];
     const counts = { member_active: 0, member_inactive: 0, visitor_active: 0, visitor_inactive: 0, empty: 0 };
@@ -141,7 +141,7 @@ function setup({ client, baseEmbed }) {
   let running = null;
   async function resolveTargets({ roleIds = [], userIds = [], exceptRoleIds = [], match = 'any' }) {
     const g = guild(); if (!g) throw new Error('Bot belum siap');
-    const members = await g.members.fetch().catch(() => g.members.cache);
+    const members = await client.fetchMembers(g);
     const set = new Map();
     for (const id of userIds) { const m = members.get(id); if (m && !m.user.bot) set.set(id, m); }
     if (roleIds.length) for (const m of members.values()) {
@@ -180,7 +180,7 @@ function setup({ client, baseEmbed }) {
   // ======================= 🏛️ STRUKTUR & DAFTAR MEMBER =======================
   async function structureEmbeds() {
     const g = guild(); const d = DIR();
-    const members = await g.members.fetch().catch(() => g.members.cache);
+    const members = await client.fetchMembers(g);
     const roles = d.structureRoleIds.map((id) => g.roles.cache.get(id)).filter(Boolean);
     const shown = new Set();
     const embeds = [];
@@ -262,7 +262,10 @@ function setup({ client, baseEmbed }) {
     const visCh = DIR().visitorChannelId && await client.channels.fetch(DIR().visitorChannelId).catch(() => null);
     if (!dataCh && !visCh) throw new Error('Channel data-member / data-visitor belum diatur');
     syncing = { running: true, total: 0, done: 0, posted: 0, created: 0, startedAt: Date.now(), by };
-    await g.members.fetch();
+    try { return await syncPrepare(by, s, v, g, dataCh, visCh); } catch (e) { syncing.running = false; syncing.error = e.message; throw e; }
+  }
+  async function syncPrepare(by, s, v, g, dataCh, visCh) {
+    await client.fetchMembers(g);
     const seenM = dataCh ? await seenIn(dataCh) : new Set(), seenV = visCh ? await seenIn(visCh) : new Set();
     const apps = s.applications || (s.applications = []);
     const jobs = [];
