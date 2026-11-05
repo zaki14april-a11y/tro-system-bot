@@ -192,7 +192,8 @@ function setup({ client, baseEmbed }) {
       const list = members.filter((m) => !m.user.bot && m.roles.cache.has(r.id) && !shown.has(m.id) && !ex.some((x) => m.roles.cache.has(x))).sort((a, b) => a.displayName.localeCompare(b.displayName));
       if (!list.size) continue;
       list.forEach((m) => shown.add(m.id));
-      const lines = list.map((m) => `\`${String(++no).padStart(2, '0')}\` <@${m.id}>`);
+      const clean = (t) => String(t).replace(/([*_~`|>\\])/g, '\\$1').slice(0, 40);
+      const lines = list.map((m) => `\`${String(++no).padStart(2, '0')}\` ${clean(m.displayName)}`);
       const chunks = [];
       let cur = '';
       for (const l of lines) { if ((cur + l + '\n').length > 1000) { chunks.push(cur); cur = ''; } cur += l + '\n'; }
