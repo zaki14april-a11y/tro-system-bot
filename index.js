@@ -13,6 +13,7 @@ if (missing.length) {
 await require('./cloudsync').restore();
 const bot = require('./bot');
 const web = require('./web');
+require('./autoroles').setup(bot);
 
 process.on('unhandledRejection', (e) => console.error('⚠️', e?.message || e));
 
