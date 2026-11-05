@@ -178,52 +178,68 @@ function setup({ client, baseEmbed }) {
   }
 
   // ======================= 🏛️ STRUKTUR & DAFTAR MEMBER =======================
-  async function structureEmbeds() {
-    const g = guild(); const d = DIR();
+  // spec = { title, roleIds, note } — dipakai untuk struktur utama & struktur tambahan (data-anggota, data-clan, dll)
+  async function structureEmbeds(spec) {
+    const g = guild();
     const members = await client.fetchMembers(g);
-    const roles = d.structureRoleIds.map((id) => g.roles.cache.get(id)).filter(Boolean);
+    const roles = (spec.roleIds || []).map((id) => g.roles.cache.get(id)).filter(Boolean);
     const shown = new Set();
     const embeds = [];
-    let fields = [];
+    const fields = [];
+    let no = 0;
     for (const r of roles) {
-      const list = members.filter((m) => !m.user.bot && m.roles.cache.has(r.id) && !shown.has(m.id)).sort((a, b) => a.displayName.localeCompare(b.displayName));
+      const ex = spec.excludeRoleIds || [];
+      const list = members.filter((m) => !m.user.bot && m.roles.cache.has(r.id) && !shown.has(m.id) && !ex.some((x) => m.roles.cache.has(x))).sort((a, b) => a.displayName.localeCompare(b.displayName));
       if (!list.size) continue;
       list.forEach((m) => shown.add(m.id));
-      const lines = list.map((m) => `• <@${m.id}>`);
+      const lines = list.map((m) => `\`${String(++no).padStart(2, '0')}\` <@${m.id}>`);
       const chunks = [];
       let cur = '';
       for (const l of lines) { if ((cur + l + '\n').length > 1000) { chunks.push(cur); cur = ''; } cur += l + '\n'; }
       if (cur) chunks.push(cur);
       chunks.forEach((c, i) => fields.push({ name: i ? '‎' : `${r.name} — ${list.size}`, value: c }));
     }
-    for (let i = 0; i < fields.length; i += 12) embeds.push(baseEmbed({ title: i ? undefined : d.title, description: i ? undefined : `Daftar resmi pengurus & anggota **${g.name}**, update otomatis tiap ada perubahan role.\nTotal: **${shown.size}** orang`, fields: fields.slice(i, i + 12) }));
-    if (!embeds.length) embeds.push(baseEmbed({ title: d.title, description: 'Belum ada role yang dipilih untuk struktur.' }));
+    for (let i = 0; i < fields.length; i += 12) embeds.push(baseEmbed({ title: i ? undefined : spec.title, description: i ? undefined : `${spec.note || `Daftar resmi pengurus & anggota **${g.name}**`}\nUpdate otomatis tiap ada perubahan role · Total: **${shown.size}** orang`, fields: fields.slice(i, i + 12), thumbnail: i ? null : undefined }));
+    if (!embeds.length) embeds.push(baseEmbed({ title: spec.title, description: 'Belum ada role yang dipilih untuk struktur ini.' }));
     return embeds;
+  }
+
+  async function postTo(channelId, embeds, prevIds) {
+    const ch = await client.channels.fetch(channelId).catch(() => null); if (!ch) return null;
+    const groups = []; for (let i = 0; i < embeds.length; i += 4) groups.push(embeds.slice(i, i + 4));
+    const ids = [];
+    for (let i = 0; i < groups.length; i++) {
+      const old = prevIds[i] && await ch.messages.fetch(prevIds[i]).catch(() => null);
+      const payload = { embeds: groups[i], allowedMentions: { parse: [] } };
+      if (old) { await old.edit(payload).catch(() => {}); ids.push(old.id); } else { const m = await ch.send(payload); ids.push(m.id); }
+    }
+    for (const extra of prevIds.slice(groups.length)) { const m = await ch.messages.fetch(extra).catch(() => null); if (m) await m.delete().catch(() => {}); }
+    return ids;
   }
 
   let structTimer = null;
   async function postStructure() {
-    const d = DIR(); if (!d.structureChannelId) return 'no-channel';
-    const ch = await client.channels.fetch(d.structureChannelId).catch(() => null); if (!ch) return 'no-channel';
-    const embeds = await structureEmbeds();
-    const groups = []; for (let i = 0; i < embeds.length; i += 4) groups.push(embeds.slice(i, i + 4));
-    const ids = [];
-    for (let i = 0; i < groups.length; i++) {
-      const old = d.structureMessageIds[i] && await ch.messages.fetch(d.structureMessageIds[i]).catch(() => null);
-      const payload = { embeds: groups[i], allowedMentions: { parse: [] } };
-      if (old) { await old.edit(payload).catch(() => {}); ids.push(old.id); } else { const m = await ch.send(payload); ids.push(m.id); }
+    const d = DIR(); d.extra ||= [];
+    let any = false;
+    if (d.structureChannelId) {
+      const ids = await postTo(d.structureChannelId, await structureEmbeds({ title: d.title, roleIds: d.structureRoleIds }), d.structureMessageIds || []);
+      if (ids) { d.structureMessageIds = ids; any = true; }
     }
-    for (const extra of d.structureMessageIds.slice(groups.length)) { const m = await ch.messages.fetch(extra).catch(() => null); if (m) await m.delete().catch(() => {}); }
-    d.structureMessageIds = ids; cfg.save();
-    return 'ok';
+    for (const x of d.extra) {
+      if (!x.channelId) continue;
+      const ids = await postTo(x.channelId, await structureEmbeds(x), x.messageIds || []);
+      if (ids) { x.messageIds = ids; any = true; }
+    }
+    cfg.save();
+    return any ? 'ok' : 'no-channel';
   }
+  const allStructRoles = () => { const d = DIR(); return [...new Set([...(d.structureRoleIds || []), ...(d.extra || []).flatMap((x) => x.roleIds || [])])]; };
   const queueStructure = () => { clearTimeout(structTimer); structTimer = setTimeout(() => postStructure().catch(() => {}), 15_000); };
   client.on(Events.GuildMemberUpdate, (o, n) => {
     if (n.guild.id !== process.env.GUILD_ID) return;
-    const ids = DIR().structureRoleIds;
-    if (ids.some((r) => o.roles.cache.has(r) !== n.roles.cache.has(r))) queueStructure();
+    if (allStructRoles().some((r) => o.roles.cache.has(r) !== n.roles.cache.has(r)) || o.displayName !== n.displayName) queueStructure();
   });
-  client.on(Events.GuildMemberRemove, (m) => { if (m.guild.id === process.env.GUILD_ID && DIR().structureRoleIds.some((r) => m.roles.cache.has(r))) queueStructure(); });
+  client.on(Events.GuildMemberRemove, (m) => { if (m.guild.id === process.env.GUILD_ID && allStructRoles().some((r) => m.roles.cache.has(r))) queueStructure(); });
 
   // 🗂️ kartu data visitor (Tamu) setelah di-ACC — member sudah dicatat oleh modul verifikasi
   setInterval(async () => {
@@ -348,6 +364,11 @@ function setup({ client, baseEmbed }) {
     });
     api.post('/members/sync', async (req, res) => { try { res.json(await syncOldData(req.session.user.username)); } catch (e) { res.status(400).json({ error: e.message }); } });
     api.get('/members/sync', (req, res) => res.json(syncing || { running: false }));
+    api.put('/members/directory/extra', async (req, res) => {
+      const d = DIR(); const prev = d.extra || [];
+      d.extra = (req.body.items || []).map((x) => { const p = prev.find((y) => y.id === x.id); return { id: x.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 5), title: String(x.title || 'Struktur').slice(0, 200), note: String(x.note || '').slice(0, 300), channelId: String(x.channelId || ''), roleIds: (x.roleIds || []).map(String), excludeRoleIds: (x.excludeRoleIds || []).map(String), messageIds: p && p.channelId === x.channelId ? p.messageIds || [] : [] }; });
+      cfg.save(); res.json({ ok: true, result: await postStructure().catch((e) => e.message), items: d.extra });
+    });
     api.post('/members/directory/post', async (req, res) => { try { res.json({ result: await postStructure() }); } catch (e) { res.status(400).json({ error: e.message }); } });
 
     api.get('/members/list', async (req, res) => { try { res.json(await memberList(String(req.query.view || 'member_inactive'), Number(req.query.days) || ACT().inactiveDays)); } catch (e) { res.status(400).json({ error: e.message }); } });

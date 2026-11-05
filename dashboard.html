@@ -1650,10 +1650,25 @@ pages.directory = () => `<h1>🏛️ Struktur & Data Member</h1><div class="sub"
     <div class="actions"><button class="primary" id="dr-save">💾 Simpan & kirim</button></div></div>
   <div class="card"><h3>🎟️ Data visitor / tamu</h3><div class="hint">Setiap Tamu yang di-ACC otomatis dibuatkan kartu data di channel ini.</div><label>Channel data visitor</label>${sel('dr-vis', chOptions('', '— Tidak dikirim —'))}
     <h3 style="margin-top:22px">🦉 Data member</h3><div class="hint">Channel data anggota sekarang: <b id="dr-mem"></b>. Ubah di menu <a href="#verify">Verifikasi</a>.</div></div></div>
+  <div class="card" style="margin-top:16px"><div class="row"><h3>🗂️ Struktur tambahan</h3><div class="spacer"></div><button class="small" id="dx-add">+ Struktur</button><button class="small primary" id="dx-save">💾 Simpan & kirim semua</button></div>
+    <div class="hint">Buat daftar otomatis di channel lain (contoh: data-anggota untuk TRO Boys, data-clan untuk Girls). Urutan role = urutan klik. Update sendiri tiap role / nama berubah — gantikan daftar yang diketik manual.</div><div id="dx-list" class="grid" style="gap:12px;margin-top:12px"></div></div>
   <div class="card" style="margin-top:16px"><h3>🗄️ Sinkron data lama</h3><div class="hint">Kirim ulang semua data yang sudah ada ke sistem baru: member & tamu yang sudah di-ACC dibuatkan kartu di data-member / data-visitor, dan member lama yang sudah punya role (verif dari bot lama) ikut dicatat. Yang kartunya sudah ada di channel tidak dikirim dobel.</div>
     <div class="actions"><button class="primary" id="dr-sync">Sinkronkan sekarang</button><span class="hint" id="dr-sync-st"></span></div></div>`;
 pages.directory.init = async () => {
   const d = await api('/members/directory');
+  let extra = (d.extra || []).map((x) => ({ ...x, roleIds: [...(x.roleIds || [])] }));
+  const drawX = () => {
+    $('#dx-list').innerHTML = extra.length ? extra.map((x, i) => `<div class="card" style="padding:14px" data-i="${i}"><div class="row"><input class="dx-t" value="${esc(x.title)}" placeholder="Judul, contoh: 🗂️ DATA ANGGOTA TRO BOYS" style="flex:1"><select class="dx-c" style="width:260px">${chOptions(x.channelId)}</select><button class="small danger dx-del">Hapus</button></div>
+      <input class="dx-n" value="${esc(x.note || '')}" placeholder="Keterangan singkat (opsional)" style="margin-top:8px"><label>Jangan tampilkan yang punya role</label><select class="dx-x"><option value="">— Tidak ada —</option>${S.guild.roles.map((r) => `<option value="${r.id}" ${(x.excludeRoleIds || [])[0] === r.id ? 'selected' : ''}>@${esc(r.name)}</option>`).join('')}</select><label>Role yang ditampilkan (urut sesuai klik)</label>
+      <div class="chips" style="margin-top:8px">${S.guild.roles.map((r) => `<span class="chip dx-r ${x.roleIds.includes(r.id) ? 'on' : ''}" data-id="${r.id}" style="border-left:3px solid ${r.color}">${x.roleIds.includes(r.id) ? `<b>${x.roleIds.indexOf(r.id) + 1}.</b> ` : ''}@${esc(r.name)}</span>`).join('')}</div></div>`).join('') : '<div class="hint">Belum ada struktur tambahan.</div>';
+    document.querySelectorAll('#dx-list>.card').forEach((el) => { const i = +el.dataset.i;
+      el.querySelector('.dx-t').oninput = (e) => extra[i].title = e.target.value; el.querySelector('.dx-n').oninput = (e) => extra[i].note = e.target.value; el.querySelector('.dx-c').onchange = (e) => extra[i].channelId = e.target.value; el.querySelector('.dx-x').onchange = (e) => extra[i].excludeRoleIds = e.target.value ? [e.target.value] : [];
+      el.querySelector('.dx-del').onclick = () => { extra.splice(i, 1); drawX(); };
+      el.querySelectorAll('.dx-r').forEach((c) => c.onclick = (ev) => { ev.stopPropagation(); const id = c.dataset.id; const k = extra[i].roleIds.indexOf(id); if (k >= 0) extra[i].roleIds.splice(k, 1); else extra[i].roleIds.push(id); drawX(); }); });
+  };
+  drawX();
+  $('#dx-add').onclick = () => { extra.push({ title: '🗂️ DATA ANGGOTA', note: '', channelId: '', roleIds: [] }); drawX(); };
+  $('#dx-save').onclick = (e) => busy(e.target, async () => { const r = await api('/members/directory/extra', { method: 'PUT', body: { items: extra } }); extra = r.items; drawX(); toast(r.result === 'ok' ? '✅ Struktur dikirim & akan update otomatis' : '⚠️ ' + r.result); });
   const showSync = async () => { const r = await api('/members/sync').catch(() => null); if (!r || !$('#dr-sync-st')) return; if (r.running) { $('#dr-sync-st').textContent = `Berjalan… ${r.done}/${r.total} kartu`; $('#dr-sync').disabled = true; setTimeout(showSync, 3000); } else if (r.finishedAt) { $('#dr-sync-st').textContent = `Selesai: ${r.posted} kartu dikirim, ${r.created} member lama dicatat.`; $('#dr-sync').disabled = false; } };
   showSync();
   $('#dr-sync').onclick = (e) => busy(e.target, async () => { const r = await api('/members/sync', { method: 'POST', body: {} }); toast(`✅ Sinkron dimulai: ${r.total} kartu akan dikirim, ${r.created} member lama dicatat`); setTimeout(showSync, 1500); });
