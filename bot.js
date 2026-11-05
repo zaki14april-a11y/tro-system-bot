@@ -60,10 +60,12 @@ async function securityLog(type, text, color = '#e74c3c') {
   if (ch) ch.send({ embeds: [baseEmbed({ title: `🛡️ ${type}`, description: text, color, thumbnail: null })], allowedMentions: { parse: [] } }).catch(() => {});
 }
 
+client.setMaxListeners(40);
+
 // ---------------- verifikasi & undangan fams ----------------
 const fams = require('./fams').setup({ client, baseEmbed, securityLog });
 const tracker = require('./tracker').setup({ client, baseEmbed });
-const modules = ['tickets', 'levels', 'engage', 'moderation', 'community', 'guide']
+const modules = ['tickets', 'levels', 'engage', 'moderation', 'community', 'guide', 'members', 'shop', 'divisions']
   .map((name) => ({ name, ...require(`./${name}`).setup({ client, baseEmbed, securityLog }) }));
 
 // ---------------- postingan resmi ----------------
@@ -118,12 +120,22 @@ function welcomeEmbed(member, w) {
   });
 }
 
+const cards = require('./cards');
+async function cardFor(kind, member) {
+  if (cfg.get()[kind].card === false || !cards.available()) return null;
+  const g = member.guild;
+  const buf = await cards.makeCard(kind, { username: member.displayName || member.user.username, avatarUrl: member.user.displayAvatarURL({ extension: 'png', size: 256 }), guildName: g.name, memberCount: g.memberCount, iconUrl: g.iconURL({ extension: 'png', size: 128 }) }).catch(() => null);
+  return buf ? { attachment: buf, name: `${kind}.png` } : null;
+}
+
 async function sendWelcome(member, test = false) {
   const w = cfg.get().welcome;
   if (!w.enabled && !test) return;
   if (w.channelId) {
     const ch = await client.channels.fetch(w.channelId).catch(() => null);
-    if (ch) await ch.send({ content: test ? '🧪 *Tes pesan welcome*' : `<@${member.id}>`, embeds: [welcomeEmbed(member, w)], allowedMentions: { users: test ? [] : [member.id] } });
+    const file = ch && await cardFor('welcome', member);
+    const e = welcomeEmbed(member, w); if (file && !w.image) e.setImage('attachment://welcome.png');
+    if (ch) await ch.send({ content: test ? '🧪 *Tes pesan welcome*' : `<@${member.id}>`, embeds: [e], files: file ? [file] : [], allowedMentions: { users: test ? [] : [member.id] } });
   }
   if (w.dm && !test) member.send({ embeds: [welcomeEmbed(member, w)] }).catch(() => {});
 }
@@ -132,7 +144,9 @@ async function sendGoodbye(member, test = false) {
   const gb = cfg.get().goodbye;
   if ((!gb.enabled && !test) || !gb.channelId) return;
   const ch = await client.channels.fetch(gb.channelId).catch(() => null);
-  if (ch) await ch.send({ content: test ? '🧪 *Tes pesan goodbye*' : undefined, embeds: [baseEmbed({ title: fill(gb.title, member), description: fill(gb.message, member), thumbnail: member.user.displayAvatarURL({ size: 256 }), color: '#7f8c8d' })], allowedMentions: { parse: [] } });
+  const file = ch && await cardFor('goodbye', member);
+  const e = baseEmbed({ title: fill(gb.title, member), description: fill(gb.message, member), thumbnail: member.user.displayAvatarURL({ size: 256 }), color: '#7f8c8d' }); if (file) e.setImage('attachment://goodbye.png');
+  if (ch) await ch.send({ content: test ? '🧪 *Tes pesan goodbye*' : undefined, embeds: [e], files: file ? [file] : [], allowedMentions: { parse: [] } });
 }
 
 // ---------------- status ----------------

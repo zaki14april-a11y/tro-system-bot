@@ -40,6 +40,10 @@ function setup(bot) {
     const v = await find(VERIFIED.name, VERIFIED.color);
     if (v) d.verifiedId = v.id;
     for (const [name, , , color] of ZODIAC) { const r = await find(name, color); if (r) d.zodiac[name] = r.id; await sleep(250); }
+    // role notifikasi untuk panel ambil-role
+    for (const [name, color] of [['🔔 Notif Event', 0xe9d18b], ['🎁 Notif Giveaway', 0xf472b6], ['🛒 Notif TRO Shop', 0x38bdf8], ['🎮 Mabar', 0x22c55e], ['🎤 Karaoke & Music', 0xa855f7]]) {
+      if (!g.roles.cache.find((x) => x.name === name)) { await g.roles.create({ name, color, hoist: false, mentionable: true, reason: 'TRO SYSTEM role notif' }).catch(() => {}); await sleep(250); }
+    }
     if (!d.extraVerifiedRoleIds.length) { const guest = g.roles.cache.find((r) => r.name === 'GUEST'); if (guest) d.extraVerifiedRoleIds = [guest.id]; }
     cfg.save();
   }

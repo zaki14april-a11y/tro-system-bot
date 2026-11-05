@@ -499,6 +499,7 @@ const PAGES = [
   ['Komunitas', [['invites', '🗓️', 'Undangan Fams'], ['events', '📅', 'Jadwal Event'], ['birthday', '🎂', 'Ultah & Statistik'], ['tempvoice', '🔊', 'Custom Voice']]],
   ['Engagement', [['levels', '⭐', 'Level & XP'], ['giveaway', '🎉', 'Giveaway'], ['selfroles', '🏷️', 'Self-Role Panel']]],
   ['Pesan & Support', [['posts', '📜', 'Postingan Resmi'], ['announce', '📢', 'Pengumuman'], ['tickets', '🎫', 'Ticket']]],
+  ['Manajemen', [['broadcast', '📨', 'DM Massal'], ['activity', '💤', 'Keaktifan Member'], ['directory', '🏛️', 'Struktur & Data'], ['divisions', '🗂️', 'Divisi & Tugas'], ['suggest', '💡', 'Saran Aktivitas'], ['shop', '🛒', 'TRO Shop']]],
   ['Keamanan', [['security', '🛡️', 'Anti Hack & Raid'], ['moderation', '⚖️', 'Moderasi & Warn'], ['logs', '🧾', 'Log Aktivitas'], ['access', '👑', 'Akses Dashboard']]],
 ];
 
@@ -1304,6 +1305,165 @@ pages.access.init = async () => {
     await api('/config/access', { method: 'PUT', body: a });
     toast('✅ Akses disimpan — berlaku langsung');
   });
+};
+
+
+// ================== 📨 DM MASSAL ==================
+pages.broadcast = () => `<h1>📨 DM Massal</h1><div class="sub">Kirim DM ke banyak member sekaligus: pilih <b>beberapa role</b>, <b>orang tertentu</b>, atau gabungan. Dikirim pelan (±1 detik/orang) biar aman dari limit Discord.</div>
+  <div class="grid g2"><div class="card"><h3>🎯 Penerima</h3>
+    <label>Role penerima (klik pilih, boleh lebih dari 1)</label>${roleChips('bc-roles', [])}
+    <label>Cocokkan</label><select id="bc-match"><option value="any">Punya salah satu role yang dipilih</option><option value="all">Harus punya SEMUA role yang dipilih</option></select>
+    <label>Kecualikan role</label>${roleChips('bc-except', [])}
+    <label>Orang tertentu (cari nama)</label><input id="bc-q" placeholder="🔍 Ketik nama member..."><div class="list" id="bc-res"></div><div class="chips" id="bc-users"></div>
+    <div class="actions"><button id="bc-prev">👀 Cek jumlah penerima</button><span class="hint" id="bc-count"></span></div></div>
+  <div class="card"><h3>✉️ Pesan</h3>
+    <label>Judul</label><input id="bc-title" placeholder="📢 Info penting dari TRO">
+    <label>Isi pesan <span class="hint">({user} = mention, {name} = nama)</span></label><textarea id="bc-msg" rows="7" placeholder="Halo {name}! ..."></textarea>
+    <label>Gambar (URL, opsional)</label><input id="bc-img" placeholder="https://...">
+    <div class="grid g2" style="gap:10px"><div><label>Link tombol (opsional)</label><input id="bc-link" placeholder="https://..."></div><div><label>Tulisan tombol</label><input id="bc-linkl" value="Buka"></div></div>
+    <div class="actions"><button class="primary" id="bc-send">📨 Kirim DM</button></div></div></div>
+  <div class="card" style="margin-top:16px;padding:0;overflow:auto"><div style="padding:16px 20px 0"><h3>🧾 Riwayat</h3></div><table><thead><tr><th>Waktu</th><th>Judul</th><th>Target</th><th>Terkirim</th><th>DM tertutup</th><th>Oleh</th></tr></thead><tbody id="bc-jobs"></tbody></table></div>`;
+pages.broadcast.init = async () => {
+  const users = new Map();
+  const drawUsers = () => { $('#bc-users').innerHTML = [...users].map(([id, n]) => `<span class="chip on" data-id="${id}">${esc(n)} ✕</span>`).join(''); document.querySelectorAll('#bc-users .chip').forEach((c) => c.onclick = () => { users.delete(c.dataset.id); drawUsers(); }); };
+  let t; $('#bc-q').oninput = () => { clearTimeout(t); t = setTimeout(async () => { const q = $('#bc-q').value.trim(); if (q.length < 2) return $('#bc-res').innerHTML = ''; const r = await api('/members/broadcast/search?q=' + encodeURIComponent(q)).catch(() => []); $('#bc-res').innerHTML = r.map((u) => `<a data-id="${u.id}" data-n="${esc(u.name)}" style="cursor:pointer"><span>${esc(u.name)} <small class="hint">@${esc(u.username)}</small></span><small>+ tambah</small></a>`).join(''); document.querySelectorAll('#bc-res a').forEach((a) => a.onclick = () => { users.set(a.dataset.id, a.dataset.n); drawUsers(); $('#bc-res').innerHTML = ''; $('#bc-q').value = ''; }); }, 300); };
+  const body = () => ({ roleIds: readChips('bc-roles'), exceptRoleIds: readChips('bc-except'), match: $('#bc-match').value, userIds: [...users.keys()], title: $('#bc-title').value, message: $('#bc-msg').value, image: $('#bc-img').value.trim(), link: $('#bc-link').value.trim(), linkLabel: $('#bc-linkl').value });
+  $('#bc-prev').onclick = (e) => busy(e.target, async () => { const r = await api('/members/broadcast/preview', { method: 'POST', body: body() }); $('#bc-count').innerHTML = `<b>${r.count}</b> penerima${r.sample.length ? ' · ' + r.sample.map(esc).join(', ') + (r.count > r.sample.length ? '…' : '') : ''}`; });
+  $('#bc-send').onclick = (e) => { if (!confirm('Kirim DM ke semua penerima?')) return; busy(e.target, async () => { const r = await api('/members/broadcast', { method: 'POST', body: body() }); toast(`📨 Mengirim ke ${r.userCount} member... (berjalan di belakang)`); load(); }); };
+  const load = async () => { const r = await api('/members/broadcast'); $('#bc-jobs').innerHTML = r.jobs.length ? r.jobs.map((j) => `<tr><td>${fmtDT(j.startedAt)}</td><td>${j.kind === 'check' ? '💤 Cek aktif' : esc(j.title || '(tanpa judul)')}</td><td>${j.userCount} orang</td><td>${j.sent}${j.doneAt ? '' : ' ⏳'}</td><td>${j.failed}</td><td>${esc(j.by)}</td></tr>`).join('') : emptyRow(6, 'Belum ada DM massal.'); if (r.running) setTimeout(load, 4000); };
+  load();
+};
+
+// ================== 💤 KEAKTIFAN MEMBER ==================
+pages.activity = () => `<h1>💤 Keaktifan Member</h1><div class="sub">Bot mencatat chat & voice tiap member. Lihat siapa yang lama tidak aktif, kirim DM tanya keaktifan (tombol ✅ aktif / ⏸️ izin / 👋 keluar), lalu cabut role atau kick.</div>
+  <div class="card"><div class="grid g3" style="gap:12px;align-items:end"><div><label>Tidak aktif minimal (hari)</label><input type="number" id="ac-days" min="1"></div><div><label>Filter role (kosong = semua)</label><select id="ac-role"><option value="">— Semua member —</option>${S.guild.roles.map((r) => `<option value="${r.id}">@${esc(r.name)}</option>`).join('')}</select></div><div class="actions" style="margin:0"><button class="primary" id="ac-load">🔍 Tampilkan</button></div></div>
+    <label>Role yang tidak dicek (staff, bot, dll)</label><div id="ac-ign"></div>
+    <label>Pesan DM cek keaktifan</label><textarea id="ac-msg" rows="4"></textarea><div class="actions"><button id="ac-save">💾 Simpan pengaturan</button></div></div>
+  <div class="card" style="margin-top:16px;padding:0;overflow:auto"><div class="row" style="padding:16px 20px 0;flex-wrap:wrap;gap:8px"><h3>📋 Member tidak aktif <span class="hint" id="ac-n"></span></h3><div class="spacer"></div>
+    <button class="small" id="ac-all">☑️ Pilih semua</button><button class="small primary" id="ac-check">📨 DM cek aktif</button>
+    <select id="ac-unrole" style="width:200px"><option value="">— Role yang dicabut —</option>${S.guild.roles.map((r) => `<option value="${r.id}">@${esc(r.name)}</option>`).join('')}</select><button class="small danger" id="ac-un">Cabut role</button><button class="small danger" id="ac-kick">👢 Kick</button></div>
+    <table><thead><tr><th></th><th>Member</th><th>Role</th><th>Terakhir aktif</th><th>Tidak aktif</th><th>Chat</th><th>Jawaban DM</th></tr></thead><tbody id="ac-list"><tr><td colspan="7" class="hint" style="text-align:center;padding:30px">Klik <b>Tampilkan</b>.</td></tr></tbody></table></div>`;
+pages.activity.init = async () => {
+  const ANS = { sent: '📨 menunggu', 'dm-closed': '🔒 DM tertutup', yes: '✅ masih aktif', izin: '⏸️ izin/sibuk', leave: '👋 mau keluar' };
+  let list = [], conf = {};
+  const first = await api('/members/activity?days=99999');
+  conf = first.cfg; $('#ac-days').value = conf.inactiveDays; $('#ac-msg').value = conf.checkMessage; $('#ac-ign').innerHTML = roleChips('ac-ignc', conf.ignoreRoleIds || []);
+    const picked = () => [...document.querySelectorAll('.ac-cb:checked')].map((c) => c.value);
+  const draw = () => {
+    $('#ac-n').textContent = `(${list.length})`;
+    $('#ac-list').innerHTML = list.length ? list.map((m) => `<tr><td><input type="checkbox" class="ac-cb" value="${m.id}" style="width:auto"></td><td><div class="row" style="gap:8px"><img src="${esc(m.avatar)}" style="width:28px;height:28px;border-radius:50%"><div><b>${esc(m.name)}</b><div class="hint">@${esc(m.username)}</div></div></div></td><td>${m.roles.map((r) => `<span class="tag" style="border-left:3px solid ${r.color}">${esc(r.name)}</span>`).join(' ')}</td><td>${m.lastActive ? fmtDT(m.lastActive) : '<span class="hint">belum tercatat</span>'}</td><td><b>${m.idleDays}</b> hari</td><td>${m.msgs}</td><td>${m.check ? (ANS[m.check.status] || m.check.status) : '—'}</td></tr>`).join('') : emptyRow(7, 'Semua member aktif 🎉');
+  };
+  const load = async () => { const r = await api(`/members/activity?days=${$('#ac-days').value}&roles=${$('#ac-role').value}`); list = r.list; draw(); };
+  $('#ac-load').onclick = (e) => busy(e.target, load);
+  $('#ac-all').onclick = () => { const cbs = [...document.querySelectorAll('.ac-cb')]; const on = cbs.some((c) => !c.checked); cbs.forEach((c) => c.checked = on); };
+  $('#ac-save').onclick = (e) => busy(e.target, async () => { await api('/members/activity', { method: 'PUT', body: { inactiveDays: $('#ac-days').value, ignoreRoleIds: readChips('ac-ignc'), checkMessage: $('#ac-msg').value } }); toast('✅ Disimpan'); });
+  $('#ac-check').onclick = (e) => { const ids = picked(); if (!ids.length) return toast('Pilih member dulu', true); if (!confirm(`Kirim DM cek keaktifan ke ${ids.length} member?`)) return; busy(e.target, async () => { await api('/members/activity/check', { method: 'POST', body: { userIds: ids } }); toast('📨 DM cek aktif sedang dikirim'); }); };
+  const act = (action) => (e) => { const ids = picked(); const role = $('#ac-unrole').value; if (!ids.length) return toast('Pilih member dulu', true); if (action === 'unrole' && !role) return toast('Pilih role yang dicabut', true); if (!confirm(action === 'kick' ? `KICK ${ids.length} member?` : `Cabut role @${roleName(role)} dari ${ids.length} member?`)) return; busy(e.target, async () => { const r = await api('/members/activity/action', { method: 'POST', body: { userIds: ids, action, roleIds: [role] } }); toast(`✅ ${r.ok} member diproses`); load(); }); };
+  $('#ac-un').onclick = act('unrole'); $('#ac-kick').onclick = act('kick');
+};
+
+// ================== 🏛️ STRUKTUR & DATA ==================
+pages.directory = () => `<h1>🏛️ Struktur & Data Member</h1><div class="sub">Daftar struktur/anggota otomatis (update sendiri tiap role berubah) + kartu data visitor. Kartu data <b>member</b> diatur di menu Verifikasi → Channel data anggota.</div>
+  <div class="grid g2"><div class="card"><h3>🏛️ Struktur & daftar member</h3><label>Judul</label><input id="dr-title"><label>Channel struktur</label>${sel('dr-ch', chOptions('', '— Pilih channel —'))}
+    <label>Role yang ditampilkan (urut sesuai klik / posisi role)</label><div id="dr-roles"></div>
+    <div class="actions"><button class="primary" id="dr-save">💾 Simpan & kirim</button></div></div>
+  <div class="card"><h3>🎟️ Data visitor / tamu</h3><div class="hint">Setiap Tamu yang di-ACC otomatis dibuatkan kartu data di channel ini.</div><label>Channel data visitor</label>${sel('dr-vis', chOptions('', '— Tidak dikirim —'))}
+    <h3 style="margin-top:22px">🦉 Data member</h3><div class="hint">Channel data anggota sekarang: <b id="dr-mem"></b>. Ubah di menu <a href="#verify">Verifikasi</a>.</div></div></div>`;
+pages.directory.init = async () => {
+  const d = await api('/members/directory');
+  $('#dr-title').value = d.title; $('#dr-ch').value = d.structureChannelId; $('#dr-vis').value = d.visitorChannelId;
+  $('#dr-mem').textContent = S.cfg.verify.dataChannelId ? '#' + chName(S.cfg.verify.dataChannelId) : 'belum diatur';
+  const order = [...d.structureRoleIds];
+  const draw = () => { $('#dr-roles').innerHTML = `<div class="chips">${S.guild.roles.map((r) => `<span class="chip ${order.includes(r.id) ? 'on' : ''}" data-id="${r.id}" style="border-left:3px solid ${r.color}">${order.includes(r.id) ? `<b>${order.indexOf(r.id) + 1}.</b> ` : ''}@${esc(r.name)}</span>`).join('')}</div>`; document.querySelectorAll('#dr-roles .chip').forEach((c) => c.onclick = () => { const i = order.indexOf(c.dataset.id); if (i >= 0) order.splice(i, 1); else order.push(c.dataset.id); draw(); }); };
+  draw();
+  $('#dr-save').onclick = (e) => busy(e.target, async () => { await api('/members/directory', { method: 'PUT', body: { title: $('#dr-title').value, structureChannelId: $('#dr-ch').value, prevChannelId: d.structureChannelId, visitorChannelId: $('#dr-vis').value, structureRoleIds: order } }); d.structureChannelId = $('#dr-ch').value; const r = await api('/members/directory/post', { method: 'POST', body: {} }); toast(r.result === 'ok' ? '✅ Struktur dikirim/diperbarui' : '⚠️ Pilih channel struktur'); });
+};
+
+// ================== 🛒 TRO SHOP ==================
+pages.shop = () => `<h1>🛒 TRO Shop</h1><div class="sub">Kelola produk (Robux, asset, script, map, jasa), katalog otomatis, dan order. Di tiket, staff bisa catat order pakai <code>/order catat</code>.</div>
+  <div class="grid g4" id="sh-stats"></div>
+  <div class="tabs" style="margin-top:16px"><button class="on sh-tab" data-t="orders">🧾 Order</button><button class="sh-tab" data-t="products">📦 Produk</button><button class="sh-tab" data-t="settings">⚙️ Pengaturan</button></div><div id="sh-body"></div>`;
+pages.shop.init = async () => {
+  let D = await api('/shop'); let tab = 'orders';
+  const rp = (n) => 'Rp ' + Math.round(+n || 0).toLocaleString('id-ID');
+  const stats = () => { const s = D.summary; $('#sh-stats').innerHTML = [['💰', rp(s.thisMonth), 'Pendapatan bulan ini'], ['🏦', rp(s.total), 'Total pendapatan'], ['✅', s.count, 'Order selesai'], ['⏳', s.open, 'Order aktif']].map(([i, n, l]) => `<div class="card stat"><span class="ic2">${i}</span><div class="num" style="font-size:24px">${n}</div><div class="lbl">${l}</div></div>`).join(''); };
+  const catOpts = (v) => Object.entries(D.cats).map(([k, n]) => `<option value="${k}" ${k === v ? 'selected' : ''}>${n}</option>`).join('');
+  const stOpts = (v) => Object.entries(D.statuses).map(([k, n]) => `<option value="${k}" ${k === v ? 'selected' : ''}>${n}</option>`).join('');
+  const views = {
+    orders: () => `<div class="grid" style="grid-template-columns:360px 1fr"><div class="card"><h3>➕ Catat order</h3><label>Produk</label><select id="so-p"><option value="">— Custom —</option>${D.products.map((p) => `<option value="${p.id}">${esc(p.name)} · ${rp(p.price)}</option>`).join('')}</select>
+        <label>Nama produk (kalau custom)</label><input id="so-pn"><div class="grid g2" style="gap:10px"><div><label>Jumlah</label><input type="number" id="so-q" value="1"></div><div><label>Total (kosong = otomatis)</label><input type="number" id="so-t"></div></div>
+        <label>Pembeli (User ID Discord)</label><input id="so-u" placeholder="klik kanan → Copy User ID"><label>Nama pembeli</label><input id="so-un"><label>Pembayaran</label><input id="so-pay" placeholder="QRIS / Dana / Saweria"><label>Catatan</label><input id="so-n">
+        <div class="actions"><button class="primary" id="so-add">💾 Catat</button></div></div>
+      <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>#</th><th>Produk</th><th>Pembeli</th><th>Total</th><th>Status</th><th>Waktu</th></tr></thead><tbody>${D.orders.length ? D.orders.slice(0, 200).map((o) => `<tr><td>#${o.no}</td><td>${esc(o.productName)}${o.qty > 1 ? ' ×' + o.qty : ''}<div class="hint">${D.cats[o.category] || ''}</div></td><td>${esc(o.customerName || o.customerId || '-')}</td><td>${rp(o.total)}</td><td><select class="so-st" data-id="${o.id}" style="width:140px">${stOpts(o.status)}</select></td><td>${fmtDT(o.createdAt)}</td></tr>`).join('') : emptyRow(6, 'Belum ada order.')}</tbody></table></div></div>`,
+    products: () => `<div class="grid" style="grid-template-columns:360px 1fr"><div class="card"><h3 id="sp-h">➕ Produk baru</h3><input type="hidden" id="sp-id"><label>Nama</label><input id="sp-n" placeholder="1.000 Robux (via gamepass)"><label>Kategori</label><select id="sp-c">${catOpts('robux')}</select>
+        <div class="grid g2" style="gap:10px"><div><label>Harga (Rp)</label><input type="number" id="sp-pr"></div><div><label>Stok (kosong = ∞)</label><input type="number" id="sp-s"></div></div><label>Deskripsi singkat</label><input id="sp-d"><label class="row" style="text-transform:none"><input type="checkbox" id="sp-a" checked style="width:auto"> Tampil di katalog</label>
+        <div class="actions"><button class="primary" id="sp-save">💾 Simpan</button><button id="sp-reset">Baru</button></div></div>
+      <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Produk</th><th>Kategori</th><th>Harga</th><th>Stok</th><th></th></tr></thead><tbody>${D.products.length ? D.products.map((p) => `<tr><td><b>${esc(p.name)}</b>${p.active === false ? ' <span class="tag">disembunyikan</span>' : ''}<div class="hint">${esc(p.desc)}</div></td><td>${D.cats[p.category]}</td><td>${rp(p.price)}</td><td>${p.stock === '' ? '∞' : p.stock}</td><td><button class="small sp-e" data-id="${p.id}">Edit</button> <button class="small danger sp-x" data-id="${p.id}">✕</button></td></tr>`).join('') : emptyRow(5, 'Belum ada produk.')}</tbody></table></div></div>`,
+    settings: () => `<div class="card" style="max-width:640px"><label>Judul katalog</label><input id="ss-t" value="${esc(D.cfg.title)}"><label>Catatan bawah katalog</label><input id="ss-f" value="${esc(D.cfg.footerNote)}"><label>Channel katalog (auto update)</label>${sel('ss-c', chOptions(D.cfg.catalogChannelId))}<label>Channel log order</label>${sel('ss-l', chOptions(D.cfg.logChannelId, '— Tanpa log —'))}
+      <div class="actions"><button class="primary" id="ss-save">💾 Simpan & kirim katalog</button></div></div>`,
+  };
+  const draw = async (reload) => {
+    if (reload) D = await api('/shop');
+    stats(); $('#sh-body').innerHTML = views[tab]();
+    document.querySelectorAll('.sh-tab').forEach((b) => { b.classList.toggle('on', b.dataset.t === tab); b.onclick = () => { tab = b.dataset.t; draw(); }; });
+    if (tab === 'orders') {
+      $('#so-add').onclick = (e) => busy(e.target, async () => { await api('/shop/orders', { method: 'POST', body: { productId: $('#so-p').value, productName: $('#so-pn').value, qty: $('#so-q').value, total: $('#so-t').value, customerId: $('#so-u').value, customerName: $('#so-un').value, payment: $('#so-pay').value, note: $('#so-n').value } }); toast('✅ Order dicatat'); draw(true); });
+      document.querySelectorAll('.so-st').forEach((s) => s.onchange = () => busy(s, async () => { await api('/shop/orders', { method: 'POST', body: { id: s.dataset.id, status: s.value } }); toast('✅ Status diperbarui'); draw(true); }));
+    }
+    if (tab === 'products') {
+      const fill = (p = {}) => { $('#sp-id').value = p.id || ''; $('#sp-n').value = p.name || ''; $('#sp-c').value = p.category || 'robux'; $('#sp-pr').value = p.price ?? ''; $('#sp-s').value = p.stock ?? ''; $('#sp-d').value = p.desc || ''; $('#sp-a').checked = p.active !== false; $('#sp-h').textContent = p.id ? '✏️ Edit produk' : '➕ Produk baru'; };
+      document.querySelectorAll('.sp-e').forEach((b) => b.onclick = () => fill(D.products.find((p) => p.id === b.dataset.id)));
+      document.querySelectorAll('.sp-x').forEach((b) => b.onclick = () => confirm('Hapus produk?') && busy(b, async () => { await api('/shop/products/' + b.dataset.id, { method: 'DELETE' }); draw(true); }));
+      $('#sp-reset').onclick = () => fill();
+      $('#sp-save').onclick = (e) => busy(e.target, async () => { await api('/shop/products', { method: 'POST', body: { id: $('#sp-id').value, name: $('#sp-n').value, category: $('#sp-c').value, price: $('#sp-pr').value, stock: $('#sp-s').value, desc: $('#sp-d').value, active: $('#sp-a').checked } }); toast('✅ Produk disimpan (katalog ikut ter-update)'); draw(true); });
+    }
+    if (tab === 'settings') $('#ss-save').onclick = (e) => busy(e.target, async () => { await api('/shop/settings', { method: 'PUT', body: { title: $('#ss-t').value, footerNote: $('#ss-f').value, catalogChannelId: $('#ss-c').value, logChannelId: $('#ss-l').value } }); const r = await api('/shop/catalog', { method: 'POST', body: {} }); toast('✅ Katalog ' + (r.result === 'posted' ? 'dikirim' : 'diperbarui')); draw(true); });
+  };
+  draw();
+};
+
+// ================== 🗂️ DIVISI & TUGAS ==================
+pages.divisions = () => `<h1>🗂️ Divisi & Tugas</h1><div class="sub">Tiap divisi punya papan tugas otomatis di channel-nya (To-do → Dikerjakan → Review → Selesai), notif tugas baru, dan pengingat deadline lewat DM. Command: <code>/tugas tambah</code> <code>/tugas status</code> <code>/tugas saya</code>.</div>
+  <div class="tabs"><button class="on dv-tab" data-t="tasks">📋 Tugas</button><button class="dv-tab" data-t="setup">⚙️ Atur divisi</button></div><div id="dv-body"></div>`;
+pages.divisions.init = async () => {
+  let D = await api('/divisions'); let tab = 'tasks';
+  const dvOpts = (v) => D.items.map((d) => `<option value="${d.id}" ${d.id === v ? 'selected' : ''}>${esc(d.emoji)} ${esc(d.name)}</option>`).join('');
+  const views = {
+    tasks: () => D.items.length ? `<div class="grid" style="grid-template-columns:360px 1fr"><div class="card"><h3>➕ Tugas baru</h3><label>Divisi</label><select id="tk-d">${dvOpts()}</select><label>Judul</label><input id="tk-t"><label>Detail</label><textarea id="tk-ds" rows="3"></textarea>
+        <label>Ditugaskan ke (User ID, pisah koma)</label><input id="tk-a" placeholder="kosong = semua anggota divisi"><label>Deadline</label><input type="date" id="tk-dl"><div class="actions"><button class="primary" id="tk-add">💾 Tambah</button></div></div>
+      <div>${D.items.map((dv) => { const ts = D.tasks.filter((t) => t.divisionId === dv.id && t.status !== 'done'); return `<div class="card" style="margin-bottom:14px;padding:0;overflow:auto"><div style="padding:14px 18px 0"><h3>${esc(dv.emoji)} ${esc(dv.name)} <span class="hint">${ts.length} aktif</span></h3></div><table><tbody>${ts.length ? ts.map((t) => `<tr><td><code>${t.id}</code></td><td><b>${esc(t.title)}</b><div class="hint">${esc(t.desc || '')}</div></td><td>${t.deadline ? '⏰ ' + t.deadline : ''}</td><td><select class="tk-st" data-id="${t.id}" data-d="${dv.id}" style="width:150px">${Object.entries(D.statuses).map(([k, n]) => `<option value="${k}" ${k === t.status ? 'selected' : ''}>${n}</option>`).join('')}</select></td><td><button class="small danger tk-x" data-id="${t.id}">✕</button></td></tr>`).join('') : emptyRow(5, 'Tidak ada tugas aktif.')}</tbody></table></div>`; }).join('')}</div></div>` : '<div class="card hint" style="text-align:center;padding:40px">Belum ada divisi. Buka tab <b>⚙️ Atur divisi</b>.</div>',
+    setup: () => `<div class="card"><div id="dv-list"></div><div class="actions"><button id="dv-add">+ Divisi</button><button class="primary" id="dv-save">💾 Simpan & kirim papan tugas</button></div></div>`,
+  };
+  const draw = async (reload) => {
+    if (reload) D = await api('/divisions');
+    $('#dv-body').innerHTML = views[tab]();
+    document.querySelectorAll('.dv-tab').forEach((b) => { b.classList.toggle('on', b.dataset.t === tab); b.onclick = () => { tab = b.dataset.t; draw(); }; });
+    if (tab === 'tasks' && D.items.length) {
+      $('#tk-add').onclick = (e) => busy(e.target, async () => { await api('/divisions/tasks', { method: 'POST', body: { divisionId: $('#tk-d').value, title: $('#tk-t').value, desc: $('#tk-ds').value, deadline: $('#tk-dl').value, assigneeIds: $('#tk-a').value.split(/[,\s]+/).filter(Boolean) } }); toast('✅ Tugas ditambahkan'); draw(true); });
+      document.querySelectorAll('.tk-st').forEach((s) => s.onchange = () => busy(s, async () => { await api('/divisions/tasks', { method: 'POST', body: { id: s.dataset.id, divisionId: s.dataset.d, status: s.value } }); toast('✅ Status diperbarui'); draw(true); }));
+      document.querySelectorAll('.tk-x').forEach((b) => b.onclick = () => confirm('Hapus tugas?') && busy(b, async () => { await api('/divisions/tasks/' + b.dataset.id, { method: 'DELETE' }); draw(true); }));
+    }
+    if (tab === 'setup') {
+      const items = clone(D.items);
+      const dl = () => { $('#dv-list').innerHTML = items.map((d, i) => `<div class="grid" style="grid-template-columns:70px 1fr 1fr 1fr 1fr 40px;gap:8px;margin-bottom:8px;align-items:end"><div><label>Emoji</label><input class="dv-f" data-i="${i}" data-k="emoji" value="${esc(d.emoji)}"></div><div><label>Nama</label><input class="dv-f" data-i="${i}" data-k="name" value="${esc(d.name)}"></div><div><label>Role divisi</label><select class="dv-f" data-i="${i}" data-k="roleId">${roleOptions(d.roleId)}</select></div><div><label>Channel papan tugas</label><select class="dv-f" data-i="${i}" data-k="boardChannelId">${chOptions(d.boardChannelId)}</select></div><div><label>Channel chat (notif)</label><select class="dv-f" data-i="${i}" data-k="chatChannelId">${chOptions(d.chatChannelId, '— Tanpa notif —')}</select></div><button class="small danger dv-x" data-i="${i}">✕</button></div>`).join('') || '<div class="hint">Belum ada divisi.</div>'; document.querySelectorAll('.dv-f').forEach((el) => el.oninput = el.onchange = () => items[el.dataset.i][el.dataset.k] = el.value); document.querySelectorAll('.dv-x').forEach((b) => b.onclick = () => { items.splice(b.dataset.i, 1); dl(); }); };
+      dl();
+      $('#dv-add').onclick = () => { items.push({ emoji: '🗂️', name: 'Divisi baru', roleId: '', boardChannelId: '', chatChannelId: '' }); dl(); };
+      $('#dv-save').onclick = (e) => busy(e.target, async () => { await api('/divisions', { method: 'PUT', body: { items } }); toast('✅ Divisi disimpan, papan tugas dikirim'); draw(true); });
+    }
+  };
+  draw();
+};
+
+// ================== 💡 SARAN AKTIVITAS ==================
+pages.suggest = () => `<h1>💡 Saran Aktivitas</h1><div class="sub">Member kasih ide kegiatan lewat tombol/<code>/saran</code>, member lain vote 👍👎, staff klik Terima/Tolak. Ada juga <code>/ide</code> buat ide aktivitas random 🎲.</div>
+  <div class="grid" style="grid-template-columns:360px 1fr"><div class="card"><h3>⚙️ Pengaturan</h3><label>Channel saran</label>${sel('sg-ch', chOptions(''))}<label>Role yang boleh Terima/Tolak</label><div id="sg-roles"></div>
+    <div class="actions"><button class="primary" id="sg-save">💾 Simpan & kirim panel</button></div></div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>#</th><th>Saran</th><th>👍</th><th>👎</th><th>Status</th></tr></thead><tbody id="sg-list"></tbody></table></div></div>`;
+pages.suggest.init = async () => {
+  const r = await api('/suggest');
+  $('#sg-ch').value = r.cfg.channelId; $('#sg-roles').innerHTML = roleChips('sg-rc', r.cfg.staffRoleIds || []);
+  $('#sg-list').innerHTML = r.items.length ? r.items.map((s) => `<tr><td>#${s.no}</td><td><b>${esc(s.title)}</b><div class="hint">${esc(s.detail || '')}</div></td><td>${s.up.length}</td><td>${s.down.length}</td><td>${s.status === 'open' ? '🗳️ voting' : s.status === 'accepted' ? '✅ diterima' : '✖️ ditolak'}</td></tr>`).join('') : emptyRow(5, 'Belum ada saran.');
+  $('#sg-save').onclick = (e) => busy(e.target, async () => { await api('/suggest', { method: 'PUT', body: { channelId: $('#sg-ch').value, staffRoleIds: readChips('sg-rc') } }); const x = await api('/suggest/panel', { method: 'POST', body: {} }); toast('✅ Panel saran ' + (x.result === 'posted' ? 'dikirim' : 'diperbarui')); });
 };
 
 

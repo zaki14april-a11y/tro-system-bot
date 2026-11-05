@@ -1,7 +1,7 @@
 {
   "name": "tro-system-bot",
-  "version": "2.0.0",
-  "description": "TRO SYSTEM — bot & dashboard web resmi THE RESILIENT ORDER",
+  "version": "6.0.0",
+  "description": "TRO SYSTEM \u2014 bot & dashboard web resmi THE RESILIENT ORDER",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -10,6 +10,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
