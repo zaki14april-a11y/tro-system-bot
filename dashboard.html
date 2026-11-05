@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TRO SYSTEM — Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦉</text></svg>">
+<style>
+:root{
+  --bg:#0f0f12;--panel:#17171c;--panel2:#1e1e25;--line:#2a2a33;--text:#ececf1;--muted:#9a9aa8;
+  --gold:#d4af37;--gold2:#f0d27a;--red:#e5484d;--green:#30a46c;--blue:#5865f2;--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+a{color:var(--gold2)}
+button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:9px 16px;font-weight:600;background:var(--panel2);color:var(--text);border:1px solid var(--line);transition:.15s}
+button:hover{border-color:var(--gold)}
+button.primary{background:var(--gold);color:#111;border-color:var(--gold)}
+button.primary:hover{background:var(--gold2)}
+button.danger{background:transparent;color:var(--red);border-color:#5a2326}
+button.small{padding:5px 10px;font-size:12px}
+button:disabled{opacity:.5;cursor:wait}
+input,textarea,select{font:inherit;width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 11px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--gold)}
+textarea{min-height:120px;resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+input[type=color]{padding:2px;height:38px;width:60px}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+/* layout */
+.app{display:flex;min-height:100vh}
+aside{width:250px;background:var(--panel);border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;font-weight:800;font-size:18px;letter-spacing:.02em}
+.brand img{width:36px;height:36px;border-radius:50%}
+.brand span{color:var(--gold)}
+.navgroup{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:16px 10px 6px}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text);text-decoration:none;font-weight:500}
+.nav a:hover{background:var(--panel2)}
+.nav a.active{background:var(--panel2);color:var(--gold2);box-shadow:inset 3px 0 0 var(--gold)}
+main{flex:1;min-width:0}
+header{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:14px 28px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(15,15,18,.9);backdrop-filter:blur(8px);z-index:5}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--panel2);border:1px solid var(--line)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--red)}
+.dot.on{background:var(--green)}
+.user{display:flex;align-items:center;gap:8px}
+.user img{width:32px;height:32px;border-radius:50%}
+.content{padding:28px;max-width:1200px}
+h1{font-size:24px;margin-bottom:4px}
+.sub{color:var(--muted);margin-bottom:22px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr}aside{display:none}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.card h3{font-size:15px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.stat .num{font-size:28px;font-weight:800;color:var(--gold2)}
+.stat .lbl{color:var(--muted);font-size:12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.hero{background:linear-gradient(135deg,#2a2410,#17171c 60%);border:1px solid #4a3f1a}
+.tile{cursor:pointer;transition:.15s}.tile:hover{border-color:var(--gold);transform:translateY(-2px)}
+.tile .ic{font-size:26px;margin-bottom:8px}
+/* toggle */
+.switch{position:relative;width:42px;height:24px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch span{position:absolute;inset:0;background:#3a3a44;border-radius:99px;transition:.2s}
+.switch span:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+span{background:var(--gold)}
+.switch input:checked+span:before{transform:translateX(18px)}
+/* list sections */
+.list a{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;color:var(--text);text-decoration:none;border:1px solid transparent}
+.list a:hover{background:var(--panel2)}
+.list a.active{border-color:var(--gold);background:var(--panel2)}
+.field-row{display:grid;grid-template-columns:1fr 2fr auto auto;gap:8px;margin-bottom:8px;align-items:start}
+.field-row textarea{min-height:40px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:4px 10px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);font-size:12px;cursor:pointer;user-select:none}
+.chip.on{border-color:var(--gold);color:var(--gold2)}
+/* embed preview ala discord */
+.dc{background:#313338;border-radius:8px;padding:14px;font-family:"gg sans","Segoe UI",sans-serif;color:#dbdee1}
+.dc .who{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.dc .who img{width:38px;height:38px;border-radius:50%}
+.dc .name{font-weight:600;color:#fff}
+.dc .apptag{background:#5865f2;color:#fff;font-size:10px;padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700}
+.embed{border-left:4px solid var(--gold);background:#2b2d31;border-radius:4px;padding:12px 16px;max-width:520px;margin-left:48px;position:relative;font-size:14px;line-height:1.4}
+.embed .thumb{position:absolute;right:14px;top:12px;width:70px;height:70px;border-radius:6px;object-fit:cover}
+.embed .et{font-weight:700;color:#fff;margin-bottom:6px;padding-right:80px}
+.embed .ed{white-space:pre-wrap;word-break:break-word;padding-right:80px}
+.embed .ef{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.embed .ef div{grid-column:span 3}.embed .ef div.inl{grid-column:span 1}
+.embed .ef b{display:block;color:#fff;font-size:13px}
+.embed .eimg{max-width:100%;border-radius:4px;margin-top:10px}
+.embed .foot{font-size:12px;color:#b5bac1;margin-top:10px;display:flex;align-items:center;gap:6px}
+.embed .foot img{width:18px;height:18px;border-radius:50%}
+.embed code{background:#1e1f22;padding:1px 4px;border-radius:3px;font-size:13px}
+.embed pre{background:#1e1f22;padding:8px;border-radius:4px;white-space:pre;overflow:auto;font-size:12px}
+.embed blockquote{border-left:4px solid #4e5058;padding-left:8px;margin:2px 0}
+.mention{background:rgba(88,101,242,.3);color:#c9cdfb;padding:0 2px;border-radius:3px}
+/* log */
+table{width:100%;border-collapse:collapse}
+td,th{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-size:12px;text-transform:uppercase}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;background:var(--panel2);font-size:12px;font-weight:600;white-space:nowrap}
+/* toast */
+#toast{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:50}
+.toast{background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--green);padding:12px 16px;border-radius:8px;box-shadow:0 8px 30px #0008;max-width:360px;animation:in .2s}
+.toast.err{border-left-color:var(--red)}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+/* login */
+.login{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 30%,#2a2410,#0f0f12 60%)}
+.login .box{text-align:center;max-width:420px;padding:40px}
+.login .owl{font-size:72px;margin-bottom:10px;filter:drop-shadow(0 0 30px #d4af3755)}
+.login h1{font-size:30px;letter-spacing:.05em}
+.login h1 span{color:var(--gold)}
+.login p{color:var(--muted);margin:10px 0 26px}
+.login a.btn{display:inline-flex;gap:10px;align-items:center;background:var(--blue);color:#fff;padding:13px 26px;border-radius:10px;font-weight:700;text-decoration:none;font-size:15px}
+.err-box{background:#3a1416;border:1px solid #5a2326;color:#ffb4b4;padding:10px 14px;border-radius:8px;margin-bottom:18px}
+
+/* ===== v3 look ===== */
+body{background:radial-gradient(1200px 600px at 80% -10%,#2a2410 0%,transparent 60%),radial-gradient(900px 500px at -10% 110%,#1a1530 0%,transparent 60%),var(--bg);background-attachment:fixed}
+aside{background:linear-gradient(180deg,#16161b,#111115);border-right:1px solid #24242c}
+.brand{padding:6px 8px 22px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.brand img{width:42px;height:42px;box-shadow:0 0 0 2px #d4af3766,0 0 24px #d4af3733}
+.brand small{display:block;font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.2em}
+.nav a{transition:.15s;font-size:13.5px}
+.nav a .badge{margin-left:auto;background:var(--red);color:#fff;font-size:11px;font-weight:800;padding:1px 7px;border-radius:99px}
+.card{background:linear-gradient(180deg,rgba(30,30,37,.75),rgba(23,23,28,.75));backdrop-filter:blur(6px);box-shadow:0 1px 0 #ffffff08 inset,0 10px 30px #0004}
+.hero{position:relative;overflow:hidden;background:linear-gradient(120deg,#3a2f0c 0%,#1d1a12 45%,#17171c 100%);border:1px solid #5a4a18}
+.hero:after{content:"🦉";position:absolute;right:-10px;bottom:-40px;font-size:170px;opacity:.07;transform:rotate(-12deg)}
+.stat{position:relative;overflow:hidden}
+.stat .ic2{position:absolute;right:14px;top:12px;font-size:26px;opacity:.35}
+.stat .num{background:linear-gradient(90deg,var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+h1{background:linear-gradient(90deg,#fff,#e9dcb0);-webkit-background-clip:text;background-clip:text;color:transparent}
+button.primary{background:linear-gradient(180deg,#f0d27a,#d4af37);box-shadow:0 4px 14px #d4af3733}
+button.success{background:#1f3b2c;color:#7ee2a8;border-color:#2f6b4a}
+.status{display:inline-flex;gap:6px;align-items:center;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700}
+.status.pending{background:#3b3212;color:#f5d76e}.status.accepted{background:#16301f;color:#7ee2a8}.status.rejected{background:#3a1416;color:#ffb4b4}
+.app-card{display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:start}
+.app-card img{width:56px;height:56px;border-radius:50%;border:2px solid var(--line)}
+.qa{margin-top:10px;display:grid;gap:6px}
+.qa div{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.qa b{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{border-radius:99px}
+.tabs button.on{background:var(--gold);color:#111;border-color:var(--gold)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.day{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:120px;cursor:pointer;transition:.15s}
+.day:hover{border-color:var(--gold)}
+.day.full{border-color:#5a2326;background:#1b1012}
+.day.we{background:#14131c}
+.day.today{box-shadow:0 0 0 2px var(--gold)}
+.day.past{opacity:.45}
+.day .dh{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+.day .dn{font-size:20px;font-weight:800;color:var(--text)}
+.day .ev{font-size:11.5px;background:var(--panel2);border-left:3px solid var(--gold);border-radius:4px;padding:3px 6px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quota{font-size:11px;font-weight:700;padding:1px 6px;border-radius:6px;background:#1f2a1f;color:#7ee2a8}
+.quota.full{background:#3a1416;color:#ffb4b4}
+.q-row{display:grid;grid-template-columns:1fr 1fr auto auto auto;gap:8px;margin-bottom:8px;align-items:center}
+@media(max-width:900px){.week{grid-template-columns:repeat(2,1fr)}.q-row{grid-template-columns:1fr}.app-card{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="toast"></div>
+<script>
+// ================== util ==================
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const api = async (url, opt = {}) => {
+  const r = await fetch('/api' + url, { headers: { 'Content-Type': 'application/json' }, ...opt, body: opt.body ? JSON.stringify(opt.body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Gagal');
+  return j;
+};
+function toast(msg, err) {
+  const t = document.createElement('div');
+  t.className = 'toast' + (err ? ' err' : '');
+  t.textContent = msg;
+  $('#toast').append(t);
+  setTimeout(() => t.remove(), 4000);
+}
+async function busy(btn, fn) {
+  btn.disabled = true;
+  try { await fn(); } catch (e) { toast('❌ ' + e.message, true); } finally { btn.disabled = false; }
+}
+
+const S = { me: null, guild: null, cfg: null, page: 'home', postKey: null };
+
+// ---- markdown discord sederhana untuk preview ----
+function md(text) {
+  let h = esc(fillPreview(text));
+  const blocks = [];
+  h = h.replace(/```(?:\w+\n)?([\s\S]*?)```/g, (_, c) => { blocks.push(c); return `\u0000${blocks.length - 1}\u0000`; });
+  h = h.replace(/^### (.*)$/gm, '<b style="font-size:15px">$1</b>').replace(/^## (.*)$/gm, '<b style="font-size:17px">$1</b>').replace(/^# (.*)$/gm, '<b style="font-size:20px">$1</b>')
+    .replace(/^-# (.*)$/gm, '<small style="color:#949ba4">$1</small>')
+    .replace(/^&gt; (.*)$/gm, '<blockquote>$1</blockquote>')
+    .replace(/^- (.*)$/gm, '• $1')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>').replace(/__(.+?)__/g, '<u>$1</u>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+    .replace(/&lt;#(\d+)&gt;/g, (_, id) => `<span class="mention">#${esc(chName(id))}</span>`)
+    .replace(/&lt;@&amp;(\d+)&gt;/g, (_, id) => `<span class="mention">@${esc(roleName(id))}</span>`)
+    .replace(/&lt;@(\d+)&gt;/g, '<span class="mention">@user</span>');
+  return h.replace(/\u0000(\d+)\u0000/g, (_, i) => `<pre>${blocks[i]}</pre>`);
+}
+const fillPreview = (t) => String(t || '').replaceAll('{user}', '<@0>').replaceAll('{username}', S.me?.user?.username || 'user').replaceAll('{server}', S.guild?.name || 'TRO').replaceAll('{count}', S.guild?.memberCount ?? '306').replaceAll('{members}', S.guild?.memberCount ?? '306');
+const chName = (id) => S.guild?.channels.find((c) => c.id === id)?.name || 'channel';
+const roleName = (id) => S.guild?.roles.find((r) => r.id === id)?.name || 'role';
+
+function preview(e, opts = {}) {
+  const color = e.color || S.cfg.branding.color;
+  const thumb = opts.thumb === undefined ? S.guild?.icon : opts.thumb;
+  return `<div class="dc"><div class="who"><img src="${esc(S.guild?.bot?.avatar || '')}"><div><span class="name">TRO SYSTEM</span><span class="apptag">APP</span> <small style="color:#949ba4">Hari ini</small></div></div>
+  ${opts.content ? `<div style="margin:0 0 6px 48px">${md(opts.content)}</div>` : ''}
+  <div class="embed" style="border-left-color:${esc(color)}">
+    ${thumb ? `<img class="thumb" src="${esc(thumb)}">` : ''}
+    ${e.title ? `<div class="et">${md(e.title)}</div>` : ''}
+    ${e.description ? `<div class="ed">${md(e.description)}</div>` : ''}
+    ${(e.fields || []).length ? `<div class="ef">${e.fields.filter((f) => f.name).map((f) => `<div class="${f.inline ? 'inl' : ''}"><b>${md(f.name)}</b>${md(f.value)}</div>`).join('')}</div>` : ''}
+    ${e.image ? `<img class="eimg" src="${esc(e.image)}">` : ''}
+    <div class="foot"><img src="${esc(S.guild?.bot?.avatar || '')}">${esc(S.cfg.branding.footer)} • Hari ini</div>
+  </div></div>`;
+}
+
+// ---- komponen form ----
+const chOptions = (sel, none = '— Pilih channel —') => `<option value="">${none}</option>` + S.guild.channels.map((c) => `<option value="${c.id}" ${c.id === sel ? 'selected' : ''}># ${esc(c.name)}${c.parent ? ' · ' + esc(c.parent) : ''}</option>`).join('');
+const roleOptions = (sel) => `<option value="">— Tanpa tag —</option>` + S.guild.roles.map((r) => `<option value="${r.id}" ${r.id === sel ? 'selected' : ''}>@${esc(r.name)}</option>`).join('');
+const toggle = (id, on) => `<label class="switch"><input type="checkbox" id="${id}" ${on ? 'checked' : ''}><span></span></label>`;
+const roleChips = (id, selected) => `<div class="chips" id="${id}">${S.guild.roles.map((r) => `<span class="chip ${selected.includes(r.id) ? 'on' : ''}" data-id="${r.id}" style="${r.color !== '#000000' ? `border-left:3px solid ${r.color}` : ''}">@${esc(r.name)}</span>`).join('')}</div>`;
+const readChips = (id) => [...document.querySelectorAll(`#${id} .chip.on`)].map((c) => c.dataset.id);
+document.addEventListener('click', (e) => { if (e.target.classList.contains('chip')) e.target.classList.toggle('on'); });
+
+// ================== halaman ==================
+const PAGES = [
+  ['Umum', [['home', '🏠', 'Utama'], ['branding', '🎨', 'Tampilan Bot'], ['status', '🟢', 'Status Bot']]],
+  ['Pesan', [['posts', '📜', 'Postingan Resmi'], ['announce', '📢', 'Pengumuman'], ['welcome', '👋', 'Welcome & Goodbye']]],
+  ['Komunitas', [['verify', '🪪', 'Verifikasi'], ['applications', '📥', 'Pengajuan Member'], ['invites', '🗓️', 'Jadwal Undangan Fams']]],
+  ['Peran', [['autorole', '🎭', 'Auto Role']]],
+  ['Keamanan', [['security', '🛡️', 'Anti Hack & Raid'], ['logs', '🧾', 'Log Aktivitas']]],
+];
+
+function layout(inner) {
+  const g = S.guild;
+  return `<div class="app"><aside>
+    <div class="brand"><img src="${esc(g.icon || g.bot?.avatar || '')}"><div>TRO <span>SYSTEM</span><small>THE RESILIENT ORDER</small></div></div>
+    ${PAGES.map(([grp, items]) => `<div class="navgroup">${grp}</div><nav class="nav">${items.map(([k, ic, n]) => `<a href="#${k}" class="${S.page === k ? 'active' : ''}">${ic} ${n}${k === 'applications' && S.pending ? `<span class="badge">${S.pending}</span>` : ''}</a>`).join('')}</nav>`).join('')}
+  </aside><main>
+    <header><span class="pill"><span class="dot ${g.online ? 'on' : ''}"></span>${g.online ? 'Bot online' : 'Bot offline'}</span>
+      <div class="user"><img src="${esc(S.me.user.avatar)}"><b>${esc(S.me.user.username)}</b></div><a href="/logout"><button class="small">Keluar</button></a></header>
+    <div class="content">${inner}</div></main></div>`;
+}
+
+const pages = {};
+
+pages.home = () => {
+  const g = S.guild, c = S.cfg, sec = c.security;
+  const on = (b) => b ? '✅' : '⛔';
+  return `<div class="card hero"><div class="row"><img src="${esc(g.icon)}" style="width:64px;height:64px;border-radius:50%"><div><h1>${esc(g.name)}</h1><div class="sub" style="margin:0">Dashboard resmi TRO SYSTEM • In wisdom, we endure. 🦉</div></div></div></div>
+  <div class="grid g4" style="margin-top:16px">
+    <div class="card stat"><span class="ic2">👥</span><div class="num">${g.memberCount}</div><div class="lbl">Total member</div></div>
+    <div class="card stat"><span class="ic2">📥</span><div class="num">${S.pending || 0}</div><div class="lbl">Pengajuan menunggu ACC</div></div>
+    <div class="card stat"><span class="ic2">🗓️</span><div class="num">${S.invToday ?? 0}<span style="font-size:16px">/${c.invitesLimit || 3}</span></div><div class="lbl">Undangan fams hari ini</div></div>
+    <div class="card stat"><div class="num">${g.lockdownUntil > Date.now() ? '🔒' : '🟢'}</div><div class="lbl">${g.lockdownUntil > Date.now() ? 'Lockdown aktif' : 'Server aman'}</div></div>
+  </div>
+  <h3 style="margin:26px 0 12px">Fitur</h3>
+  <div class="grid g3">
+    ${[['verify', '🪪', 'Verifikasi', `${on(c.verify.enabled)} pilih Tamu / Member Baru + pertanyaan`], ['applications', '📥', 'Pengajuan Member', `${S.pending || 0} menunggu ACC admin`], ['invites', '🗓️', 'Jadwal Undangan Fams', 'Catat undangan, maks 3/hari kerja'], ['posts', '📜', 'Postingan Resmi', 'Edit rules, price list, dll & publish'], ['announce', '📢', 'Pengumuman', 'Bikin embed cantik & kirim'], ['welcome', '👋', 'Welcome & Goodbye', `${on(c.welcome.enabled)} welcome • ${on(c.goodbye.enabled)} goodbye`],
+      ['autorole', '🎭', 'Auto Role', `${on(c.autorole.enabled)} ${c.autorole.roleIds.length} role`], ['security', '🛡️', 'Anti Hack & Raid', `${on(sec.antiSpam.enabled)} spam • ${on(sec.antiLink.enabled)} link • ${on(sec.antiRaid.enabled)} raid • ${on(sec.antiNuke.enabled)} nuke`], ['status', '🟢', 'Status Bot', `${c.status.items.length} status bergantian`]]
+      .map(([k, ic, t, d]) => `<a href="#${k}" style="text-decoration:none;color:inherit"><div class="card tile"><div class="ic">${ic}</div><h3>${t}</h3><div class="hint">${d}</div></div></a>`).join('')}
+  </div>`;
+};
+
+pages.branding = () => `<h1>🎨 Tampilan Bot</h1><div class="sub">Warna & footer yang dipakai semua embed TRO SYSTEM.</div>
+  <div class="grid g2"><div class="card">
+    <label>Warna embed</label><div class="row"><input type="color" id="b-color" value="${esc(S.cfg.branding.color)}"><input id="b-colorhex" value="${esc(S.cfg.branding.color)}" style="width:140px"></div>
+    <label>Teks footer</label><input id="b-footer" value="${esc(S.cfg.branding.footer)}">
+    <div class="hint">Foto profil & nama bot diatur di Discord Developer Portal → Bot.</div>
+    <div class="actions"><button class="primary" id="b-save">💾 Simpan</button><button id="b-pub">Simpan & update semua postingan</button></div>
+  </div><div id="b-prev"></div></div>`;
+pages.branding.init = () => {
+  const sync = () => { S.cfg.branding = { color: $('#b-color').value, footer: $('#b-footer').value }; $('#b-prev').innerHTML = preview({ title: '🦉 Contoh Embed', description: 'Beginilah tampilan embed **TRO SYSTEM**.' }); };
+  $('#b-color').oninput = () => { $('#b-colorhex').value = $('#b-color').value; sync(); };
+  $('#b-colorhex').oninput = () => { if (/^#[0-9a-f]{6}$/i.test($('#b-colorhex').value)) { $('#b-color').value = $('#b-colorhex').value; sync(); } };
+  $('#b-footer').oninput = sync; sync();
+  $('#b-save').onclick = (e) => busy(e.target, async () => { await api('/config/branding', { method: 'PUT', body: S.cfg.branding }); toast('✅ Tampilan disimpan'); });
+  $('#b-pub').onclick = (e) => busy(e.target, async () => { await api('/config/branding', { method: 'PUT', body: S.cfg.branding }); const r = await api('/posts/publish-all', { method: 'POST', body: {} }); toast(`✅ ${r.filter((x) => x.action !== 'error').length}/${r.length} postingan diupdate`); });
+};
+
+pages.status = () => `<h1>🟢 Status Bot</h1><div class="sub">Teks aktivitas bot yang gonta-ganti. Pakai <code>{members}</code> untuk jumlah member.</div>
+  <div class="card"><label>Ganti setiap (detik)</label><input type="number" id="st-int" min="10" value="${S.cfg.status.interval}" style="width:140px">
+  <label>Daftar status</label><div id="st-list"></div><button class="small" id="st-add">+ Tambah status</button>
+  <div class="actions"><button class="primary" id="st-save">💾 Simpan & terapkan</button></div></div>`;
+pages.status.init = () => {
+  const draw = () => {
+    $('#st-list').innerHTML = S.cfg.status.items.map((it, i) => `<div class="row" style="margin-bottom:8px"><select data-i="${i}" class="st-type" style="width:150px">${['Playing', 'Watching', 'Listening', 'Competing'].map((t) => `<option ${t === it.type ? 'selected' : ''}>${t}</option>`).join('')}</select><input class="st-text" data-i="${i}" value="${esc(it.text)}" style="flex:1"><button class="small danger st-del" data-i="${i}">✕</button></div>`).join('');
+    document.querySelectorAll('.st-type').forEach((el) => el.onchange = () => S.cfg.status.items[el.dataset.i].type = el.value);
+    document.querySelectorAll('.st-text').forEach((el) => el.oninput = () => S.cfg.status.items[el.dataset.i].text = el.value);
+    document.querySelectorAll('.st-del').forEach((el) => el.onclick = () => { S.cfg.status.items.splice(el.dataset.i, 1); draw(); });
+  };
+  draw();
+  $('#st-add').onclick = () => { S.cfg.status.items.push({ type: 'Watching', text: '' }); draw(); };
+  $('#st-save').onclick = (e) => busy(e.target, async () => { S.cfg.status.interval = Number($('#st-int').value) || 30; await api('/config/status', { method: 'PUT', body: S.cfg.status }); toast('✅ Status bot diterapkan'); });
+};
+
+pages.posts = () => {
+  const keys = Object.keys(S.cfg.posts);
+  if (!S.postKey || !S.cfg.posts[S.postKey]) S.postKey = keys[0];
+  return `<div class="row"><div><h1>📜 Postingan Resmi</h1><div class="sub">Edit isi, simpan, lalu publish — postingan lama di Discord otomatis diupdate (nggak dobel).</div></div><div class="spacer"></div><button class="primary" id="p-all">🚀 Publish semua</button></div>
+  <div class="grid" style="grid-template-columns:230px 1fr">
+    <div class="card list" style="padding:10px">${keys.map((k) => `<a href="#posts/${k}" class="${k === S.postKey ? 'active' : ''}">${esc(S.cfg.posts[k].label)}<small style="color:var(--muted)">${S.cfg.posts[k].channelId ? '#' + esc(chName(S.cfg.posts[k].channelId)) : ''}</small></a>`).join('')}
+      <button class="small" id="p-new" style="width:100%;margin-top:8px">+ Postingan baru</button></div>
+    <div id="p-editor"></div>
+  </div>`;
+};
+pages.posts.init = () => {
+  const key = S.postKey, sec = S.cfg.posts[key], e = sec.embeds[0];
+  e.fields = e.fields || [];
+  $('#p-editor').innerHTML = `<div class="grid g2"><div class="card">
+    <label>Nama bagian</label><input id="p-label" value="${esc(sec.label)}">
+    <label>Channel tujuan</label><select id="p-ch">${chOptions(sec.channelId)}</select>
+    <label>Judul</label><input id="p-title" value="${esc(e.title)}">
+    <label>Isi</label><textarea id="p-desc" style="min-height:260px">${esc(e.description)}</textarea>
+    <div class="hint">**tebal** • *miring* • \`kode\` • > kutipan • - list • [teks](link) • &lt;#id&gt; channel</div>
+    <label>Kolom tambahan (fields)</label><div id="p-fields"></div><button class="small" id="p-addf">+ Tambah kolom</button>
+    <label>Gambar besar (URL, opsional)</label><input id="p-img" value="${esc(e.image || '')}" placeholder="https://...">
+    <div class="actions"><button class="primary" id="p-pub">🚀 Simpan & publish</button><button id="p-save">💾 Simpan</button><div class="spacer"></div><button class="danger small" id="p-del">Hapus bagian</button></div>
+  </div><div><div class="hint" style="margin-bottom:8px">PREVIEW</div><div id="p-prev"></div></div></div>`;
+  const drawFields = () => {
+    $('#p-fields').innerHTML = e.fields.map((f, i) => `<div class="field-row"><input class="f-n" data-i="${i}" value="${esc(f.name)}" placeholder="Nama"><textarea class="f-v" data-i="${i}" placeholder="Isi">${esc(f.value)}</textarea><label class="row" style="margin:8px 0;text-transform:none"><input type="checkbox" class="f-in" data-i="${i}" ${f.inline ? 'checked' : ''} style="width:auto"> sejajar</label><button class="small danger f-del" data-i="${i}">✕</button></div>`).join('');
+    document.querySelectorAll('.f-n').forEach((el) => el.oninput = () => { e.fields[el.dataset.i].name = el.value; prev(); });
+    document.querySelectorAll('.f-v').forEach((el) => el.oninput = () => { e.fields[el.dataset.i].value = el.value; prev(); });
+    document.querySelectorAll('.f-in').forEach((el) => el.onchange = () => { e.fields[el.dataset.i].inline = el.checked; prev(); });
+    document.querySelectorAll('.f-del').forEach((el) => el.onclick = () => { e.fields.splice(el.dataset.i, 1); drawFields(); prev(); });
+  };
+  const prev = () => { $('#p-prev').innerHTML = preview(e); };
+  const read = () => { sec.label = $('#p-label').value; sec.channelId = $('#p-ch').value; e.title = $('#p-title').value; e.description = $('#p-desc').value; e.image = $('#p-img').value || undefined; };
+  ['#p-title', '#p-desc', '#p-img'].forEach((s) => $(s).oninput = () => { read(); prev(); });
+  drawFields(); prev();
+  $('#p-addf').onclick = () => { e.fields.push({ name: '', value: '', inline: false }); drawFields(); };
+  const saveAll = async () => { read(); await api('/config/posts', { method: 'PUT', body: S.cfg.posts }); };
+  $('#p-save').onclick = (ev) => busy(ev.target, async () => { await saveAll(); toast('✅ Disimpan'); render(); });
+  $('#p-pub').onclick = (ev) => busy(ev.target, async () => { await saveAll(); const r = await api(`/posts/${key}/publish`, { method: 'POST', body: {} }); toast(r.action === 'updated' ? '🔄 Postingan diupdate di Discord' : '✅ Diposting ke Discord'); });
+  $('#p-del').onclick = (ev) => { if (!confirm(`Hapus bagian "${sec.label}" dari dashboard? (pesan di Discord tidak dihapus)`)) return; busy(ev.target, async () => { delete S.cfg.posts[key]; await api('/config/posts', { method: 'PUT', body: S.cfg.posts }); S.postKey = null; render(); }); };
+  $('#p-new').onclick = (ev) => busy(ev.target, async () => { const k = 'post-' + Date.now().toString(36); S.cfg.posts[k] = { label: 'Postingan baru', channelId: '', embeds: [{ title: '🦉 Judul', description: 'Isi postingan...', fields: [] }] }; await api('/config/posts', { method: 'PUT', body: S.cfg.posts }); S.postKey = k; location.hash = 'posts/' + k; });
+  $('#p-all').onclick = (ev) => busy(ev.target, async () => { const r = await api('/posts/publish-all', { method: 'POST', body: {} }); const bad = r.filter((x) => x.action === 'error'); toast(bad.length ? `⚠️ ${r.length - bad.length} sukses, ${bad.length} gagal: ${bad.map((b) => b.label).join(', ')}` : `✅ ${r.length} postingan dipublish`, bad.length); });
+};
+
+pages.announce = () => `<h1>📢 Pengumuman</h1><div class="sub">Bikin pengumuman embed atas nama TRO SYSTEM.</div>
+  <div class="grid g2"><div class="card">
+    <label>Channel</label><select id="a-ch">${chOptions('')}</select>
+    <label>Tag role</label><select id="a-role">${roleOptions('')}</select>
+    <label>Judul</label><input id="a-title" value="📢 ">
+    <label>Isi</label><textarea id="a-desc" style="min-height:200px"></textarea>
+    <div class="row"><div style="flex:1"><label>Gambar / poster (URL)</label><input id="a-img" placeholder="https://..."></div><div><label>Warna</label><input type="color" id="a-color" value="${esc(S.cfg.branding.color)}"></div></div>
+    <label class="row" style="text-transform:none"><input type="checkbox" id="a-plain" style="width:auto"> Kirim sebagai teks biasa (tanpa embed)</label>
+    <div class="actions"><button class="primary" id="a-send">📤 Kirim sekarang</button></div>
+  </div><div><div class="hint" style="margin-bottom:8px">PREVIEW</div><div id="a-prev"></div></div></div>`;
+pages.announce.init = () => {
+  const read = () => ({ channelId: $('#a-ch').value, roleId: $('#a-role').value, title: $('#a-title').value, description: $('#a-desc').value, image: $('#a-img').value || undefined, color: $('#a-color').value, plain: $('#a-plain').checked });
+  const prev = () => { const d = read(); $('#a-prev').innerHTML = d.plain ? `<div class="dc">${md((d.roleId ? `<@&${d.roleId}>\n` : '') + d.description)}</div>` : preview(d, { content: d.roleId ? `<@&${d.roleId}>` : '' }); };
+  document.querySelectorAll('#a-ch,#a-role,#a-title,#a-desc,#a-img,#a-color,#a-plain').forEach((el) => el.oninput = el.onchange = prev);
+  prev();
+  $('#a-send').onclick = (e) => busy(e.target, async () => { const d = read(); if (d.roleId && !confirm(`Pengumuman ini akan nge-tag @${roleName(d.roleId)}. Lanjut?`)) return; await api('/announce', { method: 'POST', body: d }); toast('✅ Pengumuman terkirim'); });
+};
+
+pages.welcome = () => {
+  const w = S.cfg.welcome, gb = S.cfg.goodbye;
+  return `<h1>👋 Welcome & Goodbye</h1><div class="sub">Variabel: <code>{user}</code> mention • <code>{username}</code> nama • <code>{server}</code> • <code>{count}</code> jumlah member.<br>⚠️ Koya sudah kirim welcome di server ini — aktifkan salah satu aja biar nggak dobel.</div>
+  <div class="grid g2">
+    <div class="card"><h3>Welcome ${toggle('w-on', w.enabled)}</h3>
+      <label>Channel</label><select id="w-ch">${chOptions(w.channelId)}</select>
+      <label>Judul</label><input id="w-title" value="${esc(w.title)}">
+      <label>Pesan</label><textarea id="w-msg">${esc(w.message)}</textarea>
+      <label>Banner (URL gambar, opsional)</label><input id="w-img" value="${esc(w.image)}" placeholder="https://...">
+      <label class="row" style="text-transform:none"><input type="checkbox" id="w-dm" ${w.dm ? 'checked' : ''} style="width:auto"> Kirim juga lewat DM</label>
+      <div class="actions"><button class="primary" id="w-save">💾 Simpan</button><button id="w-test">🧪 Tes kirim</button></div>
+      <div id="w-prev" style="margin-top:16px"></div></div>
+    <div class="card"><h3>Goodbye ${toggle('g-on', gb.enabled)}</h3>
+      <label>Channel</label><select id="g-ch">${chOptions(gb.channelId)}</select>
+      <label>Judul</label><input id="g-title" value="${esc(gb.title)}">
+      <label>Pesan</label><textarea id="g-msg">${esc(gb.message)}</textarea>
+      <div class="actions"><button class="primary" id="g-save">💾 Simpan</button><button id="g-test">🧪 Tes kirim</button></div>
+      <div id="g-prev" style="margin-top:16px"></div></div>
+  </div>`;
+};
+pages.welcome.init = () => {
+  const rw = () => ({ enabled: $('#w-on').checked, channelId: $('#w-ch').value, title: $('#w-title').value, message: $('#w-msg').value, image: $('#w-img').value, dm: $('#w-dm').checked });
+  const rg = () => ({ enabled: $('#g-on').checked, channelId: $('#g-ch').value, title: $('#g-title').value, message: $('#g-msg').value });
+  const prev = () => { $('#w-prev').innerHTML = preview({ ...rw(), description: rw().message }, { thumb: S.me.user.avatar }); $('#g-prev').innerHTML = preview({ ...rg(), description: rg().message, color: '#7f8c8d' }, { thumb: S.me.user.avatar }); };
+  document.querySelectorAll('#w-title,#w-msg,#w-img,#g-title,#g-msg').forEach((el) => el.oninput = prev); prev();
+  $('#w-save').onclick = (e) => busy(e.target, async () => { S.cfg.welcome = rw(); await api('/config/welcome', { method: 'PUT', body: S.cfg.welcome }); toast('✅ Welcome disimpan'); });
+  $('#g-save').onclick = (e) => busy(e.target, async () => { S.cfg.goodbye = rg(); await api('/config/goodbye', { method: 'PUT', body: S.cfg.goodbye }); toast('✅ Goodbye disimpan'); });
+  $('#w-test').onclick = (e) => busy(e.target, async () => { S.cfg.welcome = rw(); await api('/config/welcome', { method: 'PUT', body: S.cfg.welcome }); await api('/test/welcome', { method: 'POST', body: {} }); toast('✅ Tes welcome dikirim'); });
+  $('#g-test').onclick = (e) => busy(e.target, async () => { S.cfg.goodbye = rg(); await api('/config/goodbye', { method: 'PUT', body: S.cfg.goodbye }); await api('/test/goodbye', { method: 'POST', body: {} }); toast('✅ Tes goodbye dikirim'); });
+};
+
+pages.autorole = () => `<h1>🎭 Auto Role</h1><div class="sub">Role yang otomatis diberikan ke member baru (bot tidak ikut).</div>
+  <div class="card"><h3>Aktifkan auto role ${toggle('ar-on', S.cfg.autorole.enabled)}</h3>
+  <label>Pilih role (klik untuk pilih)</label>${roleChips('ar-roles', S.cfg.autorole.roleIds)}
+  <div class="hint">Role TRO SYSTEM harus berada di atas role yang dipilih (Server Settings → Roles).</div>
+  <div class="actions"><button class="primary" id="ar-save">💾 Simpan</button></div></div>`;
+pages.autorole.init = () => {
+  $('#ar-save').onclick = (e) => busy(e.target, async () => { S.cfg.autorole = { enabled: $('#ar-on').checked, roleIds: readChips('ar-roles') }; await api('/config/autorole', { method: 'PUT', body: S.cfg.autorole }); toast('✅ Auto role disimpan'); });
+};
+
+pages.security = () => {
+  const s = S.cfg.security, lock = S.guild.lockdownUntil > Date.now();
+  const num = (id, v, w = 90) => `<input type="number" id="${id}" value="${v}" min="0" style="width:${w}px">`;
+  return `<h1>🛡️ Anti Hack & Raid</h1><div class="sub">Perlindungan otomatis server. Admin, owner, user tepercaya & role pengecualian tidak kena filter.</div>
+  <div class="card hero" style="margin-bottom:16px"><div class="row"><div><h3>${lock ? '🔒 LOCKDOWN AKTIF' : '🟢 Server normal'}</h3><div class="hint">${lock ? 'Member baru otomatis di-kick sampai ' + new Date(S.guild.lockdownUntil).toLocaleTimeString('id-ID') : 'Kunci server saat ada serangan — member baru langsung di-kick.'}</div></div><div class="spacer"></div>
+    ${lock ? '<button class="primary" id="lk-off">🔓 Buka lockdown</button>' : `${num('lk-min', 30, 80)} <span class="hint">menit</span><button class="danger" id="lk-on">🔒 Lockdown sekarang</button>`}</div></div>
+  <div class="grid g2">
+    <div class="card"><h3>🚫 Anti Spam ${toggle('sp-on', s.antiSpam.enabled)}</h3><div class="hint">Kirim pesan beruntun → pesan dihapus & timeout.</div>
+      <div class="row" style="margin-top:12px">${num('sp-msg', s.antiSpam.messages)} pesan dalam ${num('sp-sec', s.antiSpam.seconds)} detik → timeout ${num('sp-to', s.antiSpam.timeoutMinutes)} menit</div></div>
+    <div class="card"><h3>🔗 Anti Link ${toggle('ln-on', s.antiLink.enabled)}</h3>
+      <label class="row" style="text-transform:none"><input type="checkbox" id="ln-inv" ${s.antiLink.blockInvites ? 'checked' : ''} style="width:auto"> Blokir invite server lain</label>
+      <label class="row" style="text-transform:none;margin-top:4px"><input type="checkbox" id="ln-all" ${s.antiLink.blockAllLinks ? 'checked' : ''} style="width:auto"> Blokir semua link kecuali whitelist</label>
+      <label>Whitelist domain (pisah koma)</label><input id="ln-wl" value="${esc(s.antiLink.whitelist.join(', '))}"></div>
+    <div class="card"><h3>📣 Anti Mass Mention ${toggle('mn-on', s.antiMention.enabled)}</h3><div class="hint">Tag banyak orang sekaligus → hapus & timeout.</div>
+      <div class="row" style="margin-top:12px">Maks ${num('mn-max', s.antiMention.max)} mention → timeout ${num('mn-to', s.antiMention.timeoutMinutes)} menit</div></div>
+    <div class="card"><h3>🎣 Anti Scam / Phishing ${toggle('sc-on', s.antiScam.enabled)}</h3><div class="hint">Hapus pesan "free nitro", "robux gratis", link discord palsu, dll + timeout 60 menit.</div></div>
+    <div class="card"><h3>🚨 Anti Raid ${toggle('rd-on', s.antiRaid.enabled)}</h3><div class="hint">Banyak akun join barengan → lockdown otomatis.</div>
+      <div class="row" style="margin-top:12px">${num('rd-j', s.antiRaid.joins)} join dalam ${num('rd-s', s.antiRaid.seconds)} detik → lockdown ${num('rd-l', s.antiRaid.lockdownMinutes)} menit</div>
+      <label>Umur akun minimal (hari, 0 = mati)</label>${num('rd-age', s.antiRaid.minAccountAgeDays)}</div>
+    <div class="card"><h3>💣 Anti Nuke ${toggle('nk-on', s.antiNuke.enabled)}</h3><div class="hint">Admin/hacker hapus channel, hapus role, atau ban massal → semua role-nya dicabut otomatis. Owner server & user tepercaya aman.</div>
+      <div class="row" style="margin-top:12px">${num('nk-l', s.antiNuke.limit)} aksi dalam ${num('nk-s', s.antiNuke.seconds)} detik</div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>⚙️ Pengaturan umum</h3>
+    <label>Channel log keamanan</label><select id="sc-log">${chOptions(s.logChannelId, '— Tanpa log —')}</select>
+    <label>Role pengecualian (tidak kena filter)</label>${roleChips('sc-ex', s.exemptRoleIds)}
+    <label>User ID tepercaya (pisah koma)</label><input id="sc-tr" value="${esc(s.trustedUserIds.join(', '))}" placeholder="123456789012345678, ...">
+    <div class="actions"><button class="primary" id="sc-save">💾 Simpan semua</button></div></div>`;
+};
+pages.security.init = () => {
+  const v = (id) => Number($('#' + id).value) || 0, c = (id) => $('#' + id).checked;
+  $('#sc-save').onclick = (e) => busy(e.target, async () => {
+    S.cfg.security = {
+      logChannelId: $('#sc-log').value, exemptRoleIds: readChips('sc-ex'),
+      trustedUserIds: $('#sc-tr').value.split(',').map((x) => x.trim()).filter((x) => /^\d{15,}$/.test(x)),
+      antiSpam: { enabled: c('sp-on'), messages: v('sp-msg') || 6, seconds: v('sp-sec') || 5, timeoutMinutes: v('sp-to') },
+      antiLink: { enabled: c('ln-on'), blockInvites: c('ln-inv'), blockAllLinks: c('ln-all'), whitelist: $('#ln-wl').value.split(',').map((x) => x.trim().toLowerCase()).filter(Boolean) },
+      antiMention: { enabled: c('mn-on'), max: v('mn-max') || 5, timeoutMinutes: v('mn-to') },
+      antiScam: { enabled: c('sc-on') },
+      antiRaid: { enabled: c('rd-on'), joins: v('rd-j') || 8, seconds: v('rd-s') || 15, lockdownMinutes: v('rd-l') || 10, minAccountAgeDays: v('rd-age') },
+      antiNuke: { enabled: c('nk-on'), limit: v('nk-l') || 3, seconds: v('nk-s') || 60 },
+    };
+    await api('/config/security', { method: 'PUT', body: S.cfg.security }); toast('✅ Pengaturan keamanan disimpan');
+  });
+  const lk = async (minutes) => { const r = await api('/lockdown', { method: 'POST', body: { minutes } }); S.guild.lockdownUntil = r.lockdownUntil; toast(minutes ? '🔒 Lockdown aktif' : '🔓 Lockdown dibuka'); render(); };
+  if ($('#lk-on')) $('#lk-on').onclick = (e) => busy(e.target, () => lk(v('lk-min') || 30));
+  if ($('#lk-off')) $('#lk-off').onclick = (e) => busy(e.target, () => lk(0));
+};
+
+pages.logs = () => `<div class="row"><div><h1>🧾 Log Aktivitas</h1><div class="sub">200 kejadian terakhir: keamanan, login dashboard, perubahan pengaturan.</div></div><div class="spacer"></div><button id="lg-ref">↻ Refresh</button></div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th style="width:170px">Waktu</th><th style="width:200px">Jenis</th><th>Detail</th></tr></thead><tbody id="lg-body"><tr><td colspan="3">Memuat...</td></tr></tbody></table></div>`;
+pages.logs.init = async () => {
+  const load = async () => {
+    const logs = await api('/logs');
+    $('#lg-body').innerHTML = logs.length ? logs.map((l) => `<tr><td>${new Date(l.time).toLocaleString('id-ID')}</td><td><span class="tag">${esc(l.type)}</span></td><td style="white-space:pre-wrap">${md(l.text)}</td></tr>`).join('') : '<tr><td colspan="3" class="hint">Belum ada log.</td></tr>';
+  };
+  $('#lg-ref').onclick = (e) => busy(e.target, load);
+  load();
+};
+
+
+// ================== VERIFIKASI ==================
+pages.verify = () => {
+  const v = S.cfg.verify;
+  return `<h1>🪪 Verifikasi Member</h1><div class="sub">Member baru pilih <b>${esc(v.guestEmoji)} ${esc(v.guestLabel)}</b> atau <b>${esc(v.memberEmoji)} ${esc(v.memberLabel)}</b>, jawab pertanyaan, lalu admin ACC dari Discord atau dashboard.</div>
+  <div class="card hero" style="margin-bottom:16px"><div class="row"><div><h3>⚡ Setup otomatis</h3><div class="hint">Sekali klik: bikin role 🎟️ TAMU & ⏳ Belum Verifikasi (pakai TRO MEMBER yang sudah ada), channel #「🪪」verifikasi & #「📥」review-verifikasi (khusus staff), lalu kirim panel.</div></div><div class="spacer"></div><button class="primary" id="v-auto">⚡ Setup sekarang</button></div></div>
+  <div class="grid g2"><div>
+    <div class="card"><h3>Aktifkan verifikasi ${toggle('v-on', v.enabled)}</h3>
+      <label>Channel panel verifikasi (yang dilihat member baru)</label><select id="v-panel">${chOptions(v.panelChannelId)}</select>
+      <label>Channel review admin (tempat ACC / Tolak)</label><select id="v-review">${chOptions(v.reviewChannelId)}</select>
+      <label>Role "belum verifikasi" (otomatis saat join, dicabut saat ACC)</label><select id="v-unv">${roleOptions(v.unverifiedRoleId).replace('— Tanpa tag —', '— Tidak pakai —')}</select>
+      <div class="grid g2" style="gap:12px">
+        <div><label>Tombol 1</label><div class="row"><input id="v-gemo" value="${esc(v.guestEmoji)}" style="width:60px"><input id="v-glab" value="${esc(v.guestLabel)}" style="flex:1"></div></div>
+        <div><label>Tombol 2</label><div class="row"><input id="v-memo" value="${esc(v.memberEmoji)}" style="width:60px"><input id="v-mlab" value="${esc(v.memberLabel)}" style="flex:1"></div></div>
+      </div>
+      <label>Role untuk ${esc(v.guestLabel)} (klik pilih)</label>${roleChips('v-groles', v.guestRoleIds)}
+      <label>Role untuk ${esc(v.memberLabel)} (klik pilih)</label>${roleChips('v-mroles', v.memberRoleIds)}
+      <label class="row" style="text-transform:none"><input type="checkbox" id="v-dm" ${v.dmResult ? 'checked' : ''} style="width:auto"> Kirim DM hasil ACC / tolak ke user</label>
+      <label class="row" style="text-transform:none;margin-top:4px"><input type="checkbox" id="v-kick" ${v.kickOnReject ? 'checked' : ''} style="width:auto"> Kick user kalau ditolak</label>
+    </div>
+    <div class="card" style="margin-top:16px"><h3>Pertanyaan verifikasi <span class="hint">maks 5 · label maks 45 huruf</span></h3>
+      <div id="v-qs"></div><button class="small" id="v-addq">+ Tambah pertanyaan</button></div>
+  </div><div>
+    <div class="card"><h3>Isi panel</h3>
+      <label>Judul</label><input id="v-title" value="${esc(v.panelTitle)}">
+      <label>Teks</label><textarea id="v-text" style="min-height:170px">${esc(v.panelText)}</textarea>
+      <div class="actions"><button class="primary" id="v-save">💾 Simpan</button><button id="v-send">📤 Simpan & kirim / update panel</button></div></div>
+    <div class="hint" style="margin:16px 0 8px">PREVIEW PANEL</div><div id="v-prev"></div>
+  </div></div>`;
+};
+pages.verify.init = () => {
+  const v = S.cfg.verify;
+  v.questions = v.questions || [];
+  const drawQ = () => {
+    $('#v-qs').innerHTML = v.questions.map((q, i) => `<div class="q-row"><input class="q-l" data-i="${i}" maxlength="45" value="${esc(q.label)}" placeholder="Pertanyaan"><input class="q-p" data-i="${i}" maxlength="100" value="${esc(q.placeholder)}" placeholder="Contoh jawaban"><label class="row" style="margin:0;text-transform:none"><input type="checkbox" class="q-long" data-i="${i}" ${q.long ? 'checked' : ''} style="width:auto"> panjang</label><label class="row" style="margin:0;text-transform:none"><input type="checkbox" class="q-req" data-i="${i}" ${q.required !== false ? 'checked' : ''} style="width:auto"> wajib</label><button class="small danger q-del" data-i="${i}">✕</button></div>`).join('') || '<div class="hint">Tanpa pertanyaan — klik tombol langsung jadi pengajuan.</div>';
+    document.querySelectorAll('.q-l').forEach((el) => el.oninput = () => v.questions[el.dataset.i].label = el.value);
+    document.querySelectorAll('.q-p').forEach((el) => el.oninput = () => v.questions[el.dataset.i].placeholder = el.value);
+    document.querySelectorAll('.q-long').forEach((el) => el.onchange = () => v.questions[el.dataset.i].long = el.checked);
+    document.querySelectorAll('.q-req').forEach((el) => el.onchange = () => v.questions[el.dataset.i].required = el.checked);
+    document.querySelectorAll('.q-del').forEach((el) => el.onclick = () => { v.questions.splice(el.dataset.i, 1); drawQ(); });
+    $('#v-addq').style.display = v.questions.length >= 5 ? 'none' : '';
+  };
+  const read = () => Object.assign(v, {
+    enabled: $('#v-on').checked, panelChannelId: $('#v-panel').value, reviewChannelId: $('#v-review').value, unverifiedRoleId: $('#v-unv').value,
+    guestEmoji: $('#v-gemo').value || '🎟️', guestLabel: $('#v-glab').value || 'Tamu', memberEmoji: $('#v-memo').value || '🦉', memberLabel: $('#v-mlab').value || 'Member Baru',
+    guestRoleIds: readChips('v-groles'), memberRoleIds: readChips('v-mroles'), dmResult: $('#v-dm').checked, kickOnReject: $('#v-kick').checked,
+    panelTitle: $('#v-title').value, panelText: $('#v-text').value,
+  });
+  const prev = () => { read(); $('#v-prev').innerHTML = preview({ title: v.panelTitle, description: v.panelText }) + `<div style="margin:8px 0 0 48px" class="row"><button class="small">${esc(v.guestEmoji)} ${esc(v.guestLabel)}</button><button class="small" style="background:#5865f2;border-color:#5865f2;color:#fff">${esc(v.memberEmoji)} ${esc(v.memberLabel)}</button></div>`; };
+  document.querySelectorAll('#v-title,#v-text,#v-gemo,#v-glab,#v-memo,#v-mlab').forEach((el) => el.oninput = prev);
+  drawQ(); prev();
+  $('#v-addq').onclick = () => { v.questions.push({ label: '', placeholder: '', long: false, required: true }); drawQ(); };
+  const save = async () => { read(); v.questions = v.questions.filter((q) => q.label.trim()); await api('/config/verify', { method: 'PUT', body: v }); };
+  $('#v-save').onclick = (e) => busy(e.target, async () => { await save(); toast('✅ Pengaturan verifikasi disimpan'); });
+  $('#v-auto').onclick = (e) => { if (!confirm('Jalankan setup otomatis verifikasi? Bot akan membuat role & channel yang belum ada.')) return; busy(e.target, async () => { await save(); const r = await api('/verify/autosetup', { method: 'POST', body: {} }); toast('✅ ' + r.done.join(' · ')); [S.guild, S.cfg] = await Promise.all([api('/guild'), api('/config')]); render(); }); };
+  $('#v-send').onclick = (e) => busy(e.target, async () => { await save(); const r = await api('/verify/panel', { method: 'POST', body: {} }); toast(r.result === 'updated' ? '🔄 Panel diupdate di Discord' : '✅ Panel dikirim ke Discord'); });
+};
+
+// ================== PENGAJUAN ==================
+pages.applications = () => `<div class="row"><div><h1>📥 Pengajuan Member</h1><div class="sub">ACC atau tolak pengajuan Tamu & Member Baru. Tersinkron dengan tombol di channel review Discord.</div></div><div class="spacer"></div><button id="ap-ref">↻ Refresh</button></div>
+  <div class="tabs" id="ap-tabs">${[['pending', '⏳ Menunggu'], ['accepted', '✅ Diterima'], ['rejected', '❌ Ditolak'], ['all', 'Semua']].map(([k, n]) => `<button data-k="${k}" class="${(S.apTab || 'pending') === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+  <div id="ap-list" class="grid"></div>`;
+pages.applications.init = async () => {
+  const STAT = { pending: '⏳ Menunggu ACC', accepted: '✅ Diterima', rejected: '❌ Ditolak' };
+  const v = S.cfg.verify;
+  const tl = (t) => t === 'guest' ? `${v.guestEmoji} ${v.guestLabel}` : `${v.memberEmoji} ${v.memberLabel}`;
+  const load = async () => {
+    S.apps = await api('/applications');
+    S.pending = S.apps.filter((a) => a.status === 'pending').length;
+    const tab = S.apTab || 'pending';
+    const list = S.apps.filter((a) => tab === 'all' || a.status === tab);
+    $('#ap-list').innerHTML = list.length ? list.map((a) => `<div class="card app-card"><img src="${esc(a.avatar)}"><div>
+        <div class="row"><b style="font-size:15px">${esc(a.username)}</b><span class="tag">${esc(tl(a.type))}</span><span class="status ${a.status}">${STAT[a.status]}</span></div>
+        <div class="hint">Diajukan ${new Date(a.createdAt).toLocaleString('id-ID')} · akun dibuat ${new Date(a.accountCreated).toLocaleDateString('id-ID')}${a.reviewedBy ? ` · diproses ${esc(a.reviewedBy)}` : ''}${a.reason ? ` · alasan: ${esc(a.reason)}` : ''}</div>
+        <div class="qa">${a.answers.map((x) => `<div><b>${esc(x.q)}</b>${esc(x.a) || '-'}</div>`).join('')}</div></div>
+        <div class="row" style="flex-direction:column;align-items:stretch">${a.status === 'pending' ? `<button class="success ap-acc" data-id="${a.id}">✅ ACC</button><button class="danger ap-rej" data-id="${a.id}">❌ Tolak</button>` : ''}</div></div>`).join('')
+      : '<div class="card hint" style="text-align:center;padding:40px">Tidak ada pengajuan di sini. 🦉</div>';
+    document.querySelectorAll('.ap-acc').forEach((b) => b.onclick = () => busy(b, async () => { await api(`/applications/${b.dataset.id}/accept`, { method: 'POST', body: {} }); toast('✅ Diterima — role sudah diberikan'); load(); }));
+    document.querySelectorAll('.ap-rej').forEach((b) => b.onclick = () => { const reason = prompt('Alasan penolakan (opsional, dikirim ke user):', ''); if (reason === null) return; busy(b, async () => { await api(`/applications/${b.dataset.id}/reject`, { method: 'POST', body: { reason } }); toast('❌ Pengajuan ditolak'); load(); }); });
+    const badge = document.querySelector('a[href="#applications"] .badge');
+    if (badge) badge.textContent = S.pending; 
+  };
+  document.querySelectorAll('#ap-tabs button').forEach((b) => b.onclick = () => { S.apTab = b.dataset.k; document.querySelectorAll('#ap-tabs button').forEach((x) => x.classList.toggle('on', x === b)); load(); });
+  $('#ap-ref').onclick = (e) => busy(e.target, load);
+  await load();
+};
+
+// ================== UNDANGAN FAMS ==================
+const HARI = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+const addDays = (d, n) => new Date(Date.parse(d + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);
+const dow = (d) => new Date(d + 'T00:00:00Z').getUTCDay();
+pages.invites = () => `<div class="row"><div><h1>🗓️ Jadwal Undangan Fams</h1><div class="sub">Admin catat undangan di sini (atau pakai <code>/undangan tambah</code> di Discord). TRO SYSTEM mencatat siapa yang input & otomatis update jadwal di channel.</div></div></div>
+  <div class="grid" style="grid-template-columns:360px 1fr">
+    <div>
+      <div class="card"><h3 id="iv-ftitle">➕ Catat undangan</h3>
+        <input type="hidden" id="iv-id">
+        <label>Nama fams / komunitas</label><input id="iv-fams" placeholder="contoh: LATE NIGHT FAMS">
+        <div class="grid g2" style="gap:10px"><div><label>Tanggal</label><input type="date" id="iv-date"></div><div><label>Jam</label><input id="iv-time" placeholder="20:00 WIB"></div></div>
+        <div id="iv-quota" class="hint" style="margin-top:6px"></div>
+        <label>Tempat / map</label><input id="iv-place" placeholder="contoh: On The Rugs Club">
+        <label>Link (opsional)</label><input id="iv-link" placeholder="https://...">
+        <label>Catatan</label><input id="iv-note" placeholder="dress code, dll">
+        <div class="actions"><button class="primary" id="iv-save">💾 Catat</button><button id="iv-cancel" style="display:none">Batal edit</button></div></div>
+      <div class="card" style="margin-top:16px"><h3>⚙️ Pengaturan</h3>
+        <label>Channel jadwal (otomatis diupdate)</label><select id="iv-ch"></select>
+        <div class="grid g2" style="gap:10px"><div><label>Maks / hari kerja</label><input type="number" min="0" id="iv-wd"></div><div><label>Maks / weekend</label><input type="number" min="0" id="iv-we"></div></div>
+        <div class="hint">0 = tanpa batas. Default: 3 undangan Senin–Jumat, weekend bebas.</div>
+        <div class="actions"><button class="primary small" id="iv-set">💾 Simpan</button><button class="small" id="iv-post">📤 Posting / update jadwal</button></div></div>
+    </div>
+    <div>
+      <div class="card"><div class="row" style="margin-bottom:12px"><button class="small" id="iv-prev">◀</button><b id="iv-range"></b><button class="small" id="iv-next">▶</button><div class="spacer"></div><button class="small" id="iv-today">Hari ini</button></div>
+        <div class="week" id="iv-week"></div></div>
+      <div class="card" style="margin-top:16px;padding:0;overflow:auto"><table><thead><tr><th>Tanggal</th><th>Fams</th><th>Tempat</th><th>Dicatat oleh</th><th></th></tr></thead><tbody id="iv-table"></tbody></table></div>
+    </div>
+  </div>`;
+pages.invites.init = async () => {
+  let D = await api('/invites');
+  S.weekStart = S.weekStart || (() => { const t = D.today; return addDays(t, -((dow(t) + 6) % 7)); })();
+  const lim = (d) => [0, 6].includes(dow(d)) ? D.weekendLimit : D.weekdayLimit;
+  const cnt = (d) => D.items.filter((i) => i.date === d).length;
+  const quotaTxt = (d) => { const l = lim(d), c = cnt(d); return `<span class="quota ${l && c >= l ? 'full' : ''}">${c}${l ? '/' + l : ''}</span>`; };
+  const draw = () => {
+    $('#iv-ch').innerHTML = chOptions(D.channelId, '— Belum dipilih —');
+    $('#iv-wd').value = D.weekdayLimit; $('#iv-we').value = D.weekendLimit;
+    const days = [...Array(7)].map((_, i) => addDays(S.weekStart, i));
+    $('#iv-range').textContent = `${new Date(days[0] + 'T00:00:00Z').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', timeZone: 'UTC' })} – ${new Date(days[6] + 'T00:00:00Z').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}`;
+    $('#iv-week').innerHTML = days.map((d) => { const l = lim(d), c = cnt(d); return `<div class="day ${[0, 6].includes(dow(d)) ? 'we' : ''} ${l && c >= l ? 'full' : ''} ${d === D.today ? 'today' : ''} ${d < D.today ? 'past' : ''}" data-d="${d}"><div class="dh"><span>${HARI[dow(d)]}</span>${quotaTxt(d)}</div><div class="dn">${+d.slice(8)}</div>${D.items.filter((i) => i.date === d).map((i) => `<div class="ev" title="${esc(i.fams)}">${esc(i.time || '•')} ${esc(i.fams)}</div>`).join('')}</div>`; }).join('');
+    document.querySelectorAll('.day').forEach((el) => el.onclick = () => { if (el.dataset.d < D.today) return; $('#iv-date').value = el.dataset.d; quota(); $('#iv-fams').focus(); });
+    const up = D.items.filter((i) => i.date >= D.today);
+    $('#iv-table').innerHTML = up.length ? up.map((i) => `<tr><td><b>${new Date(i.date + 'T00:00:00Z').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })}</b><div class="hint">${esc(i.time)}</div></td><td><b>${esc(i.fams)}</b>${i.note ? `<div class="hint">${esc(i.note)}</div>` : ''}</td><td>${esc(i.place)}${i.link ? ` <a href="${esc(i.link)}" target="_blank">🔗</a>` : ''}</td><td>${esc(i.createdBy)}<div class="hint">${new Date(i.createdAt).toLocaleString('id-ID')}${i.editedBy ? ` · edit ${esc(i.editedBy)}` : ''}</div></td><td style="white-space:nowrap"><button class="small iv-edit" data-id="${i.id}">✏️</button> <button class="small danger iv-del" data-id="${i.id}">🗑️</button></td></tr>`).join('') : '<tr><td colspan="5" class="hint" style="text-align:center;padding:30px">Belum ada undangan terjadwal.</td></tr>';
+    document.querySelectorAll('.iv-del').forEach((b) => b.onclick = () => { if (!confirm('Hapus undangan ini?')) return; busy(b, async () => { await api('/invites/' + b.dataset.id, { method: 'DELETE' }); toast('🗑️ Dihapus'); await reload(); }); });
+    document.querySelectorAll('.iv-edit').forEach((b) => b.onclick = () => { const i = D.items.find((x) => x.id === b.dataset.id); ['id', 'fams', 'date', 'time', 'place', 'link', 'note'].forEach((k) => $('#iv-' + k).value = i[k] || ''); $('#iv-ftitle').textContent = '✏️ Edit undangan'; $('#iv-save').textContent = '💾 Simpan perubahan'; $('#iv-cancel').style.display = ''; quota(); window.scrollTo(0, 0); });
+  };
+  const quota = () => { const d = $('#iv-date').value; if (!d) return $('#iv-quota').innerHTML = ''; const l = lim(d), c = D.items.filter((i) => i.date === d && i.id !== $('#iv-id').value).length; $('#iv-quota').innerHTML = `Kuota ${[0, 6].includes(dow(d)) ? 'weekend' : 'hari kerja'}: <b>${c}${l ? '/' + l : ''}</b> ${l && c >= l ? '— <span style="color:var(--red)">PENUH</span>' : '— masih bisa'}`; };
+  const resetForm = () => { ['id', 'fams', 'time', 'place', 'link', 'note'].forEach((k) => $('#iv-' + k).value = ''); $('#iv-ftitle').textContent = '➕ Catat undangan'; $('#iv-save').textContent = '💾 Catat'; $('#iv-cancel').style.display = 'none'; quota(); };
+  const reload = async () => { D = await api('/invites'); draw(); quota(); };
+  $('#iv-date').min = D.today; $('#iv-date').value = D.today; $('#iv-date').onchange = quota;
+  $('#iv-cancel').onclick = resetForm;
+  $('#iv-save').onclick = (e) => busy(e.target, async () => { const body = Object.fromEntries(['id', 'fams', 'date', 'time', 'place', 'link', 'note'].map((k) => [k, $('#iv-' + k).value])); if (!body.id) delete body.id; const r = await api('/invites', { method: 'POST', body }); toast(`✅ ${r.item.fams} dicatat — kuota hari itu ${r.used}${r.limit ? '/' + r.limit : ''}`); resetForm(); await reload(); });
+  $('#iv-set').onclick = (e) => busy(e.target, async () => { await api('/invites-settings', { method: 'PUT', body: { channelId: $('#iv-ch').value, prevChannelId: D.channelId, weekdayLimit: $('#iv-wd').value, weekendLimit: $('#iv-we').value } }); toast('✅ Pengaturan disimpan'); await reload(); });
+  $('#iv-post').onclick = (e) => busy(e.target, async () => { const r = await api('/invites/post', { method: 'POST', body: {} }); toast(r.result === 'no-channel' ? '⚠️ Pilih channel jadwal dulu' : r.result === 'updated' ? '🔄 Jadwal diupdate di Discord' : '✅ Jadwal diposting', r.result === 'no-channel'); });
+  $('#iv-prev').onclick = () => { S.weekStart = addDays(S.weekStart, -7); draw(); };
+  $('#iv-next').onclick = () => { S.weekStart = addDays(S.weekStart, 7); draw(); };
+  $('#iv-today').onclick = () => { S.weekStart = addDays(D.today, -((dow(D.today) + 6) % 7)); draw(); };
+  draw(); quota();
+};
+
+// ================== router ==================
+function render() {
+  const [page, sub] = (location.hash.slice(1) || 'home').split('/');
+  S.page = pages[page] ? page : 'home';
+  if (S.page === 'posts' && sub) S.postKey = sub;
+  $('#root').innerHTML = layout(pages[S.page]());
+  pages[S.page].init?.();
+  window.scrollTo(0, 0);
+}
+window.onhashchange = render;
+
+function loginScreen() {
+  const err = new URLSearchParams(location.search).get('error');
+  const msg = { noaccess: '⛔ Akun kamu tidak punya akses. Dashboard hanya untuk staff dengan izin "Manage Server" di THE RESILIENT ORDER.', state: 'Sesi login kadaluarsa, coba lagi.', token: 'Login gagal (cek CLIENT_SECRET & Redirect di Developer Portal).', login: 'Login gagal, coba lagi.' }[err];
+  $('#root').innerHTML = `<div class="login"><div class="box"><div class="owl">🦉</div><h1>TRO <span>SYSTEM</span></h1><p>Dashboard resmi THE RESILIENT ORDER.<br>Masuk pakai akun Discord kamu.</p>${msg ? `<div class="err-box">${msg}</div>` : ''}<a class="btn" href="/login"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.3 18.3 0 0 0-5.6 0L8.6 3a19.7 19.7 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a20 20 0 0 0 6 3l1.3-2a12.8 12.8 0 0 1-2-1l.5-.3a14.2 14.2 0 0 0 12.2 0l.5.3-2 1 1.3 2a19.9 19.9 0 0 0 6-3c.5-5.2-.9-9.7-3.6-13.7ZM8 15.4c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>Login dengan Discord</a></div></div>`;
+}
+
+(async () => {
+  S.me = await api('/me').catch(() => ({ user: null }));
+  if (!S.me.allowed) return loginScreen();
+  [S.guild, S.cfg] = await Promise.all([api('/guild'), api('/config')]);
+  if (!S.guild.channels) { $('#root').innerHTML = '<div class="login"><div class="box"><div class="owl">🦉</div><h1>Bot belum siap</h1><p>TRO SYSTEM masih menyambung ke Discord. Refresh halaman ini sebentar lagi.</p></div></div>'; return; }
+  const [apps, inv] = await Promise.all([api('/applications').catch(() => []), api('/invites').catch(() => null)]);
+  S.pending = apps.filter((a) => a.status === 'pending').length;
+  if (inv) { S.invToday = inv.items.filter((i) => i.date === inv.today).length; S.cfg.invitesLimit = [0, 6].includes(new Date(inv.today + 'T00:00:00Z').getUTCDay()) ? (inv.weekendLimit || '∞') : (inv.weekdayLimit || '∞'); }
+  if (location.search) history.replaceState(null, '', '/' + location.hash);
+  render();
+})();
+</script>
+</body>
+</html>
