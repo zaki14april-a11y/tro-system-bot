@@ -15,6 +15,8 @@ const DAY = 86_400_000;
 
 function setup({ client, baseEmbed }) {
   const guild = () => client.guilds.cache.get(process.env.GUILD_ID);
+  // role tamu: dari pengaturan verifikasi + role tamu lama (GUEST / TAMU dari bot sebelumnya)
+  const guestRoleIds = () => { const g = guild(); const v = cfg.get().verify; return [...new Set([...(v.guestRoleIds || []), ...(g ? g.roles.cache.filter((r) => /^(guest|tamu|visitor)$/i.test(r.name.replace(/[^a-z]/gi, ''))).map((r) => r.id) : [])])]; };
   const BC = () => cfg.data('broadcasts', { jobs: [] });
   const AC = () => cfg.data('activity', { users: {}, checks: {} });
   const DIR = () => {
@@ -72,7 +74,7 @@ function setup({ client, baseEmbed }) {
     for (const m of members.values()) {
       if (m.user.bot) continue;
       const isMember = v.memberRoleIds.some((r) => m.roles.cache.has(r));
-      const isGuest = !isMember && v.guestRoleIds.some((r) => m.roles.cache.has(r));
+      const isGuest = !isMember && guestRoleIds().some((r) => m.roles.cache.has(r));
       const u = A.users[m.id] || {};
       const last = Math.max(u.msg || 0, u.voice || 0);
       const idle = Math.floor((now - (last || u.joined || m.joinedTimestamp || 0)) / DAY);
@@ -275,7 +277,7 @@ function setup({ client, baseEmbed }) {
     const has = (uid, type) => apps.some((x) => x.userId === uid && x.type === type && x.status === 'accepted');
     for (const m of g.members.cache.values()) {
       if (m.user.bot) continue;
-      const type = v.memberRoleIds.some((r) => m.roles.cache.has(r)) ? 'member' : v.guestRoleIds.some((r) => m.roles.cache.has(r)) ? 'guest' : null;
+      const type = v.memberRoleIds.some((r) => m.roles.cache.has(r)) ? 'member' : guestRoleIds().some((r) => m.roles.cache.has(r)) ? 'guest' : null;
       if (!type || has(m.id, type)) continue;
       const a = { id: Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5), userId: m.id, username: m.user.username, avatar: m.user.displayAvatarURL({ size: 256 }),
         accountCreated: m.user.createdTimestamp, type, answers: [], status: 'accepted', legacy: true, manual: true, reviewedBy: 'data lama', createdAt: new Date(m.joinedTimestamp || Date.now()).toISOString(), reviewedAt: new Date(m.joinedTimestamp || Date.now()).toISOString() };
