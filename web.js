@@ -22,9 +22,9 @@ const PAGE_OF = [
   [/^\/config\/posts$|^\/posts/, 'posts'], [/^\/announce/, 'announce'], [/^\/config\/tickets$|^\/tickets/, 'tickets'],
   [/^\/config\/security$|^\/lockdown/, 'security'], [/^\/config\/moderation$|^\/modcases|^\/moderate/, 'moderation'], [/^\/logs/, 'logs'],
   [/^\/config\/branding$/, 'branding'], [/^\/config\/status$/, 'status'], [/^\/guide\/post/, 'guide'], [/^\/config\/access$|^\/access/, 'access'],
-  [/^\/members\/broadcast/, 'broadcast'], [/^\/members\/activity/, 'activity'], [/^\/members\/directory/, 'directory'], [/^\/shop/, 'shop'], [/^\/divisions/, 'divisions'], [/^\/suggest/, 'suggest'], [/^\/notify|^\/meetings/, 'notify'], [/^\/boost/, 'boost'], [/^\/archive/, 'archive'], [/^\/forms/, 'forms'],
+  [/^\/members\/broadcast/, 'broadcast'], [/^\/members\/activity/, 'activity'], [/^\/members\/directory/, 'directory'], [/^\/shop/, 'shop'], [/^\/divisions/, 'divisions'], [/^\/suggest/, 'suggest'], [/^\/notify|^\/meetings/, 'notify'], [/^\/boost/, 'boost'], [/^\/archive/, 'archive'], [/^\/forms/, 'forms'], [/^\/channels/, 'readonly'],
 ];
-const ALL_PAGES = ['home', 'guide', 'branding', 'status', 'verify', 'applications', 'tracker', 'welcome', 'autorole', 'invites', 'events', 'birthday', 'tempvoice', 'levels', 'giveaway', 'selfroles', 'posts', 'announce', 'tickets', 'security', 'moderation', 'logs', 'broadcast', 'activity', 'directory', 'shop', 'divisions', 'suggest', 'notify', 'boost', 'archive', 'forms'];
+const ALL_PAGES = ['home', 'guide', 'branding', 'status', 'verify', 'applications', 'tracker', 'welcome', 'autorole', 'invites', 'events', 'birthday', 'tempvoice', 'levels', 'giveaway', 'selfroles', 'posts', 'announce', 'tickets', 'security', 'moderation', 'logs', 'broadcast', 'activity', 'directory', 'shop', 'divisions', 'suggest', 'notify', 'boost', 'archive', 'forms', 'readonly'];
 
 // default: role bernama ADMIN & OWNER
 const defaultAdminRoles = (g) => [...(g?.roles.cache.filter((r) => /^(admin|owner)$/i.test(r.name.replace(/[^a-z]/gi, ''))).keys() || [])];

@@ -677,6 +677,7 @@ const IC = {
   boost: '<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M11 3 8 9l4 12 4-12-3-6M2 9h20"/>',
   forms: '<path d="M22 6 12 13 2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/>',
   archive: '<rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/>',
+  readonly: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   notify: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
   security: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   moderation: '<path d="m16 16 3-8 3 8c-.9.7-1.9 1-3 1s-2.1-.3-3-1zM2 16l3-8 3 8c-.9.7-1.9 1-3 1s-2.1-.3-3-1zM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
@@ -717,7 +718,7 @@ const PAGES = [
   ['Engagement', [['levels', '⭐', 'Level & XP'], ['giveaway', '🎉', 'Giveaway'], ['selfroles', '🏷️', 'Self-Role Panel']]],
   ['Pesan & Support', [['posts', '📜', 'Postingan Resmi'], ['announce', '📢', 'Pengumuman'], ['tickets', '🎫', 'Ticket'], ['forms', '📮', 'Formulir & Laporan']]],
   ['Manajemen', [['broadcast', '📨', 'DM Massal'], ['activity', '💤', 'Keaktifan & Daftar'], ['directory', '🏛️', 'Struktur & Data'], ['divisions', '🗂️', 'Divisi & Tugas'], ['suggest', '💡', 'Saran Aktivitas'], ['shop', '🛒', 'TRO Shop'], ['notify', '🔔', 'Notif Staff & Rapat'], ['boost', '💎', 'Nitro Booster']]],
-  ['Keamanan', [['security', '🛡️', 'Anti Hack & Raid'], ['moderation', '⚖️', 'Moderasi & Warn'], ['logs', '🧾', 'Log Aktivitas'], ['archive', '🗂️', 'Arsip Member'], ['access', '👑', 'Akses Dashboard']]],
+  ['Keamanan', [['security', '🛡️', 'Anti Hack & Raid'], ['moderation', '⚖️', 'Moderasi & Warn'], ['logs', '🧾', 'Log Aktivitas'], ['archive', '🗂️', 'Arsip Member'], ['readonly', '🔒', 'Channel Read-only'], ['access', '👑', 'Akses Dashboard']]],
 ];
 
 function layout(inner) {
@@ -1928,6 +1929,23 @@ pages.forms.init = async () => {
   });
   const subs = r.subs; const fname = (id) => items.find((f) => f.id === id)?.name || '-';
   $('#fm-subs').innerHTML = subs.length ? subs.map((x) => `<tr><td>${x.no}</td><td>${esc(fname(x.formId))}${x.type ? `<div class="hint">${esc(x.type)}</div>` : ''}</td><td>${esc(x.username)}</td><td style="max-width:320px">${esc((x.answers[0]?.a || '').slice(0, 90))}</td><td>${esc(r.statuses[x.status] || x.status)}</td><td>${fmtDT(x.createdAt)}</td></tr>`).join('') : emptyRow(6, 'Belum ada kiriman.');
+};
+
+// ================== 🔒 CHANNEL READ-ONLY ==================
+pages.readonly = () => `<h1>🔒 Channel Read-only</h1><div class="sub">Channel info & panel (pengumuman, rules, price list, panduan, panel tombol, dll) dibuat read-only: member tetap bisa baca dan klik tombol, tapi tidak bisa chat. Yang bisa posting cuma bot dan staff (role dengan izin Administrator / Manage Messages, plus role pilihan di bawah).</div>
+  <div class="card"><label>Role tambahan yang tetap boleh posting di channel read-only</label><div id="ro-roles"></div>
+    <div class="actions"><button id="ro-sug">Pilih yang disarankan</button><button class="primary" id="ro-on">🔒 Kunci yang dipilih</button><button id="ro-off">🔓 Buka yang dipilih</button><span class="hint" id="ro-n"></span></div></div>
+  <div class="card" style="margin-top:16px;padding:0;overflow:auto"><table><thead><tr><th></th><th>Channel</th><th>Kategori</th><th>Status</th><th>Catatan</th></tr></thead><tbody id="ro-list"></tbody></table></div>`;
+pages.readonly.init = async () => {
+  let r = await api('/channels/readonly');
+  $('#ro-roles').innerHTML = roleChips('ro-rc', r.staffRoleIds || []);
+  const draw = () => { $('#ro-list').innerHTML = r.items.map((c) => `<tr><td><input type="checkbox" class="ro-cb" value="${c.id}" style="width:auto"></td><td><b>#${esc(c.name)}</b></td><td class="hint">${esc(c.parent)}</td><td>${c.readonly ? '<span class="tag">🔒 read-only</span>' : '<span class="hint">bisa chat</span>'}</td><td class="hint">${c.suggest && !c.readonly ? 'disarankan dikunci' : ''}${c.privateCh ? ' · channel privat' : ''}</td></tr>`).join('');
+    $('#ro-n').textContent = `${r.items.filter((c) => c.readonly).length} channel read-only`; };
+  draw();
+  const picked = () => [...document.querySelectorAll('.ro-cb:checked')].map((c) => c.value);
+  $('#ro-sug').onclick = () => { const s = new Set(r.items.filter((c) => c.suggest).map((c) => c.id)); document.querySelectorAll('.ro-cb').forEach((cb) => cb.checked = s.has(cb.value)); };
+  const run = (on) => (e) => { const ids = picked(); if (!ids.length) return toast('Pilih channel dulu', true); if (!confirm(`${on ? 'Kunci' : 'Buka'} ${ids.length} channel?`)) return; busy(e.target, async () => { const x = await api('/channels/readonly', { method: 'POST', body: { channelIds: ids, readonly: on, staffRoleIds: readChips('ro-rc') } }); toast(`✅ ${x.done.length} channel ${on ? 'dikunci' : 'dibuka'}${x.fail.length ? ` · ${x.fail.length} gagal` : ''}`); r = await api('/channels/readonly'); draw(); }); };
+  $('#ro-on').onclick = run(true); $('#ro-off').onclick = run(false);
 };
 
 // ================== efek animasi ==================
