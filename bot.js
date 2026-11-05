@@ -17,6 +17,8 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildModeration,
     GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildInvites,
+    GatewayIntentBits.GuildVoiceStates,
   ],
   partials: [Partials.GuildMember],
 });
@@ -60,6 +62,9 @@ async function securityLog(type, text, color = '#e74c3c') {
 
 // ---------------- verifikasi & undangan fams ----------------
 const fams = require('./fams').setup({ client, baseEmbed, securityLog });
+const tracker = require('./tracker').setup({ client, baseEmbed });
+const modules = ['tickets', 'levels', 'engage', 'moderation', 'community', 'guide']
+  .map((name) => ({ name, ...require(`./${name}`).setup({ client, baseEmbed, securityLog }) }));
 
 // ---------------- postingan resmi ----------------
 async function publishPost(key, forceNew = false) {
@@ -313,7 +318,7 @@ const buildCommands = () => {
       .addSubcommand((sc) => sc.setName('hapus').setDescription('Hapus undangan')
         .addStringOption((o) => o.setName('id').setDescription('ID dari /undangan list').setRequired(true))),
     new SlashCommandBuilder().setName('tro-info').setDescription('Info & statistik server TRO'),
-  ].map((c) => c.toJSON());
+  ].map((c) => c.toJSON()).concat([tracker.command], fams.commands, ...modules.map((m) => m.commands || []));
 };
 
 async function registerCommands() {
@@ -399,6 +404,9 @@ client.once(Events.ClientReady, async (c) => {
 
 module.exports = {
   fams,
+  tracker,
+  modules,
   client, guild, publishPost, publishAll, announce, sendWelcome, sendGoodbye, applyStatus, registerCommands,
+  buildCommands,
   lockdown: { get: () => lockdownUntil, set: (ms) => { lockdownUntil = ms; } },
 };

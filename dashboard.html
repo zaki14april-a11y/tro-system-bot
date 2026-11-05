@@ -156,9 +156,271 @@ button.success{background:#1f3b2c;color:#7ee2a8;border-color:#2f6b4a}
 .quota.full{background:#3a1416;color:#ffb4b4}
 .q-row{display:grid;grid-template-columns:1fr 1fr auto auto auto;gap:8px;margin-bottom:8px;align-items:center}
 @media(max-width:900px){.week{grid-template-columns:repeat(2,1fr)}.q-row{grid-template-columns:1fr}.app-card{grid-template-columns:1fr}}
+.cmd{display:grid;grid-template-columns:minmax(220px,300px) 90px 1fr;gap:12px;align-items:start;padding:10px 12px;border-bottom:1px solid var(--line)}
+.cmd:last-child{border-bottom:0}
+.cmd code{background:#0b0b0e;border:1px solid var(--line);padding:3px 8px;border-radius:6px;color:var(--gold2);font-size:12.5px;display:inline-block}
+.cmd .ex{font-size:12px;color:var(--muted);margin-top:4px;font-family:ui-monospace,Consolas,monospace;cursor:pointer}
+.cmd .ex:hover{color:var(--gold2)}
+.who{font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;text-align:center}
+.who.Admin{background:#3b2a0b;color:#f5c46e}.who.Staff{background:#14283b;color:#7ec8ff}.who.m{background:#16301f;color:#7ee2a8}
+.tut ol{margin:8px 0 0 18px;display:grid;gap:6px}
+.feat{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);text-decoration:none;color:var(--text);transition:.15s}
+.feat:hover{border-color:var(--gold)}
+.feat .st{margin-left:auto;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px}
+.feat .st.on{background:#16301f;color:#7ee2a8}.feat .st.off{background:#2a2a33;color:#9a9aa8}
+@media(max-width:900px){.cmd{grid-template-columns:1fr}}
+
+/* =====================================================================
+   🦉 TEMA "ORDO" — THE RESILIENT ORDER
+   ===================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+:root{
+  --ink:#0D1220;--ink2:#121829;--plum:#181530;--plum2:#211c3d;--line:rgba(201,162,75,.14);--line2:rgba(169,176,190,.12);
+  --gold:#C9A24B;--gold2:#E9D18B;--gold3:#8a6a26;--silver:#A9B0BE;--ember:#B3423A;--text:#EDE6D6;--muted:#9C9AA6;
+  --bg:var(--ink);--panel:var(--plum);--panel2:var(--plum2);--red:#d45a50;--green:#5fbf8a;--radius:14px;
+  --display:'Cinzel',Georgia,serif;--body:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);color:var(--text);font-size:14.5px;line-height:1.55;letter-spacing:.005em;
+  background:
+    radial-gradient(1100px 700px at 85% -15%,rgba(201,162,75,.13),transparent 60%),
+    radial-gradient(900px 600px at -15% 115%,rgba(88,64,160,.20),transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23C9A24B' stroke-opacity='.045'%3E%3Cpath d='M60 6 L114 60 L60 114 L6 60 Z'/%3E%3Cpath d='M60 30 L90 60 L60 90 L30 60 Z'/%3E%3C/g%3E%3C/svg%3E"),
+    var(--ink);background-attachment:fixed}
+::selection{background:rgba(201,162,75,.35)}
+*:focus-visible{outline:2px solid var(--gold2);outline-offset:2px;border-radius:6px}
+
+/* ---------- panji (sidebar) ---------- */
+aside{width:272px;padding:0;background:linear-gradient(180deg,#1d1838 0%,#141128 55%,#0f0d1f 100%);border-right:1px solid var(--line);
+  box-shadow:inset -1px 0 0 rgba(233,209,139,.05),8px 0 40px rgba(0,0,0,.35);position:sticky;overflow:hidden auto;scrollbar-width:thin;scrollbar-color:#3a2f55 transparent}
+aside:before{content:"TRO";position:fixed;left:196px;bottom:30px;writing-mode:vertical-rl;font-family:var(--display);font-weight:800;font-size:96px;letter-spacing:.08em;color:rgba(201,162,75,.045);pointer-events:none}
+.brand{flex-direction:column;align-items:center;text-align:center;gap:10px;padding:26px 18px 22px;margin:0 0 6px;border-bottom:1px solid var(--line);
+  background:radial-gradient(160px 120px at 50% 30%,rgba(201,162,75,.18),transparent 70%)}
+.brand img{width:84px;height:94px;border-radius:0;object-fit:cover;clip-path:path('M42 0 L84 12 L84 48 C84 72 64 88 42 94 C20 88 0 72 0 48 L0 12 Z');
+  box-shadow:none;filter:drop-shadow(0 0 18px rgba(201,162,75,.35));animation:crest 1.6s ease-out both}
+.brand>div{font-family:var(--display);font-size:20px;font-weight:700;letter-spacing:.06em;line-height:1.15}
+.brand span{color:var(--gold2)}
+.brand small{display:block;margin-top:6px;font-family:var(--body);font-size:11.5px;font-weight:600;letter-spacing:.04em;color:var(--silver);opacity:.8}
+.brand small b{font-family:var(--display);color:var(--gold);font-weight:700;margin-right:6px}
+@keyframes crest{0%{opacity:0;transform:translateY(-6px) scale(.96);filter:drop-shadow(0 0 0 rgba(201,162,75,0))}60%{filter:drop-shadow(0 0 28px rgba(233,209,139,.6))}100%{opacity:1;transform:none}}
+.navgroup{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:none;color:var(--gold);opacity:.75;margin:18px 22px 6px;display:flex;align-items:center;gap:8px}
+.navgroup:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.nav{padding:0 12px}
+.nav a{padding:8px 12px;margin:1px 0;border-radius:8px;font-size:13.5px;font-weight:500;color:#d8d2c4;border:1px solid transparent}
+.nav a:hover{background:rgba(201,162,75,.06);color:var(--text)}
+.nav a.active{background:linear-gradient(90deg,rgba(201,162,75,.18),rgba(201,162,75,.02));border-color:rgba(201,162,75,.22);color:var(--gold2);box-shadow:none;position:relative}
+.nav a.active:before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(var(--gold2),var(--gold))}
+.nav a .badge{background:var(--ember);box-shadow:0 0 0 2px #181530}
+
+/* ---------- header & judul ---------- */
+header{background:rgba(13,18,32,.72);border-bottom:1px solid var(--line);padding:12px 32px}
+.content{padding:34px 36px 60px;max-width:1240px}
+h1{font-family:var(--display);font-size:30px;font-weight:700;letter-spacing:.03em;line-height:1.2;margin-bottom:8px;
+  background:linear-gradient(180deg,#fff3cf 0%,var(--gold2) 45%,var(--gold) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+h1+.sub,.row>div>h1+.sub{position:relative;padding-top:12px}
+h1+.sub:before,.row>div>h1+.sub:before{content:"";position:absolute;top:0;left:0;width:120px;height:9px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='9'%3E%3Cpath d='M0 4.5H52' stroke='%23C9A24B' stroke-opacity='.6'/%3E%3Cpath d='M60 0.5L64 4.5L60 8.5L56 4.5Z' fill='%23E9D18B'/%3E%3Cpath d='M68 4.5H120' stroke='%23C9A24B' stroke-opacity='.6'/%3E%3C/svg%3E") no-repeat}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sub{color:var(--muted);font-size:14px;max-width:78ch}
+h3{font-family:var(--display);font-weight:600;letter-spacing:.02em;font-size:16px}
+.card h3{font-size:15.5px;color:var(--text)}
+
+/* ---------- panel ---------- */
+.card{background:linear-gradient(180deg,rgba(33,28,61,.78),rgba(24,21,48,.78));border:1px solid var(--line2);border-radius:var(--radius);
+  box-shadow:0 1px 0 rgba(233,209,139,.06) inset,0 18px 40px -24px rgba(0,0,0,.6);backdrop-filter:blur(4px);position:relative}
+.card:before{content:"";position:absolute;left:18px;right:18px;top:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(233,209,139,.45),transparent)}
+.hero{background:linear-gradient(115deg,#3a2c0f 0%,#241b2e 42%,#181530 100%);border:1px solid rgba(201,162,75,.35);border-radius:18px;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-40px;top:-30px;width:280px;height:280px;opacity:.10;transform:rotate(-8deg);font-size:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 112'%3E%3Cpath d='M50 2L96 15V54C96 80 74 100 50 110C26 100 4 80 4 54V15Z' fill='none' stroke='%23E9D18B' stroke-width='3'/%3E%3Cpath d='M50 18V96M30 40H70' stroke='%23E9D18B' stroke-width='3'/%3E%3C/svg%3E") no-repeat center/contain}
+.hero h1{font-size:34px}
+.stat{padding:18px 20px}
+.stat .num{font-family:var(--display);font-size:34px;font-weight:700;background:linear-gradient(180deg,#fff3cf,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat .lbl{font-size:12.5px;color:var(--silver)}
+.stat .ic2{opacity:.55;filter:grayscale(.2)}
+.tile{border-radius:12px}
+.tile:hover{border-color:rgba(201,162,75,.45);transform:translateY(-2px);box-shadow:0 18px 40px -22px rgba(201,162,75,.45)}
+.tile .ic{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:radial-gradient(circle at 30% 30%,rgba(233,209,139,.22),rgba(201,162,75,.06));border:1px solid var(--line);font-size:22px}
+
+/* ---------- form ---------- */
+label{font-family:var(--body);text-transform:none;letter-spacing:0;font-size:12.5px;font-weight:600;color:var(--silver);margin:16px 0 6px}
+input,textarea,select{background:rgba(9,12,22,.75);border:1px solid rgba(169,176,190,.16);border-radius:9px;color:var(--text);transition:border-color .15s,box-shadow .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,75,.15)}
+textarea{font-family:ui-monospace,'Cascadia Code',Consolas,monospace}
+button{border-radius:9px;font-family:var(--body);font-weight:700;background:rgba(33,28,61,.9);border:1px solid rgba(169,176,190,.18);color:var(--text)}
+button:hover{border-color:var(--gold);color:var(--gold2)}
+button.primary{background:linear-gradient(180deg,#f3dc95 0%,#d4ad55 48%,#b38a33 100%);color:#1b1407;border:1px solid #e9cf86;
+  box-shadow:0 1px 0 rgba(255,255,255,.45) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 8px 22px -10px rgba(201,162,75,.8);text-shadow:0 1px 0 rgba(255,240,200,.4)}
+button.primary:hover{filter:brightness(1.07);color:#1b1407}
+button.danger{background:rgba(179,66,58,.08);color:#e8877f;border-color:rgba(179,66,58,.45)}
+button.danger:hover{background:rgba(179,66,58,.18);color:#ffb4ad;border-color:#d45a50}
+button.success{background:rgba(95,191,138,.1);color:#8fe0b2;border-color:rgba(95,191,138,.4)}
+.switch span{background:#2c2846;border:1px solid rgba(169,176,190,.2)}
+.switch input:checked+span{background:linear-gradient(180deg,#e9d18b,#b38a33);border-color:#e9cf86}
+.chip{background:rgba(9,12,22,.6);border:1px solid rgba(169,176,190,.16);transition:.12s}
+.chip:hover{border-color:rgba(201,162,75,.4)}
+.chip.on{background:rgba(201,162,75,.14);border-color:var(--gold);color:var(--gold2)}
+.tabs button{border-radius:99px;padding:7px 16px}
+.tabs button.on{background:linear-gradient(180deg,#f3dc95,#c9a24b);color:#1b1407;border-color:#e9cf86}
+.hint{color:var(--muted)}
+code{font-family:ui-monospace,'Cascadia Code',Consolas,monospace;background:rgba(201,162,75,.10);color:var(--gold2);padding:1px 6px;border-radius:5px;font-size:.92em}
+
+/* ---------- tabel & daftar ---------- */
+th{font-family:var(--display);text-transform:none;font-size:12.5px;font-weight:600;letter-spacing:.03em;color:var(--gold);background:rgba(9,12,22,.35)}
+td,th{border-bottom:1px solid rgba(169,176,190,.08)}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:rgba(201,162,75,.04)}
+.tag{background:rgba(169,176,190,.10);color:var(--silver);border:1px solid rgba(169,176,190,.14)}
+.list a:hover{background:rgba(201,162,75,.06)}
+.list a.active{border-color:var(--gold);background:rgba(201,162,75,.10)}
+.status.pending{background:rgba(201,162,75,.14);color:var(--gold2)}
+.status.accepted{background:rgba(95,191,138,.12);color:#8fe0b2}
+.status.rejected{background:rgba(179,66,58,.14);color:#f0a29b}
+.feat{background:rgba(9,12,22,.45);border-color:rgba(169,176,190,.12);border-radius:12px}
+.feat:hover{border-color:rgba(201,162,75,.45)}
+.feat .st{text-transform:none;letter-spacing:0;font-weight:700}
+.feat .st.on{background:rgba(95,191,138,.12);color:#8fe0b2}
+.day{background:rgba(9,12,22,.55);border-color:rgba(169,176,190,.12)}
+.day.today{box-shadow:0 0 0 2px var(--gold),0 10px 30px -12px rgba(201,162,75,.6)}
+.day .dn{font-family:var(--display)}
+.day .ev{background:rgba(201,162,75,.10);border-left-color:var(--gold)}
+.pill{background:rgba(9,12,22,.6);border-color:var(--line)}
+.dot.on{background:var(--green);box-shadow:0 0 0 3px rgba(95,191,138,.18)}
+.toast{background:linear-gradient(180deg,#221d3f,#181530);border-color:var(--line);border-left-color:var(--gold)}
+.toast.err{border-left-color:var(--ember)}
+
+/* ---------- gerbang login ---------- */
+.login{background:radial-gradient(700px 500px at 50% 35%,rgba(201,162,75,.16),transparent 65%),transparent}
+.login .box{max-width:460px}
+.login .owl{width:132px;height:148px;margin:0 auto 18px;font-size:0;background:linear-gradient(180deg,#f3dc95,#8a6a26);
+  clip-path:path('M66 0 L132 19 L132 76 C132 113 101 138 66 148 C31 138 0 113 0 76 L0 19 Z');display:grid;place-items:center;filter:drop-shadow(0 0 40px rgba(201,162,75,.45));animation:crest 1.8s ease-out both}
+.login .owl:after{content:"🦉";font-size:64px;width:120px;height:136px;display:grid;place-items:center;background:#141128;clip-path:path('M60 0 L120 17 L120 69 C120 103 92 125 60 136 C28 125 0 103 0 69 L0 17 Z')}
+.login h1{font-size:34px;letter-spacing:.08em}
+.login p{color:var(--silver);font-size:14.5px}
+.login .motto{font-family:var(--display);color:var(--gold);letter-spacing:.06em;margin:-6px 0 26px;font-size:13px}
+.login a.btn{background:linear-gradient(180deg,#f3dc95 0%,#d4ad55 48%,#b38a33 100%);color:#1b1407;border:1px solid #e9cf86;border-radius:11px;
+  box-shadow:0 1px 0 rgba(255,255,255,.45) inset,0 14px 34px -12px rgba(201,162,75,.8)}
+.login a.btn svg{fill:#1b1407}
+.err-box{background:rgba(179,66,58,.12);border-color:rgba(179,66,58,.45);color:#f6b9b2}
+
+
+.stat .num.emo{background:none;-webkit-text-fill-color:initial;color:inherit;font-size:30px}
+.hero .crest{width:70px;height:78px;object-fit:cover;flex:none;clip-path:path('M35 0 L70 10 L70 40 C70 60 53 73 35 78 C17 73 0 60 0 40 L0 10 Z');filter:drop-shadow(0 0 14px rgba(201,162,75,.4))}
+.crest.fb{width:70px;height:78px;flex:none;background:linear-gradient(180deg,#f3dc95,#8a6a26);clip-path:path('M35 0 L70 10 L70 40 C70 60 53 73 35 78 C17 73 0 60 0 40 L0 10 Z');display:grid;place-items:center}
+.crest.fb:after{content:"🦉";font-size:32px}
+.crest.fb.big{width:84px;height:94px;clip-path:path('M42 0 L84 12 L84 48 C84 72 64 88 42 94 C20 88 0 72 0 48 L0 12 Z');animation:crest 1.6s ease-out both}
+.crest.fb.big:after{font-size:40px}
+header .user img{border-radius:50%;background:#2c2846}
+
+/* ================== ANIMASI ORDO ================== */
+/* splash pembuka */
+#intro{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:radial-gradient(600px 400px at 50% 45%,#241c3e,#0b0f1b 70%);transition:opacity .6s ease,visibility .6s}
+#intro.out{opacity:0;visibility:hidden}
+#intro .wrap{text-align:center}
+#intro svg{width:120px;height:136px;overflow:visible}
+#intro .sh{fill:none;stroke:url(#gg);stroke-width:2.5;stroke-dasharray:420;stroke-dashoffset:420;animation:draw 1.1s cubic-bezier(.6,.1,.2,1) forwards}
+#intro .sw{fill:none;stroke:#E9D18B;stroke-width:2.5;stroke-dasharray:120;stroke-dashoffset:120;animation:draw .6s .7s ease-out forwards}
+#intro .fill{fill:url(#gg);opacity:0;animation:fadein .5s 1.05s forwards}
+#intro .owl{font-size:44px;opacity:0;animation:pop .5s 1.15s cubic-bezier(.3,1.6,.5,1) forwards}
+#intro h2{font-family:var(--display);font-size:26px;letter-spacing:.32em;margin-top:18px;color:transparent;background:linear-gradient(90deg,#8a6a26,#fff3cf,#C9A24B,#8a6a26);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;opacity:0;animation:fadein .5s 1s forwards,sweep 2.4s 1s linear infinite}
+#intro p{font-family:var(--display);color:var(--silver);letter-spacing:.2em;font-size:11.5px;margin-top:8px;opacity:0;animation:fadein .6s 1.3s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fadein{to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+@keyframes sweep{to{background-position:-300% 0}}
+
+/* partikel emas */
+#motes{position:fixed;inset:0;pointer-events:none;z-index:0}
+.app,.login{position:relative;z-index:1}
+
+/* masuk pertama: menu muncul berurutan */
+.boot .brand img,.boot .brand .crest{animation:crest 1.6s ease-out both}
+.boot .nav a,.boot .navgroup{opacity:0;animation:slidein .45s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(var(--i,0) * 28ms + .15s)}
+@keyframes slidein{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+
+/* ganti halaman: isi naik berurutan */
+.content>*{animation:rise .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 60ms)}
+.content .grid>*{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--j,0) * 45ms + .12s)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* kilau emas di judul */
+h1{background-size:100% 100%}
+h1.shine{background-image:linear-gradient(100deg,var(--gold) 0%,var(--gold2) 35%,#fffbe8 50%,var(--gold2) 65%,var(--gold) 100%);background-size:250% 100%;animation:rise .7s cubic-bezier(.2,.7,.2,1) both,glint 1.6s .35s ease-out both}
+@keyframes glint{from{background-position:120% 0}to{background-position:-20% 0}}
+
+/* logo sidebar napas pelan */
+.brand img,.brand .crest{animation:crest 1.6s ease-out both,breathe 5s 2s ease-in-out infinite}
+@keyframes breathe{0%,100%{filter:drop-shadow(0 0 14px rgba(201,162,75,.30))}50%{filter:drop-shadow(0 0 26px rgba(233,209,139,.60))}}
+
+/* nav: garis emas geser */
+.nav a{position:relative;transition:background .2s,color .2s,transform .2s}
+.nav a:hover{transform:translateX(3px)}
+.nav a.active:before{animation:grow .35s cubic-bezier(.3,1.4,.5,1)}
+@keyframes grow{from{transform:scaleY(0)}to{transform:none}}
+
+/* kartu: cahaya ikut kursor */
+.card,.tile,.feat{--mx:50%;--my:50%}
+.tile,.feat,.card.stat{overflow:hidden;transition:transform .25s cubic-bezier(.2,.7,.2,1),border-color .25s,box-shadow .25s}
+.tile:after,.feat:after,.card.stat:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;
+  background:radial-gradient(240px circle at var(--mx) var(--my),rgba(233,209,139,.13),transparent 60%)}
+.tile:hover:after,.feat:hover:after,.card.stat:hover:after{opacity:1}
+.card.stat:hover{transform:translateY(-3px);border-color:rgba(201,162,75,.35)}
+.tile:hover .ic{animation:bob .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bob{0%{transform:none}40%{transform:translateY(-4px) rotate(-6deg)}100%{transform:none}}
+
+/* tombol emas: kilatan + riak klik */
+button,a.btn{position:relative;overflow:hidden;transition:transform .12s,filter .2s,border-color .2s,color .2s}
+button:active{transform:scale(.97)}
+button.primary:before,.login a.btn:before,.tabs button.on:before{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;transform:skewX(-20deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transition:left .6s ease}
+button.primary:hover:before,.login a.btn:hover:before{left:130%}
+.ripple{position:absolute;border-radius:50%;pointer-events:none;background:rgba(255,240,200,.45);transform:scale(0);animation:ripple .6s ease-out forwards}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+
+/* switch membal */
+.switch span:before{transition:transform .35s cubic-bezier(.3,1.6,.5,1)!important}
+
+/* toast meluncur + bar waktu */
+.toast{position:relative;overflow:hidden;animation:toastin .45s cubic-bezier(.2,1.3,.4,1) both}
+.toast:after{content:"";position:absolute;left:0;bottom:0;height:2px;width:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));transform-origin:left;animation:timer 4s linear forwards}
+.toast.err:after{background:var(--ember)}
+.toast.bye{animation:toastout .35s ease-in forwards}
+@keyframes toastin{from{opacity:0;transform:translateX(40px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes toastout{to{opacity:0;transform:translateX(40px)}}
+@keyframes timer{to{transform:scaleX(0)}}
+
+/* titik online berdenyut */
+.dot.on{animation:pulse 2.2s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(95,191,138,.55)}100%{box-shadow:0 0 0 9px rgba(95,191,138,0)}}
+
+/* badge pending goyang */
+.nav a .badge{animation:wig 3s 2s ease-in-out infinite}
+@keyframes wig{0%,90%,100%{transform:none}93%{transform:rotate(-12deg)}96%{transform:rotate(10deg)}}
+
+/* hero: cahaya lewat */
+.hero:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 30%,rgba(255,236,170,.10) 45%,transparent 60%);background-size:250% 100%;animation:glint 2.4s .5s ease-out both}
+
+/* login: perisai melayang + cincin cahaya */
+.login .box{position:relative;z-index:1;animation:rise .8s .1s cubic-bezier(.2,.7,.2,1) both}
+.login .owl{animation:crest 1.8s ease-out both,float 6s 2s ease-in-out infinite}
+.login .box:before{content:"";position:absolute;left:50%;top:74px;width:260px;height:260px;margin:-130px 0 0 -130px;border-radius:50%;z-index:-1;
+  background:conic-gradient(from 0deg,transparent,rgba(233,209,139,.28),transparent 30%,transparent 50%,rgba(201,162,75,.22),transparent 80%);filter:blur(18px);animation:spin 12s linear infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* skeleton loading */
+.hint.loading,.loading{background:linear-gradient(90deg,rgba(169,176,190,.06),rgba(233,209,139,.12),rgba(169,176,190,.06));background-size:200% 100%;animation:sweep 1.4s linear infinite;border-radius:6px}
+@media (prefers-reduced-motion: reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}#intro,#motes{display:none}.boot .nav a,.boot .navgroup{opacity:1}}
+@media(max-width:900px){.content{padding:22px 16px}h1{font-size:24px}}
 </style>
 </head>
 <body>
+<div id="intro"><div class="wrap"><svg viewBox="0 0 120 136"><defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3cf"/><stop offset=".5" stop-color="#E9D18B"/><stop offset="1" stop-color="#8a6a26"/></linearGradient></defs>
+<path class="fill" d="M60 10L106 23V64C106 92 86 114 60 126C34 114 14 92 14 64V23Z" opacity=".0" style="fill-opacity:.14"/>
+<path class="sh" d="M60 2L114 17V64C114 98 90 122 60 134C30 122 6 98 6 64V17Z"/>
+<path class="sw" d="M60 22V118M38 46H82"/>
+<foreignObject x="0" y="40" width="120" height="60"><div xmlns="http://www.w3.org/1999/xhtml" class="owl" style="text-align:center">🦉</div></foreignObject></svg>
+<h2>TRO SYSTEM</h2><p>THE RESILIENT ORDER · XIII</p></div></div><canvas id="motes"></canvas>
 <div id="root"></div>
 <div id="toast"></div>
 <script>
@@ -177,7 +439,7 @@ function toast(msg, err) {
   t.className = 'toast' + (err ? ' err' : '');
   t.textContent = msg;
   $('#toast').append(t);
-  setTimeout(() => t.remove(), 4000);
+  setTimeout(() => { t.classList.add('bye'); setTimeout(() => t.remove(), 350); }, 4000);
 }
 async function busy(btn, fn) {
   btn.disabled = true;
@@ -232,21 +494,22 @@ document.addEventListener('click', (e) => { if (e.target.classList.contains('chi
 
 // ================== halaman ==================
 const PAGES = [
-  ['Umum', [['home', '🏠', 'Utama'], ['branding', '🎨', 'Tampilan Bot'], ['status', '🟢', 'Status Bot']]],
-  ['Pesan', [['posts', '📜', 'Postingan Resmi'], ['announce', '📢', 'Pengumuman'], ['welcome', '👋', 'Welcome & Goodbye']]],
-  ['Komunitas', [['verify', '🪪', 'Verifikasi'], ['applications', '📥', 'Pengajuan Member'], ['invites', '🗓️', 'Jadwal Undangan Fams']]],
-  ['Peran', [['autorole', '🎭', 'Auto Role']]],
-  ['Keamanan', [['security', '🛡️', 'Anti Hack & Raid'], ['logs', '🧾', 'Log Aktivitas']]],
+  ['Umum', [['home', '🏠', 'Utama'], ['guide', '📖', 'Tutorial & Command Center'], ['branding', '🎨', 'Tampilan Bot'], ['status', '🟢', 'Status Bot']]],
+  ['Member Baru', [['verify', '🪪', 'Verifikasi'], ['applications', '📥', 'Pengajuan Member'], ['tracker', '📨', 'Invite Tracker'], ['welcome', '👋', 'Welcome & Goodbye'], ['autorole', '🎭', 'Auto Role']]],
+  ['Komunitas', [['invites', '🗓️', 'Undangan Fams'], ['events', '📅', 'Jadwal Event'], ['birthday', '🎂', 'Ultah & Statistik'], ['tempvoice', '🔊', 'Custom Voice']]],
+  ['Engagement', [['levels', '⭐', 'Level & XP'], ['giveaway', '🎉', 'Giveaway'], ['selfroles', '🏷️', 'Self-Role Panel']]],
+  ['Pesan & Support', [['posts', '📜', 'Postingan Resmi'], ['announce', '📢', 'Pengumuman'], ['tickets', '🎫', 'Ticket']]],
+  ['Keamanan', [['security', '🛡️', 'Anti Hack & Raid'], ['moderation', '⚖️', 'Moderasi & Warn'], ['logs', '🧾', 'Log Aktivitas'], ['access', '👑', 'Akses Dashboard']]],
 ];
 
 function layout(inner) {
   const g = S.guild;
   return `<div class="app"><aside>
-    <div class="brand"><img src="${esc(g.icon || g.bot?.avatar || '')}"><div>TRO <span>SYSTEM</span><small>THE RESILIENT ORDER</small></div></div>
-    ${PAGES.map(([grp, items]) => `<div class="navgroup">${grp}</div><nav class="nav">${items.map(([k, ic, n]) => `<a href="#${k}" class="${S.page === k ? 'active' : ''}">${ic} ${n}${k === 'applications' && S.pending ? `<span class="badge">${S.pending}</span>` : ''}</a>`).join('')}</nav>`).join('')}
+    <div class="brand"><img src="${esc(g.icon || g.bot?.avatar || '')}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'crest fb big'}))"><div>TRO <span>SYSTEM</span><small><b>XIII</b>The Resilient Order</small></div></div>
+    ${PAGES.map(([grp, all]) => [grp, all.filter(([k]) => (S.me.pages || []).includes(k))]).filter(([, items]) => items.length).map(([grp, items]) => `<div class="navgroup">${grp}</div><nav class="nav">${items.map(([k, ic, n]) => `<a href="#${k}" class="${S.page === k ? 'active' : ''}">${ic} ${n}${k === 'applications' && S.pending ? `<span class="badge">${S.pending}</span>` : ''}</a>`).join('')}</nav>`).join('')}
   </aside><main>
     <header><span class="pill"><span class="dot ${g.online ? 'on' : ''}"></span>${g.online ? 'Bot online' : 'Bot offline'}</span>
-      <div class="user"><img src="${esc(S.me.user.avatar)}"><b>${esc(S.me.user.username)}</b></div><a href="/logout"><button class="small">Keluar</button></a></header>
+      <div class="user"><img src="${esc(S.me.user.avatar)}"><b>${esc(S.me.user.username)}</b>${S.me.superAdmin ? '<span class="tag" style="color:var(--gold2)">👑 Super Admin</span>' : ''}</div><a href="/logout"><button class="small">Keluar</button></a></header>
     <div class="content">${inner}</div></main></div>`;
 }
 
@@ -255,18 +518,18 @@ const pages = {};
 pages.home = () => {
   const g = S.guild, c = S.cfg, sec = c.security;
   const on = (b) => b ? '✅' : '⛔';
-  return `<div class="card hero"><div class="row"><img src="${esc(g.icon)}" style="width:64px;height:64px;border-radius:50%"><div><h1>${esc(g.name)}</h1><div class="sub" style="margin:0">Dashboard resmi TRO SYSTEM • In wisdom, we endure. 🦉</div></div></div></div>
+  return `<div class="card hero"><div class="row"><img class="crest" src="${esc(g.icon || '')}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'crest fb'}))"><div><h1>${esc(g.name)}</h1><div class="sub" style="margin:0">Dashboard resmi TRO SYSTEM • In wisdom, we endure. 🦉</div></div></div></div>
   <div class="grid g4" style="margin-top:16px">
     <div class="card stat"><span class="ic2">👥</span><div class="num">${g.memberCount}</div><div class="lbl">Total member</div></div>
     <div class="card stat"><span class="ic2">📥</span><div class="num">${S.pending || 0}</div><div class="lbl">Pengajuan menunggu ACC</div></div>
     <div class="card stat"><span class="ic2">🗓️</span><div class="num">${S.invToday ?? 0}<span style="font-size:16px">/${c.invitesLimit || 3}</span></div><div class="lbl">Undangan fams hari ini</div></div>
-    <div class="card stat"><div class="num">${g.lockdownUntil > Date.now() ? '🔒' : '🟢'}</div><div class="lbl">${g.lockdownUntil > Date.now() ? 'Lockdown aktif' : 'Server aman'}</div></div>
+    <div class="card stat"><div class="num emo">${g.lockdownUntil > Date.now() ? '🔒' : '🛡️'}</div><div class="lbl">${g.lockdownUntil > Date.now() ? 'Lockdown aktif' : 'Server aman'}</div></div>
   </div>
   <h3 style="margin:26px 0 12px">Fitur</h3>
   <div class="grid g3">
-    ${[['verify', '🪪', 'Verifikasi', `${on(c.verify.enabled)} pilih Tamu / Member Baru + pertanyaan`], ['applications', '📥', 'Pengajuan Member', `${S.pending || 0} menunggu ACC admin`], ['invites', '🗓️', 'Jadwal Undangan Fams', 'Catat undangan, maks 3/hari kerja'], ['posts', '📜', 'Postingan Resmi', 'Edit rules, price list, dll & publish'], ['announce', '📢', 'Pengumuman', 'Bikin embed cantik & kirim'], ['welcome', '👋', 'Welcome & Goodbye', `${on(c.welcome.enabled)} welcome • ${on(c.goodbye.enabled)} goodbye`],
+    ${[['guide', '📖', 'Tutorial & Command Center', 'Semua command + panduan admin'], ['verify', '🪪', 'Verifikasi', `${on(c.verify.enabled)} pilih Tamu / Member Baru + pertanyaan`], ['applications', '📥', 'Pengajuan Member', `${S.pending || 0} menunggu ACC admin`], ['invites', '🗓️', 'Jadwal Undangan Fams', 'Catat undangan, maks 3/hari kerja'], ['tickets', '🎫', 'Ticket', `${on(c.tickets.enabled)} panel tiket & transcript`], ['levels', '⭐', 'Level & XP', `${on(c.levels.enabled)} chat + voice XP`], ['giveaway', '🎉', 'Giveaway', 'Tombol ikut & undi otomatis'], ['events', '📅', 'Jadwal Event', 'Reminder otomatis + ping'], ['moderation', '⚖️', 'Moderasi & Warn', 'Kasus, auto-sanksi'], ['selfroles', '🏷️', 'Self-Role', `${c.selfroles.panels.length} panel`], ['posts', '📜', 'Postingan Resmi', 'Edit rules, price list, dll & publish'], ['announce', '📢', 'Pengumuman', 'Bikin embed cantik & kirim'], ['welcome', '👋', 'Welcome & Goodbye', `${on(c.welcome.enabled)} welcome • ${on(c.goodbye.enabled)} goodbye`],
       ['autorole', '🎭', 'Auto Role', `${on(c.autorole.enabled)} ${c.autorole.roleIds.length} role`], ['security', '🛡️', 'Anti Hack & Raid', `${on(sec.antiSpam.enabled)} spam • ${on(sec.antiLink.enabled)} link • ${on(sec.antiRaid.enabled)} raid • ${on(sec.antiNuke.enabled)} nuke`], ['status', '🟢', 'Status Bot', `${c.status.items.length} status bergantian`]]
-      .map(([k, ic, t, d]) => `<a href="#${k}" style="text-decoration:none;color:inherit"><div class="card tile"><div class="ic">${ic}</div><h3>${t}</h3><div class="hint">${d}</div></div></a>`).join('')}
+      .filter(([k]) => (S.me.pages || []).includes(k)).map(([k, ic, t, d]) => `<a href="#${k}" style="text-decoration:none;color:inherit"><div class="card tile"><div class="ic">${ic}</div><h3>${t}</h3><div class="hint">${d}</div></div></a>`).join('')}
   </div>`;
 };
 
@@ -471,7 +734,9 @@ pages.verify = () => {
   <div class="grid g2"><div>
     <div class="card"><h3>Aktifkan verifikasi ${toggle('v-on', v.enabled)}</h3>
       <label>Channel panel verifikasi (yang dilihat member baru)</label><select id="v-panel">${chOptions(v.panelChannelId)}</select>
-      <label>Channel review admin (tempat ACC / Tolak)</label><select id="v-review">${chOptions(v.reviewChannelId)}</select>
+      <label>Channel review Tamu (tempat ACC / Tolak)</label><select id="v-review">${chOptions(v.reviewChannelId)}</select>
+      <label>Channel review Member Baru (contoh: member-application)</label><select id="v-mreview">${chOptions(v.memberReviewChannelId, '— Sama dengan review Tamu —')}</select>
+      <label>Channel data anggota (kartu data setelah di-ACC)</label><select id="v-data">${chOptions(v.dataChannelId, '— Tidak dikirim —')}</select>
       <label>Role "belum verifikasi" (otomatis saat join, dicabut saat ACC)</label><select id="v-unv">${roleOptions(v.unverifiedRoleId).replace('— Tanpa tag —', '— Tidak pakai —')}</select>
       <div class="grid g2" style="gap:12px">
         <div><label>Tombol 1</label><div class="row"><input id="v-gemo" value="${esc(v.guestEmoji)}" style="width:60px"><input id="v-glab" value="${esc(v.guestLabel)}" style="flex:1"></div></div>
@@ -482,7 +747,10 @@ pages.verify = () => {
       <label class="row" style="text-transform:none"><input type="checkbox" id="v-dm" ${v.dmResult ? 'checked' : ''} style="width:auto"> Kirim DM hasil ACC / tolak ke user</label>
       <label class="row" style="text-transform:none;margin-top:4px"><input type="checkbox" id="v-kick" ${v.kickOnReject ? 'checked' : ''} style="width:auto"> Kick user kalau ditolak</label>
     </div>
-    <div class="card" style="margin-top:16px"><h3>Pertanyaan verifikasi <span class="hint">maks 5 · label maks 45 huruf</span></h3>
+    <div class="card" style="margin-top:16px"><h3>Form ${esc(v.memberEmoji)} ${esc(v.memberLabel)} <span class="hint">maks 5 · label maks 45 huruf</span></h3>
+      <div class="hint" style="margin-bottom:10px">Centang <b>📅 tgl lahir</b> di pertanyaan tanggal lahir → usia dihitung otomatis & ulang tahun tercatat saat di-ACC.</div>
+      <div id="v-mqs"></div><button class="small" id="v-addmq">+ Tambah pertanyaan</button></div>
+    <div class="card" style="margin-top:16px"><h3>Form ${esc(v.guestEmoji)} ${esc(v.guestLabel)} <span class="hint">maks 5</span></h3>
       <div id="v-qs"></div><button class="small" id="v-addq">+ Tambah pertanyaan</button></div>
   </div><div>
     <div class="card"><h3>Isi panel</h3>
@@ -494,27 +762,31 @@ pages.verify = () => {
 };
 pages.verify.init = () => {
   const v = S.cfg.verify;
-  v.questions = v.questions || [];
-  const drawQ = () => {
-    $('#v-qs').innerHTML = v.questions.map((q, i) => `<div class="q-row"><input class="q-l" data-i="${i}" maxlength="45" value="${esc(q.label)}" placeholder="Pertanyaan"><input class="q-p" data-i="${i}" maxlength="100" value="${esc(q.placeholder)}" placeholder="Contoh jawaban"><label class="row" style="margin:0;text-transform:none"><input type="checkbox" class="q-long" data-i="${i}" ${q.long ? 'checked' : ''} style="width:auto"> panjang</label><label class="row" style="margin:0;text-transform:none"><input type="checkbox" class="q-req" data-i="${i}" ${q.required !== false ? 'checked' : ''} style="width:auto"> wajib</label><button class="small danger q-del" data-i="${i}">✕</button></div>`).join('') || '<div class="hint">Tanpa pertanyaan — klik tombol langsung jadi pengajuan.</div>';
-    document.querySelectorAll('.q-l').forEach((el) => el.oninput = () => v.questions[el.dataset.i].label = el.value);
-    document.querySelectorAll('.q-p').forEach((el) => el.oninput = () => v.questions[el.dataset.i].placeholder = el.value);
-    document.querySelectorAll('.q-long').forEach((el) => el.onchange = () => v.questions[el.dataset.i].long = el.checked);
-    document.querySelectorAll('.q-req').forEach((el) => el.onchange = () => v.questions[el.dataset.i].required = el.checked);
-    document.querySelectorAll('.q-del').forEach((el) => el.onclick = () => { v.questions.splice(el.dataset.i, 1); drawQ(); });
-    $('#v-addq').style.display = v.questions.length >= 5 ? 'none' : '';
+  v.questions = v.questions || []; v.memberQuestions = v.memberQuestions || [];
+  const drawQ = (key, box, addBtn) => {
+    const list = v[key];
+    $(box).innerHTML = list.map((q, i) => `<div class="q-row" style="grid-template-columns:1fr 1fr auto auto auto auto"><input class="ql" data-i="${i}" maxlength="45" value="${esc(q.label)}" placeholder="Pertanyaan"><input class="qp" data-i="${i}" maxlength="100" value="${esc(q.placeholder)}" placeholder="Contoh jawaban"><label class="row" style="margin:0;text-transform:none"><input type="checkbox" class="qlong" data-i="${i}" ${q.long ? 'checked' : ''} style="width:auto"> panjang</label><label class="row" style="margin:0;text-transform:none"><input type="checkbox" class="qreq" data-i="${i}" ${q.required !== false ? 'checked' : ''} style="width:auto"> wajib</label><label class="row" style="margin:0;text-transform:none" title="Hitung usia & catat ulang tahun"><input type="checkbox" class="qbd" data-i="${i}" ${q.key === 'birthdate' ? 'checked' : ''} style="width:auto"> 📅 tgl lahir</label><button class="small danger qdel" data-i="${i}">✕</button></div>`).join('') || '<div class="hint">Tanpa pertanyaan — klik tombol langsung jadi pengajuan.</div>';
+    const on = (cls, ev, fn) => document.querySelectorAll(`${box} .${cls}`).forEach((el) => el[ev] = () => fn(list[el.dataset.i], el));
+    on('ql', 'oninput', (q, el) => q.label = el.value);
+    on('qp', 'oninput', (q, el) => q.placeholder = el.value);
+    on('qlong', 'onchange', (q, el) => q.long = el.checked);
+    on('qreq', 'onchange', (q, el) => q.required = el.checked);
+    on('qbd', 'onchange', (q, el) => { list.forEach((x) => delete x.key); if (el.checked) q.key = 'birthdate'; drawQ(key, box, addBtn); });
+    document.querySelectorAll(`${box} .qdel`).forEach((el) => el.onclick = () => { list.splice(el.dataset.i, 1); drawQ(key, box, addBtn); });
+    $(addBtn).style.display = list.length >= 5 ? 'none' : '';
   };
   const read = () => Object.assign(v, {
-    enabled: $('#v-on').checked, panelChannelId: $('#v-panel').value, reviewChannelId: $('#v-review').value, unverifiedRoleId: $('#v-unv').value,
+    enabled: $('#v-on').checked, panelChannelId: $('#v-panel').value, reviewChannelId: $('#v-review').value, memberReviewChannelId: $('#v-mreview').value, dataChannelId: $('#v-data').value, unverifiedRoleId: $('#v-unv').value,
     guestEmoji: $('#v-gemo').value || '🎟️', guestLabel: $('#v-glab').value || 'Tamu', memberEmoji: $('#v-memo').value || '🦉', memberLabel: $('#v-mlab').value || 'Member Baru',
     guestRoleIds: readChips('v-groles'), memberRoleIds: readChips('v-mroles'), dmResult: $('#v-dm').checked, kickOnReject: $('#v-kick').checked,
     panelTitle: $('#v-title').value, panelText: $('#v-text').value,
   });
   const prev = () => { read(); $('#v-prev').innerHTML = preview({ title: v.panelTitle, description: v.panelText }) + `<div style="margin:8px 0 0 48px" class="row"><button class="small">${esc(v.guestEmoji)} ${esc(v.guestLabel)}</button><button class="small" style="background:#5865f2;border-color:#5865f2;color:#fff">${esc(v.memberEmoji)} ${esc(v.memberLabel)}</button></div>`; };
   document.querySelectorAll('#v-title,#v-text,#v-gemo,#v-glab,#v-memo,#v-mlab').forEach((el) => el.oninput = prev);
-  drawQ(); prev();
-  $('#v-addq').onclick = () => { v.questions.push({ label: '', placeholder: '', long: false, required: true }); drawQ(); };
-  const save = async () => { read(); v.questions = v.questions.filter((q) => q.label.trim()); await api('/config/verify', { method: 'PUT', body: v }); };
+  drawQ('questions', '#v-qs', '#v-addq'); drawQ('memberQuestions', '#v-mqs', '#v-addmq'); prev();
+  $('#v-addq').onclick = () => { v.questions.push({ label: '', placeholder: '', long: false, required: true }); drawQ('questions', '#v-qs', '#v-addq'); };
+  $('#v-addmq').onclick = () => { v.memberQuestions.push({ label: '', placeholder: '', long: false, required: true }); drawQ('memberQuestions', '#v-mqs', '#v-addmq'); };
+  const save = async () => { read(); v.questions = v.questions.filter((q) => q.label.trim()); v.memberQuestions = v.memberQuestions.filter((q) => q.label.trim()); await api('/config/verify', { method: 'PUT', body: v }); };
   $('#v-save').onclick = (e) => busy(e.target, async () => { await save(); toast('✅ Pengaturan verifikasi disimpan'); });
   $('#v-auto').onclick = (e) => { if (!confirm('Jalankan setup otomatis verifikasi? Bot akan membuat role & channel yang belum ada.')) return; busy(e.target, async () => { await save(); const r = await api('/verify/autosetup', { method: 'POST', body: {} }); toast('✅ ' + r.done.join(' · ')); [S.guild, S.cfg] = await Promise.all([api('/guild'), api('/config')]); render(); }); };
   $('#v-send').onclick = (e) => busy(e.target, async () => { await save(); const r = await api('/verify/panel', { method: 'POST', body: {} }); toast(r.result === 'updated' ? '🔄 Panel diupdate di Discord' : '✅ Panel dikirim ke Discord'); });
@@ -522,6 +794,10 @@ pages.verify.init = () => {
 
 // ================== PENGAJUAN ==================
 pages.applications = () => `<div class="row"><div><h1>📥 Pengajuan Member</h1><div class="sub">ACC atau tolak pengajuan Tamu & Member Baru. Tersinkron dengan tombol di channel review Discord.</div></div><div class="spacer"></div><button id="ap-ref">↻ Refresh</button></div>
+  <div class="card hero" style="margin-bottom:16px"><div class="row" style="align-items:flex-start"><div style="flex:1;min-width:280px"><h3>📨 Minta data member lama</h3><div class="hint">Member yang sudah punya role tapi <b>belum isi data terbaru</b> dikirimi DM berisi tombol <b>📝 Isi data sekarang</b>. Yang DM-nya tertutup di-mention di channel pilihan. Hasilnya masuk sebagai <b>🔄 Update data</b> untuk di-ACC.</div>
+      <div id="dr-info" class="hint" style="margin-top:10px">Menghitung...</div><div id="dr-faces" class="row" style="gap:4px;margin-top:8px"></div></div>
+    <div style="width:300px"><label style="margin-top:0">Role member</label><select id="dr-role"></select><label>Channel untuk yang DM-nya tertutup</label><select id="dr-ch"></select>
+      <div class="actions" style="margin-top:12px"><button class="primary" id="dr-send">📨 Kirim ke yang belum isi</button></div></div></div></div>
   <div class="tabs" id="ap-tabs">${[['pending', '⏳ Menunggu'], ['accepted', '✅ Diterima'], ['rejected', '❌ Ditolak'], ['all', 'Semua']].map(([k, n]) => `<button data-k="${k}" class="${(S.apTab || 'pending') === k ? 'on' : ''}">${n}</button>`).join('')}</div>
   <div id="ap-list" class="grid"></div>`;
 pages.applications.init = async () => {
@@ -534,9 +810,9 @@ pages.applications.init = async () => {
     const tab = S.apTab || 'pending';
     const list = S.apps.filter((a) => tab === 'all' || a.status === tab);
     $('#ap-list').innerHTML = list.length ? list.map((a) => `<div class="card app-card"><img src="${esc(a.avatar)}"><div>
-        <div class="row"><b style="font-size:15px">${esc(a.username)}</b><span class="tag">${esc(tl(a.type))}</span><span class="status ${a.status}">${STAT[a.status]}</span></div>
+        <div class="row"><b style="font-size:15px">${esc(a.username)}</b><span class="tag">${esc(tl(a.type))}</span>${a.update ? '<span class="tag" style="color:#7ec8ff">🔄 Update data</span>' : ''}<span class="status ${a.status}">${STAT[a.status]}</span></div>
         <div class="hint">Diajukan ${new Date(a.createdAt).toLocaleString('id-ID')} · akun dibuat ${new Date(a.accountCreated).toLocaleDateString('id-ID')}${a.reviewedBy ? ` · diproses ${esc(a.reviewedBy)}` : ''}${a.reason ? ` · alasan: ${esc(a.reason)}` : ''}</div>
-        <div class="qa">${a.answers.map((x) => `<div><b>${esc(x.q)}</b>${esc(x.a) || '-'}</div>`).join('')}</div></div>
+        <div class="qa">${a.answers.map((x) => `<div><b>${esc(x.q)}</b>${esc(x.a) || '-'}${x.key === 'birthdate' && a.birth?.age != null ? ` <span class="tag">${a.birth.age} tahun</span>` : ''}</div>`).join('')}</div>${a.manual ? '<div class="hint" style="margin-top:6px">✍️ didaftarkan manual oleh admin</div>' : ''}</div>
         <div class="row" style="flex-direction:column;align-items:stretch">${a.status === 'pending' ? `<button class="success ap-acc" data-id="${a.id}">✅ ACC</button><button class="danger ap-rej" data-id="${a.id}">❌ Tolak</button>` : ''}</div></div>`).join('')
       : '<div class="card hint" style="text-align:center;padding:40px">Tidak ada pengajuan di sini. 🦉</div>';
     document.querySelectorAll('.ap-acc').forEach((b) => b.onclick = () => busy(b, async () => { await api(`/applications/${b.dataset.id}/accept`, { method: 'POST', body: {} }); toast('✅ Diterima — role sudah diberikan'); load(); }));
@@ -544,6 +820,26 @@ pages.applications.init = async () => {
     const badge = document.querySelector('a[href="#applications"] .badge');
     if (badge) badge.textContent = S.pending; 
   };
+  // ---- minta data member lama ----
+  $('#dr-role').innerHTML = roleOptions(S.cfg.verify.memberRoleIds[0] || '').replace('— Tanpa tag —', '— Pilih role —');
+  $('#dr-ch').innerHTML = chOptions('', '— Tidak perlu —');
+  let poll;
+  const drLoad = async () => {
+    try {
+      const d = await api('/data-requests?roleId=' + encodeURIComponent($('#dr-role').value));
+      const j = d.job;
+      $('#dr-info').innerHTML = j.running
+        ? `⏳ Sedang mengirim… <b>${j.sent + j.failed}/${j.total}</b> (${j.sent} DM terkirim · ${j.failed} DM tertutup)`
+        : `<b style="font-size:18px;color:var(--gold2)">${d.missing.length}</b> member belum isi data terbaru${j.finishedAt ? ` · pengiriman terakhir ${fmtDT(j.finishedAt)}: ${j.sent} terkirim, ${j.failed} DM tertutup` : ''}`;
+      $('#dr-faces').innerHTML = d.missing.slice(0, 40).map((m) => `<img src="${esc(m.avatar)}" title="${esc(m.name)}${m.sent ? ` — sudah diminta ${m.sent.count}x` : ''}" style="width:28px;height:28px;border-radius:50%;${m.sent ? 'opacity:.55' : ''}">`).join('') + (d.missing.length > 40 ? `<span class="hint">+${d.missing.length - 40}</span>` : '');
+      $('#dr-send').disabled = j.running || !d.missing.length;
+      clearTimeout(poll);
+      if (j.running && S.page === 'applications') poll = setTimeout(drLoad, 3000);
+    } catch (e) { $('#dr-info').textContent = '⚠️ ' + e.message; }
+  };
+  $('#dr-role').onchange = drLoad;
+  $('#dr-send').onclick = (e) => { if (!confirm('Kirim DM permintaan data ke semua member yang belum isi?')) return; busy(e.target, async () => { const j = await api('/data-requests', { method: 'POST', body: { roleId: $('#dr-role').value, channelId: $('#dr-ch').value } }); toast(`📨 Mulai mengirim ke ${j.total} member`); drLoad(); }); };
+  drLoad();
   document.querySelectorAll('#ap-tabs button').forEach((b) => b.onclick = () => { S.apTab = b.dataset.k; document.querySelectorAll('#ap-tabs button').forEach((x) => x.classList.toggle('on', x === b)); load(); });
   $('#ap-ref').onclick = (e) => busy(e.target, load);
   await load();
@@ -609,33 +905,500 @@ pages.invites.init = async () => {
   draw(); quota();
 };
 
+
+// ================== INVITE TRACKER ==================
+pages.tracker = () => `<div class="row"><div><h1>📨 Invite Tracker</h1><div class="sub">Setiap member baru: diundang siapa, lewat link apa, kapan. Dikirim otomatis ke channel tracker.</div></div><div class="spacer"></div><button id="tr-ref">↻ Refresh</button></div>
+  <div class="card" style="margin-bottom:16px"><div class="row"><h3 style="margin:0">Aktifkan tracker</h3>${toggle('tr-on', S.cfg.tracker?.enabled)}<div style="flex:1;min-width:240px"><select id="tr-ch">${chOptions(S.cfg.tracker?.channelId, '— Pilih channel —')}</select></div><button class="primary" id="tr-save">💾 Simpan</button></div>
+    <div class="hint" style="margin-top:8px">Kalau bot "Invite Tracker" lama masih ada di channel yang sama, kick aja biar nggak dobel.</div></div>
+  <div class="grid" style="grid-template-columns:340px 1fr">
+    <div class="card"><h3>🏆 Top pengundang</h3><div id="tr-board" class="list"></div></div>
+    <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Member</th><th>Diundang oleh</th><th>Lewat</th><th>Waktu</th></tr></thead><tbody id="tr-joins"><tr><td colspan="4">Memuat...</td></tr></tbody></table></div>
+  </div>`;
+pages.tracker.init = async () => {
+  const load = async () => {
+    const d = await api('/tracker');
+    $('#tr-board').innerHTML = d.board.length ? d.board.map((b, i) => `<a><span class="row" style="gap:8px">${['🥇', '🥈', '🥉'][i] || `<b style="width:22px;text-align:center">${i + 1}</b>`}${b.avatar ? `<img src="${esc(b.avatar)}" style="width:26px;height:26px;border-radius:50%">` : ''}${esc(b.name)}</span><small><b style="color:var(--gold2)">${b.total}</b> · ${b.stay} stay</small></a>`).join('') : '<div class="hint" style="padding:10px">Belum ada data. Data mulai tercatat sejak TRO SYSTEM v3 jalan.</div>';
+    $('#tr-joins').innerHTML = d.joins.length ? d.joins.map((j) => `<tr><td><b>${esc(j.username)}</b>${j.leftAt ? ' <span class="status rejected">keluar</span>' : ''}${j.bot ? ' <span class="tag">BOT</span>' : ''}<div class="hint">akun ${new Date(j.accountCreated).toLocaleDateString('id-ID')}</div></td><td>${j.inviterId ? esc(j.inviterName || j.inviterId) : (j.vanity ? 'Vanity URL' : '<span class="hint">tidak terdeteksi</span>')}</td><td>${j.code ? `<code>${esc(j.code)}</code>` : '-'}</td><td>${new Date(j.time).toLocaleString('id-ID')}</td></tr>`).join('') : '<tr><td colspan="4" class="hint" style="text-align:center;padding:30px">Belum ada member baru yang tercatat.</td></tr>';
+  };
+  $('#tr-save').onclick = (e) => busy(e.target, async () => { S.cfg.tracker = { enabled: $('#tr-on').checked, channelId: $('#tr-ch').value }; await api('/config/tracker', { method: 'PUT', body: S.cfg.tracker }); toast('✅ Invite tracker disimpan'); });
+  $('#tr-ref').onclick = (e) => busy(e.target, load);
+  load();
+};
+
+
+// ================== helper kecil ==================
+const sel = (id, opts) => `<select id="${id}">${opts}</select>`;
+const catOptions = (selId) => `<option value="">— Otomatis —</option>` + (S.guild.categories || []).map((c) => `<option value="${c.id}" ${c.id === selId ? 'selected' : ''}>📁 ${esc(c.name)}</option>`).join('');
+const vcOptions = (selId) => `<option value="">— Pilih voice —</option>` + (S.guild.voices || []).map((c) => `<option value="${c.id}" ${c.id === selId ? 'selected' : ''}>🔊 ${esc(c.name)}</option>`).join('');
+const fmtDT = (d) => new Date(d).toLocaleString('id-ID');
+const saveSection = async (name) => { await api('/config/' + name, { method: 'PUT', body: S.cfg[name] }); };
+const emptyRow = (cols, text) => `<tr><td colspan="${cols}" class="hint" style="text-align:center;padding:30px">${text}</td></tr>`;
+
+// ================== TICKET ==================
+pages.tickets = () => {
+  const t = S.cfg.tickets;
+  return `<h1>🎫 Ticket System</h1><div class="sub">Member klik tombol → channel privat otomatis dibuat. Staff bisa klaim & tutup, transcript tersimpan di log + dikirim ke DM pembuat. Pengganti Ticket Tool.</div>
+  <div class="grid g2"><div class="card"><h3>Pengaturan ${toggle('tk-on', t.enabled)}</h3>
+    <label>Channel panel tiket</label>${sel('tk-panel', chOptions(t.panelChannelId))}
+    <label>Kategori channel tiket</label>${sel('tk-cat', catOptions(t.categoryId))}
+    <label>Channel log & transcript</label>${sel('tk-log', chOptions(t.logChannelId, '— Tanpa log —'))}
+    <label>Role staff yang bisa lihat tiket</label>${roleChips('tk-staff', t.staffRoleIds)}
+    <label>Judul panel</label><input id="tk-title" value="${esc(t.panelTitle)}">
+    <label>Teks panel</label><textarea id="tk-text" style="min-height:90px">${esc(t.panelText)}</textarea>
+    <label>Pesan pembuka di tiket ({user})</label><textarea id="tk-wel" style="min-height:70px">${esc(t.welcome)}</textarea>
+    <label>Jenis tiket (tombol)</label><div id="tk-types"></div><button class="small" id="tk-addt">+ Jenis tiket</button>
+    <div class="actions"><button class="primary" id="tk-save">💾 Simpan</button><button id="tk-send">📤 Simpan & kirim panel</button></div></div>
+  <div><div class="card" style="padding:0;overflow:auto"><div style="padding:16px 20px 0"><h3>📂 Tiket aktif</h3></div><table><thead><tr><th>#</th><th>Jenis</th><th>Pembuat</th><th>Dibuka</th><th></th></tr></thead><tbody id="tk-open"></tbody></table></div>
+    <div class="card" style="padding:0;overflow:auto;margin-top:16px"><div style="padding:16px 20px 0"><h3>🗄️ Riwayat</h3></div><table><thead><tr><th>#</th><th>Jenis</th><th>Pembuat</th><th>Ditutup oleh</th><th>Waktu</th></tr></thead><tbody id="tk-hist"></tbody></table></div></div></div>`;
+};
+pages.tickets.init = async () => {
+  const t = S.cfg.tickets;
+  const drawT = () => {
+    $('#tk-types').innerHTML = t.types.map((x, i) => `<div class="row" style="margin-bottom:6px"><input class="tt-e" data-i="${i}" value="${esc(x.emoji)}" style="width:60px"><input class="tt-l" data-i="${i}" value="${esc(x.label)}" style="flex:1" placeholder="Label"><input class="tt-id" data-i="${i}" value="${esc(x.id)}" style="width:110px" placeholder="id"><button class="small danger tt-d" data-i="${i}">✕</button></div>`).join('');
+    document.querySelectorAll('.tt-e').forEach((el) => el.oninput = () => t.types[el.dataset.i].emoji = el.value);
+    document.querySelectorAll('.tt-l').forEach((el) => el.oninput = () => t.types[el.dataset.i].label = el.value);
+    document.querySelectorAll('.tt-id').forEach((el) => el.oninput = () => t.types[el.dataset.i].id = el.value.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20));
+    document.querySelectorAll('.tt-d').forEach((el) => el.onclick = () => { t.types.splice(el.dataset.i, 1); drawT(); });
+  };
+  drawT();
+  $('#tk-addt').onclick = () => { t.types.push({ id: 'tipe' + (t.types.length + 1), label: '', emoji: '🎫' }); drawT(); };
+  const read = () => Object.assign(t, { enabled: $('#tk-on').checked, panelChannelId: $('#tk-panel').value, categoryId: $('#tk-cat').value, logChannelId: $('#tk-log').value, staffRoleIds: readChips('tk-staff'), panelTitle: $('#tk-title').value, panelText: $('#tk-text').value, welcome: $('#tk-wel').value, types: t.types.filter((x) => x.label && x.id) });
+  $('#tk-save').onclick = (e) => busy(e.target, async () => { read(); await saveSection('tickets'); toast('✅ Ticket disimpan'); });
+  $('#tk-send').onclick = (e) => busy(e.target, async () => { read(); await saveSection('tickets'); const r = await api('/tickets/panel', { method: 'POST', body: {} }); toast(r.result === 'updated' ? '🔄 Panel tiket diupdate' : '✅ Panel tiket dikirim'); });
+  const d = await api('/tickets');
+  $('#tk-open').innerHTML = d.open.length ? d.open.map((x) => `<tr><td><b>#${x.number}</b></td><td>${esc(x.typeLabel)}</td><td>${esc(x.username)}${x.claimedBy ? `<div class="hint">diklaim ${esc(x.claimedBy)}</div>` : ''}</td><td>${fmtDT(x.createdAt)}</td><td><button class="small danger tk-close" data-id="${x.channelId}">🔒 Tutup</button></td></tr>`).join('') : emptyRow(5, 'Tidak ada tiket aktif.');
+  $('#tk-hist').innerHTML = d.history.length ? d.history.map((x) => `<tr><td>#${x.number}</td><td>${esc(x.typeLabel)}</td><td>${esc(x.username)}</td><td>${esc(x.closedBy)}</td><td>${fmtDT(x.closedAt)}</td></tr>`).join('') : emptyRow(5, 'Belum ada riwayat.');
+  document.querySelectorAll('.tk-close').forEach((b) => b.onclick = () => { if (confirm('Tutup tiket ini? Transcript disimpan ke log.')) busy(b, async () => { await api(`/tickets/${b.dataset.id}/close`, { method: 'POST', body: {} }); toast('🔒 Tiket ditutup'); render(); }); });
+};
+
+// ================== LEVEL ==================
+pages.levels = () => {
+  const l = S.cfg.levels;
+  return `<h1>⭐ Level & XP</h1><div class="sub">XP dari chat (dengan cooldown) & voice (min. 2 orang, tidak deafen). Naik level → ucapan + role hadiah otomatis. Command: <code>/rank</code> <code>/leaderboard</code></div>
+  <div class="grid g2"><div class="card"><h3>Pengaturan ${toggle('lv-on', l.enabled)}</h3>
+    <div class="grid g3" style="gap:10px"><div><label>XP min / pesan</label><input type="number" id="lv-min" value="${l.xpMin}"></div><div><label>XP maks / pesan</label><input type="number" id="lv-max" value="${l.xpMax}"></div><div><label>Cooldown (detik)</label><input type="number" id="lv-cd" value="${l.cooldown}"></div></div>
+    <label>XP voice / menit (0 = mati)</label><input type="number" id="lv-voice" value="${l.voiceXpPerMin}" style="width:140px">
+    <label>Channel ucapan naik level</label>${sel('lv-ch', chOptions(l.announceChannelId, '— Di channel tempat chat —'))}
+    <label>Pesan naik level ({user} {username} {level})</label><input id="lv-msg" value="${esc(l.levelUpMessage)}">
+    <label>Role hadiah</label><div id="lv-rw"></div><button class="small" id="lv-addr">+ Role hadiah</button>
+    <label>Channel tanpa XP</label><div class="chips" id="lv-noch">${S.guild.channels.map((c) => `<span class="chip ${l.noXpChannelIds.includes(c.id) ? 'on' : ''}" data-id="${c.id}">#${esc(c.name)}</span>`).join('')}</div>
+    <label>Role tanpa XP</label>${roleChips('lv-norole', l.noXpRoleIds)}
+    <div class="actions"><button class="primary" id="lv-save">💾 Simpan</button></div></div>
+  <div class="card" style="padding:0;overflow:auto"><div style="padding:16px 20px 0" class="row"><h3>🏆 Leaderboard</h3><div class="spacer"></div><input id="lv-q" placeholder="Cari nama..." style="width:160px"></div><table><thead><tr><th>#</th><th>Member</th><th>Level</th><th>XP</th><th>💬</th><th>🎙️</th><th></th></tr></thead><tbody id="lv-board"></tbody></table></div></div>`;
+};
+pages.levels.init = async () => {
+  const l = S.cfg.levels;
+  const drawR = () => {
+    $('#lv-rw').innerHTML = l.rewards.map((r, i) => `<div class="row" style="margin-bottom:6px"><span class="hint">Level</span><input type="number" class="rw-l" data-i="${i}" value="${r.level}" style="width:80px"><select class="rw-r" data-i="${i}" style="flex:1">${roleOptions(r.roleId).replace('— Tanpa tag —', '— Pilih role —')}</select><button class="small danger rw-d" data-i="${i}">✕</button></div>`).join('') || '<div class="hint">Belum ada role hadiah.</div>';
+    document.querySelectorAll('.rw-l').forEach((el) => el.oninput = () => l.rewards[el.dataset.i].level = Number(el.value));
+    document.querySelectorAll('.rw-r').forEach((el) => el.onchange = () => l.rewards[el.dataset.i].roleId = el.value);
+    document.querySelectorAll('.rw-d').forEach((el) => el.onclick = () => { l.rewards.splice(el.dataset.i, 1); drawR(); });
+  };
+  drawR();
+  $('#lv-addr').onclick = () => { l.rewards.push({ level: 5, roleId: '' }); drawR(); };
+  $('#lv-save').onclick = (e) => busy(e.target, async () => {
+    Object.assign(l, { enabled: $('#lv-on').checked, xpMin: +$('#lv-min').value, xpMax: +$('#lv-max').value, cooldown: +$('#lv-cd').value, voiceXpPerMin: +$('#lv-voice').value, announceChannelId: $('#lv-ch').value, levelUpMessage: $('#lv-msg').value, noXpChannelIds: readChips('lv-noch'), noXpRoleIds: readChips('lv-norole'), rewards: l.rewards.filter((r) => r.roleId && r.level > 0) });
+    await saveSection('levels'); toast('✅ Leveling disimpan');
+  });
+  const board = await api('/levels');
+  const draw = () => {
+    const q = ($('#lv-q').value || '').toLowerCase();
+    const list = board.map((u, i) => ({ ...u, rank: i + 1 })).filter((u) => !q || (u.name || '').toLowerCase().includes(q));
+    $('#lv-board').innerHTML = list.length ? list.map((u) => `<tr><td>${['🥇', '🥈', '🥉'][u.rank - 1] || u.rank}</td><td><b>${esc(u.name || u.id)}</b></td><td><b style="color:var(--gold2)">${u.level}</b><div class="hint">${u.into}/${u.next}</div></td><td>${u.xp}</td><td>${u.msgs}</td><td>${u.voiceMin}m</td><td style="white-space:nowrap"><button class="small lv-give" data-id="${u.id}">+XP</button> <button class="small danger lv-reset" data-id="${u.id}">Reset</button></td></tr>`).join('') : emptyRow(7, 'Belum ada data XP.');
+    document.querySelectorAll('.lv-reset').forEach((b) => b.onclick = () => { if (confirm('Reset XP member ini ke 0?')) busy(b, async () => { await api(`/levels/${b.dataset.id}/reset`, { method: 'POST', body: {} }); toast('Reset'); render(); }); });
+    document.querySelectorAll('.lv-give').forEach((b) => b.onclick = () => { const xp = prompt('Tambah berapa XP?', '100'); if (xp) busy(b, async () => { await api(`/levels/${b.dataset.id}/give`, { method: 'POST', body: { xp: Number(xp) } }); toast(`✅ +${xp} XP`); render(); }); });
+  };
+  $('#lv-q').oninput = draw; draw();
+};
+
+// ================== GIVEAWAY ==================
+pages.giveaway = () => `<h1>🎉 Giveaway</h1><div class="sub">Member klik tombol 🎉 Ikut, pemenang diundi otomatis saat waktu habis. Bisa juga lewat <code>/giveaway mulai</code>.</div>
+  <div class="grid" style="grid-template-columns:380px 1fr"><div class="card"><h3>➕ Buat giveaway</h3>
+    <label>Hadiah</label><input id="gw-prize" placeholder="contoh: 1.000 Robux">
+    <label>Deskripsi (opsional)</label><textarea id="gw-desc" style="min-height:70px"></textarea>
+    <div class="grid g2" style="gap:10px"><div><label>Durasi</label><input id="gw-dur" value="1d" placeholder="30m / 2h / 1d"></div><div><label>Jumlah pemenang</label><input type="number" id="gw-win" value="1" min="1" max="20"></div></div>
+    <label>Channel</label>${sel('gw-ch', chOptions(''))}
+    <label>Syarat role (opsional)</label>${sel('gw-role', roleOptions('').replace('— Tanpa tag —', '— Semua boleh ikut —'))}
+    <div class="actions"><button class="primary" id="gw-go">🎉 Mulai giveaway</button></div></div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Hadiah</th><th>Status</th><th>Peserta</th><th>Pemenang</th><th></th></tr></thead><tbody id="gw-list"></tbody></table></div></div>`;
+pages.giveaway.init = async () => {
+  const load = async () => {
+    const list = await api('/giveaways');
+    $('#gw-list').innerHTML = list.length ? list.map((g) => `<tr><td><b>${esc(g.prize)}</b><div class="hint">#${esc(chName(g.channelId))} · ${g.winners} pemenang · <code>${g.id}</code></div></td><td>${g.ended ? '<span class="status accepted">Selesai</span>' : `<span class="status pending">Berakhir ${fmtDT(g.endsAt)}</span>`}</td><td>${g.entrants.length}</td><td>${g.winnerIds.length ? g.winnerIds.length + ' orang' : '-'}</td><td style="white-space:nowrap">${g.ended ? `<button class="small gw-re" data-id="${g.id}">🔁 Reroll</button>` : `<button class="small gw-end" data-id="${g.id}">⏹️ Akhiri</button>`} <button class="small danger gw-del" data-id="${g.id}">🗑️</button></td></tr>`).join('') : emptyRow(5, 'Belum ada giveaway.');
+    document.querySelectorAll('.gw-end').forEach((b) => b.onclick = () => busy(b, async () => { await api(`/giveaways/${b.dataset.id}/end`, { method: 'POST', body: {} }); toast('🎉 Pemenang diumumkan'); load(); }));
+    document.querySelectorAll('.gw-re').forEach((b) => b.onclick = () => busy(b, async () => { await api(`/giveaways/${b.dataset.id}/reroll`, { method: 'POST', body: {} }); toast('🔁 Pemenang diundi ulang'); load(); }));
+    document.querySelectorAll('.gw-del').forEach((b) => b.onclick = () => { if (confirm('Hapus dari daftar?')) busy(b, async () => { await api(`/giveaways/${b.dataset.id}`, { method: 'DELETE' }); load(); }); });
+  };
+  $('#gw-go').onclick = (e) => busy(e.target, async () => { await api('/giveaways', { method: 'POST', body: { prize: $('#gw-prize').value, description: $('#gw-desc').value, duration: $('#gw-dur').value, winners: $('#gw-win').value, channelId: $('#gw-ch').value, requiredRoleId: $('#gw-role').value } }); toast('🎉 Giveaway dimulai!'); $('#gw-prize').value = ''; load(); });
+  load();
+};
+
+// ================== SELF ROLE ==================
+pages.selfroles = () => {
+  const panels = S.cfg.selfroles.panels;
+  if (!S.srId || !panels.find((p) => p.id === S.srId)) S.srId = panels[0]?.id;
+  return `<div class="row"><div><h1>🏷️ Self-Role Panel</h1><div class="sub">Member pilih role sendiri lewat tombol atau menu (game, notif event, pronoun, dll).</div></div><div class="spacer"></div><button class="primary" id="sr-new">+ Panel baru</button></div>
+  ${panels.length ? `<div class="tabs">${panels.map((p) => `<button class="${p.id === S.srId ? 'on' : ''} sr-tab" data-id="${p.id}">${esc(p.title || 'Panel')}</button>`).join('')}</div><div id="sr-ed"></div>` : '<div class="card hint" style="text-align:center;padding:40px">Belum ada panel. Klik <b>+ Panel baru</b>.</div>'}`;
+};
+pages.selfroles.init = () => {
+  const panels = S.cfg.selfroles.panels;
+  const save = async () => { await api('/config/selfroles', { method: 'PUT', body: S.cfg.selfroles }); };
+  $('#sr-new').onclick = (e) => busy(e.target, async () => { const id = 'p' + Date.now().toString(36); panels.push({ id, title: '🏷️ Pilih Role Kamu', text: 'Klik tombol di bawah untuk ambil / lepas role.', channelId: '', mode: 'buttons', multi: true, roles: [] }); S.srId = id; await save(); render(); });
+  document.querySelectorAll('.sr-tab').forEach((b) => b.onclick = () => { S.srId = b.dataset.id; render(); });
+  const p = panels.find((x) => x.id === S.srId);
+  if (!p) return;
+  $('#sr-ed').innerHTML = `<div class="grid g2"><div class="card">
+    <label>Channel</label>${sel('sr-ch', chOptions(p.channelId))}
+    <label>Judul</label><input id="sr-title" value="${esc(p.title)}">
+    <label>Teks</label><textarea id="sr-text" style="min-height:90px">${esc(p.text)}</textarea>
+    <div class="grid g2" style="gap:10px"><div><label>Tampilan</label><select id="sr-mode"><option value="buttons" ${p.mode !== 'menu' ? 'selected' : ''}>Tombol</option><option value="menu" ${p.mode === 'menu' ? 'selected' : ''}>Menu dropdown</option></select></div>
+    <div><label>Pilihan</label><select id="sr-multi"><option value="1" ${p.multi !== false ? 'selected' : ''}>Boleh banyak</option><option value="0" ${p.multi === false ? 'selected' : ''}>Cuma 1</option></select></div></div>
+    <label>Role di panel (maks 25)</label><div id="sr-roles"></div><button class="small" id="sr-addr">+ Role</button>
+    <div class="actions"><button class="primary" id="sr-send">📤 Simpan & kirim / update</button><button id="sr-save">💾 Simpan</button><div class="spacer"></div><button class="danger small" id="sr-del">Hapus panel</button></div></div>
+    <div><div class="hint" style="margin-bottom:8px">PREVIEW</div><div id="sr-prev"></div></div></div>`;
+  const drawR = () => {
+    $('#sr-roles').innerHTML = p.roles.map((r, i) => `<div class="row" style="margin-bottom:6px"><input class="r-e" data-i="${i}" value="${esc(r.emoji || '')}" style="width:56px" placeholder="😀"><select class="r-r" data-i="${i}" style="flex:1">${roleOptions(r.roleId).replace('— Tanpa tag —', '— Pilih role —')}</select><input class="r-l" data-i="${i}" value="${esc(r.label || '')}" style="width:140px" placeholder="Label"><button class="small danger r-d" data-i="${i}">✕</button></div>`).join('') || '<div class="hint">Belum ada role.</div>';
+    document.querySelectorAll('.r-e').forEach((el) => el.oninput = () => { p.roles[el.dataset.i].emoji = el.value; prev(); });
+    document.querySelectorAll('.r-l').forEach((el) => el.oninput = () => { p.roles[el.dataset.i].label = el.value; prev(); });
+    document.querySelectorAll('.r-r').forEach((el) => el.onchange = () => { const r = p.roles[el.dataset.i]; r.roleId = el.value; if (!r.label) r.label = roleName(el.value); drawR(); prev(); });
+    document.querySelectorAll('.r-d').forEach((el) => el.onclick = () => { p.roles.splice(el.dataset.i, 1); drawR(); prev(); });
+    $('#sr-addr').style.display = p.roles.length >= 25 ? 'none' : '';
+  };
+  const read = () => Object.assign(p, { channelId: $('#sr-ch').value, title: $('#sr-title').value, text: $('#sr-text').value, mode: $('#sr-mode').value, multi: $('#sr-multi').value === '1' });
+  const prev = () => { read(); $('#sr-prev').innerHTML = preview({ title: p.title, description: p.text }) + `<div style="margin:8px 0 0 48px" class="row">${p.mode === 'menu' ? `<select disabled style="max-width:420px"><option>Pilih role kamu...</option></select>` : p.roles.filter((r) => r.roleId).map((r) => `<button class="small">${esc(r.emoji || '')} ${esc(r.label || roleName(r.roleId))}</button>`).join('')}</div>`; };
+  document.querySelectorAll('#sr-title,#sr-text,#sr-mode').forEach((el) => el.oninput = el.onchange = prev);
+  drawR(); prev();
+  $('#sr-addr').onclick = () => { p.roles.push({ roleId: '', label: '', emoji: '' }); drawR(); };
+  $('#sr-save').onclick = (e) => busy(e.target, async () => { read(); p.roles = p.roles.filter((r) => r.roleId); await save(); toast('✅ Disimpan'); });
+  $('#sr-send').onclick = (e) => busy(e.target, async () => { read(); p.roles = p.roles.filter((r) => r.roleId); await save(); const r = await api(`/selfroles/${p.id}/send`, { method: 'POST', body: {} }); toast(r.result === 'updated' ? '🔄 Panel diupdate' : '✅ Panel dikirim'); });
+  $('#sr-del').onclick = (e) => { if (confirm('Hapus panel dari dashboard? (pesan di Discord tidak dihapus)')) busy(e.target, async () => { S.cfg.selfroles.panels = panels.filter((x) => x.id !== p.id); await save(); render(); }); };
+};
+
+// ================== MODERASI ==================
+pages.moderation = () => {
+  const m = S.cfg.moderation;
+  return `<h1>⚖️ Moderasi & Warn</h1><div class="sub">Command: <code>/warn</code> <code>/warnings</code> <code>/unwarn</code> <code>/mute</code> <code>/unmute</code> <code>/kick</code> <code>/ban</code> <code>/unban</code> <code>/purge</code>. Semua tercatat jadi kasus.</div>
+  <div class="grid" style="grid-template-columns:380px 1fr"><div>
+    <div class="card"><h3>⚙️ Pengaturan</h3>
+      <label>Channel log moderasi</label>${sel('md-log', chOptions(m.logChannelId, '— Tanpa log —'))}
+      <label class="row" style="text-transform:none"><input type="checkbox" id="md-dm" ${m.dmUser ? 'checked' : ''} style="width:auto"> DM user saat kena sanksi</label>
+      <label>Sanksi otomatis dari jumlah warn</label><div id="md-auto"></div><button class="small" id="md-adda">+ Aturan</button>
+      <div class="actions"><button class="primary" id="md-save">💾 Simpan</button></div></div>
+    <div class="card" style="margin-top:16px"><h3>⚡ Aksi cepat</h3>
+      <label>User ID</label><input id="mq-user" placeholder="klik kanan user → Copy User ID">
+      <div class="grid g2" style="gap:10px"><div><label>Aksi</label><select id="mq-act"><option value="warn">⚠️ Warn</option><option value="timeout">🔇 Timeout</option><option value="untimeout">🔊 Buka timeout</option><option value="kick">👢 Kick</option><option value="ban">🔨 Ban</option><option value="unban">♻️ Unban</option></select></div><div><label>Menit (timeout)</label><input type="number" id="mq-min" value="10"></div></div>
+      <label>Alasan</label><input id="mq-reason">
+      <div class="actions"><button class="danger" id="mq-go">Jalankan</button></div></div>
+  </div>
+  <div class="card" style="padding:0;overflow:auto"><div style="padding:16px 20px 0" class="row"><h3>📋 Kasus</h3><div class="spacer"></div><input id="md-q" placeholder="Cari user..." style="width:180px"></div><table><thead><tr><th>#</th><th>Aksi</th><th>User</th><th>Alasan</th><th>Moderator</th><th>Waktu</th><th></th></tr></thead><tbody id="md-list"></tbody></table></div></div>`;
+};
+pages.moderation.init = async () => {
+  const m = S.cfg.moderation;
+  const LBL = { warn: '⚠️ Warn', timeout: '🔇 Timeout', untimeout: '🔊 Unmute', kick: '👢 Kick', ban: '🔨 Ban', unban: '♻️ Unban', purge: '🧹 Purge' };
+  const drawA = () => {
+    $('#md-auto').innerHTML = m.autoActions.map((a, i) => `<div class="row" style="margin-bottom:6px"><input type="number" class="aa-w" data-i="${i}" value="${a.warns}" style="width:70px"><span class="hint">warn →</span><select class="aa-a" data-i="${i}" style="width:110px">${['timeout', 'kick', 'ban'].map((x) => `<option ${x === a.action ? 'selected' : ''}>${x}</option>`).join('')}</select><input type="number" class="aa-m" data-i="${i}" value="${a.minutes}" style="width:80px" title="menit (timeout)"><button class="small danger aa-d" data-i="${i}">✕</button></div>`).join('');
+    document.querySelectorAll('.aa-w').forEach((el) => el.oninput = () => m.autoActions[el.dataset.i].warns = +el.value);
+    document.querySelectorAll('.aa-a').forEach((el) => el.onchange = () => m.autoActions[el.dataset.i].action = el.value);
+    document.querySelectorAll('.aa-m').forEach((el) => el.oninput = () => m.autoActions[el.dataset.i].minutes = +el.value);
+    document.querySelectorAll('.aa-d').forEach((el) => el.onclick = () => { m.autoActions.splice(el.dataset.i, 1); drawA(); });
+  };
+  drawA();
+  $('#md-adda').onclick = () => { m.autoActions.push({ warns: 3, action: 'timeout', minutes: 60 }); drawA(); };
+  $('#md-save').onclick = (e) => busy(e.target, async () => { m.logChannelId = $('#md-log').value; m.dmUser = $('#md-dm').checked; await saveSection('moderation'); toast('✅ Moderasi disimpan'); });
+  $('#mq-go').onclick = (e) => { const act = $('#mq-act').value; if (!confirm(`Jalankan ${act} untuk user ${$('#mq-user').value}?`)) return; busy(e.target, async () => { const r = await api('/moderate', { method: 'POST', body: { action: act, userId: $('#mq-user').value.trim(), reason: $('#mq-reason').value, minutes: $('#mq-min').value } }); toast(r.message.replace(/<@\d+>/g, 'user')); load(); }); };
+  let cases = [];
+  const draw = () => {
+    const q = ($('#md-q').value || '').toLowerCase();
+    const list = cases.filter((c) => !q || c.username.toLowerCase().includes(q) || c.userId.includes(q));
+    $('#md-list').innerHTML = list.length ? list.map((c) => `<tr><td>#${c.id}</td><td><span class="tag">${LBL[c.action] || c.action}</span>${c.action === 'warn' && !c.active ? '<div class="hint">dicabut</div>' : ''}</td><td><b>${esc(c.username)}</b><div class="hint">${c.userId}</div></td><td>${esc(c.reason)}</td><td>${esc(c.modName)}</td><td>${fmtDT(c.time)}</td><td>${c.action === 'warn' && c.active ? `<button class="small md-rev" data-id="${c.id}">Cabut</button>` : ''}</td></tr>`).join('') : emptyRow(7, 'Belum ada kasus. Server aman 🦉');
+    document.querySelectorAll('.md-rev').forEach((b) => b.onclick = () => busy(b, async () => { await api(`/modcases/${b.dataset.id}/revoke`, { method: 'POST', body: {} }); toast('Warn dicabut'); load(); }));
+  };
+  const load = async () => { cases = await api('/modcases'); draw(); };
+  $('#md-q').oninput = draw;
+  load();
+};
+
+// ================== EVENT ==================
+pages.events = () => {
+  const ev = S.cfg.events;
+  return `<h1>📅 Jadwal Event & Reminder</h1><div class="sub">Jadwal DJ, podcast, party, dll. TRO SYSTEM umumkan saat dibuat, kirim reminder sebelum mulai, dan ping saat dimulai. Command: <code>/event tambah</code></div>
+  <div class="grid" style="grid-template-columns:380px 1fr"><div>
+    <div class="card"><h3 id="ev-ft">➕ Jadwalkan event</h3><input type="hidden" id="ev-id">
+      <label>Judul</label><input id="ev-title" placeholder="contoh: Friday Night Party">
+      <div class="grid g2" style="gap:10px"><div><label>Tanggal</label><input type="date" id="ev-date"></div><div><label>Jam (WIB)</label><input type="time" id="ev-time" value="20:00"></div></div>
+      <label>Tempat / map</label><input id="ev-place" placeholder="On The Rugs Club">
+      <label>Host / DJ</label><input id="ev-host">
+      <label>Deskripsi</label><textarea id="ev-desc" style="min-height:70px"></textarea>
+      <label>Poster (URL gambar)</label><input id="ev-img" placeholder="https://...">
+      <label>Ping role khusus event ini</label>${sel('ev-ping', roleOptions('').replace('— Tanpa tag —', '— Pakai default —'))}
+      <div class="actions"><button class="primary" id="ev-save">📅 Jadwalkan</button><button id="ev-cancel" style="display:none">Batal</button></div></div>
+    <div class="card" style="margin-top:16px"><h3>⚙️ Pengaturan</h3>
+      <label>Channel pengumuman event</label>${sel('ev-ch', chOptions(ev.channelId))}
+      <label>Ping role default</label>${sel('ev-dping', roleOptions(ev.pingRoleId))}
+      <label>Reminder (menit sebelum, pisah koma)</label><input id="ev-rem" value="${esc(ev.reminders.join(', '))}">
+      <div class="actions"><button class="primary small" id="ev-set">💾 Simpan</button></div></div></div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Waktu</th><th>Event</th><th>Tempat / Host</th><th>Status</th><th></th></tr></thead><tbody id="ev-list"></tbody></table></div></div>`;
+};
+pages.events.init = async () => {
+  const today = new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10);
+  $('#ev-date').value = today; $('#ev-date').min = today;
+  let items = [];
+  const reset = () => { ['id', 'title', 'place', 'host', 'desc', 'img'].forEach((k) => $('#ev-' + k).value = ''); $('#ev-ping').value = ''; $('#ev-ft').textContent = '➕ Jadwalkan event'; $('#ev-save').textContent = '📅 Jadwalkan'; $('#ev-cancel').style.display = 'none'; };
+  const load = async () => {
+    items = await api('/events');
+    $('#ev-list').innerHTML = items.length ? items.map((e) => { const past = e.at < Date.now(); return `<tr style="${past ? 'opacity:.5' : ''}"><td><b>${new Date(e.at).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}</b><div class="hint">${e.time} WIB</div></td><td><b>${esc(e.title)}</b>${e.desc ? `<div class="hint">${esc(e.desc.slice(0, 80))}</div>` : ''}</td><td>${esc(e.place)}${e.host ? `<div class="hint">🎧 ${esc(e.host)}</div>` : ''}</td><td>${past ? '<span class="status accepted">Selesai</span>' : `<span class="status pending">${e.sent.length} reminder terkirim</span>`}</td><td style="white-space:nowrap"><button class="small ev-ann" data-id="${e.id}" title="Umumkan ulang">📢</button> <button class="small ev-edit" data-id="${e.id}">✏️</button> <button class="small danger ev-del" data-id="${e.id}">🗑️</button></td></tr>`; }).join('') : emptyRow(5, 'Belum ada event terjadwal.');
+    document.querySelectorAll('.ev-del').forEach((b) => b.onclick = () => { if (confirm('Hapus event ini?')) busy(b, async () => { await api('/events/' + b.dataset.id, { method: 'DELETE' }); load(); }); });
+    document.querySelectorAll('.ev-ann').forEach((b) => b.onclick = () => busy(b, async () => { await api(`/events/${b.dataset.id}/announce`, { method: 'POST', body: {} }); toast('📢 Diumumkan ulang'); }));
+    document.querySelectorAll('.ev-edit').forEach((b) => b.onclick = () => { const e = items.find((x) => x.id === b.dataset.id); Object.entries({ id: e.id, title: e.title, date: e.date, time: e.time, place: e.place, host: e.host, desc: e.desc, img: e.image }).forEach(([k, v]) => $('#ev-' + k).value = v || ''); $('#ev-ping').value = e.pingRoleId || ''; $('#ev-ft').textContent = '✏️ Edit event'; $('#ev-save').textContent = '💾 Simpan perubahan'; $('#ev-cancel').style.display = ''; window.scrollTo(0, 0); });
+  };
+  $('#ev-cancel').onclick = reset;
+  $('#ev-save').onclick = (e) => busy(e.target, async () => { const body = { id: $('#ev-id').value || undefined, title: $('#ev-title').value, date: $('#ev-date').value, time: $('#ev-time').value, place: $('#ev-place').value, host: $('#ev-host').value, desc: $('#ev-desc').value, image: $('#ev-img').value, pingRoleId: $('#ev-ping').value, announce: !$('#ev-id').value }; await api('/events', { method: 'POST', body }); toast('✅ Event dijadwalkan' + (body.announce ? ' & diumumkan' : '')); reset(); load(); });
+  $('#ev-set').onclick = (e) => busy(e.target, async () => { S.cfg.events = { channelId: $('#ev-ch').value, pingRoleId: $('#ev-dping').value, reminders: $('#ev-rem').value.split(',').map((x) => Number(x.trim())).filter((x) => x > 0) }; await saveSection('events'); toast('✅ Pengaturan event disimpan'); });
+  load();
+};
+
+// ================== ULTAH & STATISTIK ==================
+pages.birthday = () => {
+  const b = S.cfg.birthday, st = S.cfg.stats;
+  return `<h1>🎂 Ulang Tahun & Statistik</h1><div class="sub">Member isi sendiri pakai <code>/ultah set 13/11</code>. Ucapan otomatis tiap hari + role ulang tahun 1 hari.</div>
+  <div class="grid g2"><div class="card"><h3>🎂 Ulang tahun ${toggle('bd-on', b.enabled)}</h3>
+    <label>Channel ucapan</label>${sel('bd-ch', chOptions(b.channelId))}
+    <label>Role ulang tahun (dipasang 1 hari)</label>${sel('bd-role', roleOptions(b.roleId).replace('— Tanpa tag —', '— Tidak pakai —'))}
+    <label>Jam kirim (WIB)</label><input type="number" id="bd-hour" min="0" max="23" value="${b.hour}" style="width:100px">
+    <label>Pesan ({user} {username})</label><textarea id="bd-msg" style="min-height:70px">${esc(b.message)}</textarea>
+    <div class="actions"><button class="primary" id="bd-save">💾 Simpan</button><button id="bd-run">▶️ Cek hari ini sekarang</button></div>
+    <label style="margin-top:20px">Tambah manual</label><div class="row"><input id="bd-uid" placeholder="User ID" style="flex:1"><input id="bd-date" placeholder="13/11" style="width:90px"><button class="small" id="bd-add">+</button></div>
+    <div id="bd-list" class="list" style="margin-top:10px;max-height:300px;overflow:auto"></div></div>
+  <div class="card"><h3>📊 Channel statistik ${toggle('st-on', st.enabled)}</h3><div class="hint">Nama channel voice diganti otomatis tiap 10 menit. Variabel: <code>{members}</code> <code>{humans}</code> <code>{bots}</code> <code>{online}</code> <code>{boosts}</code> <code>{voice}</code>. Kalau sudah pakai bot statistik lain, pilih channel yang berbeda.</div>
+    <div id="st-slots" style="margin-top:12px"></div>
+    <div class="actions"><button class="primary" id="st-save">💾 Simpan</button><button id="st-run">🔄 Update sekarang</button></div></div></div>`;
+};
+pages.birthday.init = async () => {
+  const st = S.cfg.stats;
+  $('#st-slots').innerHTML = st.slots.map((s, i) => `<div class="grid g2" style="gap:8px;margin-bottom:8px"><select class="sl-ch" data-i="${i}">${vcOptions(s.channelId)}</select><input class="sl-t" data-i="${i}" value="${esc(s.template)}"></div>`).join('');
+  $('#st-save').onclick = (e) => busy(e.target, async () => { st.enabled = $('#st-on').checked; document.querySelectorAll('.sl-ch').forEach((el) => st.slots[el.dataset.i].channelId = el.value); document.querySelectorAll('.sl-t').forEach((el) => st.slots[el.dataset.i].template = el.value); await saveSection('stats'); toast('✅ Statistik disimpan'); });
+  $('#st-run').onclick = (e) => busy(e.target, async () => { const r = await api('/stats/run', { method: 'POST', body: {} }); toast(r.done.length ? '✅ ' + r.done.join(' · ') : 'Sudah up to date (atau statistik belum aktif)'); });
+  $('#bd-save').onclick = (e) => busy(e.target, async () => { S.cfg.birthday = { enabled: $('#bd-on').checked, channelId: $('#bd-ch').value, roleId: $('#bd-role').value, hour: +$('#bd-hour').value, message: $('#bd-msg').value }; await saveSection('birthday'); toast('✅ Ulang tahun disimpan'); });
+  $('#bd-run').onclick = (e) => busy(e.target, async () => { const r = await api('/birthdays/run', { method: 'POST', body: {} }); toast(r.ids.length ? `🎂 ${r.ids.length} ucapan dikirim` : 'Tidak ada yang ulang tahun hari ini'); });
+  const load = async () => {
+    const list = await api('/birthdays');
+    $('#bd-list').innerHTML = list.length ? list.map((x) => `<a><span>🎂 ${esc(x.name)}</span><span class="row" style="gap:8px"><small>${esc(x.pretty)}</small><button class="small danger bd-del" data-id="${x.id}">✕</button></span></a>`).join('') : '<div class="hint">Belum ada data ulang tahun.</div>';
+    document.querySelectorAll('.bd-del').forEach((b) => b.onclick = (ev) => { ev.preventDefault(); busy(b, async () => { await api('/birthdays/' + b.dataset.id, { method: 'DELETE' }); load(); }); });
+  };
+  $('#bd-add').onclick = (e) => busy(e.target, async () => { await api('/birthdays', { method: 'POST', body: { userId: $('#bd-uid').value.trim(), date: $('#bd-date').value } }); $('#bd-uid').value = ''; $('#bd-date').value = ''; load(); });
+  load();
+};
+
+// ================== CUSTOM VOICE ==================
+pages.tempvoice = () => {
+  const tv = S.cfg.tempvoice;
+  return `<h1>🔊 Custom Voice</h1><div class="sub">Member join voice "hub" → otomatis dibikinin voice pribadi & dipindah ke sana. Voice dihapus saat kosong. Pemilik bisa atur pakai <code>/voice kunci</code> <code>buka</code> <code>limit</code> <code>nama</code> <code>kick</code> <code>izinkan</code> <code>klaim</code>.</div>
+  <div class="grid g2"><div class="card"><h3>Pengaturan ${toggle('tv-on', tv.enabled)}</h3>
+    <label>Voice hub (join untuk bikin)</label>${sel('tv-hub', vcOptions(tv.hubChannelId))}
+    <label>Kategori voice baru</label>${sel('tv-cat', catOptions(tv.categoryId))}
+    <label>Nama voice ({user})</label><input id="tv-name" value="${esc(tv.nameTemplate)}">
+    <label>Limit default (0 = bebas)</label><input type="number" id="tv-lim" value="${tv.defaultLimit}" style="width:100px">
+    <div class="hint">Server ini sudah punya "➕ Custom voice" dari bot TempVoice — pilih itu sebagai hub lalu kick bot lama, atau bikin hub baru.</div>
+    <div class="actions"><button class="primary" id="tv-save">💾 Simpan</button></div></div>
+  <div class="card"><h3>🎙️ Voice pribadi aktif</h3><div id="tv-list" class="list"></div></div></div>`;
+};
+pages.tempvoice.init = async () => {
+  $('#tv-save').onclick = (e) => busy(e.target, async () => { S.cfg.tempvoice = { enabled: $('#tv-on').checked, hubChannelId: $('#tv-hub').value, categoryId: $('#tv-cat').value, nameTemplate: $('#tv-name').value, defaultLimit: +$('#tv-lim').value }; await saveSection('tempvoice'); toast('✅ Custom voice disimpan'); });
+  const list = await api('/tempvoice');
+  $('#tv-list').innerHTML = list.length ? list.map((v) => `<a><span>🔊 ${esc(v.name)}</span><small>👑 ${esc(v.ownerName)} · ${v.members} orang</small></a>`).join('') : '<div class="hint">Belum ada voice pribadi aktif.</div>';
+};
+
+
+// ================== TUTORIAL & COMMAND CENTER ==================
+pages.guide = () => `<h1>📖 Tutorial & Command Center</h1><div class="sub">Pusat kendali admin: status semua fitur, daftar lengkap command, dan panduan langkah demi langkah.</div>
+  <div class="card hero" style="margin-bottom:16px"><div class="row"><div style="flex:1;min-width:260px"><h3>📤 Kirim panduan ke Discord</h3><div class="hint">Kirim Command Center + semua tutorial ke channel admin/staff biar tim bisa baca langsung di Discord. Member bisa ketik <code>/bantuan</code>.</div></div>
+    <div style="width:300px">${sel('gd-ch', chOptions('', '— Pilih channel admin —'))}</div><button class="primary" id="gd-post">📤 Kirim</button></div></div>
+  <h3 style="margin-bottom:10px">🎛️ Status fitur</h3><div class="grid g4" id="gd-feat" style="gap:10px"></div>
+  <div class="row" style="margin:24px 0 12px"><div class="tabs" style="margin:0" id="gd-tabs"><button data-k="cmd" class="${(S.gdTab || 'cmd') === 'cmd' ? 'on' : ''}">⌨️ Command (${'${n}'})</button><button data-k="tut" class="${S.gdTab === 'tut' ? 'on' : ''}">📚 Tutorial</button></div><div class="spacer"></div><input id="gd-q" placeholder="🔍 Cari command / fitur..." style="width:280px"></div>
+  <div id="gd-body"></div>`;
+pages.guide.init = async () => {
+  const G = await api('/guide');
+  const c = S.cfg;
+  document.querySelector('#gd-tabs button[data-k="cmd"]').textContent = `⌨️ Command (${G.commands.length})`;
+  const feats = [
+    ['verify', '🪪', 'Verifikasi', c.verify.enabled], ['tickets', '🎫', 'Ticket', c.tickets.enabled], ['levels', '⭐', 'Level & XP', c.levels.enabled],
+    ['tracker', '📨', 'Invite Tracker', c.tracker?.enabled], ['welcome', '👋', 'Welcome', c.welcome.enabled], ['autorole', '🎭', 'Auto Role', c.autorole.enabled],
+    ['birthday', '🎂', 'Ulang Tahun', c.birthday.enabled], ['birthday', '📊', 'Statistik', c.stats.enabled], ['tempvoice', '🔊', 'Custom Voice', c.tempvoice.enabled],
+    ['security', '🚫', 'Anti Spam', c.security.antiSpam.enabled], ['security', '🔗', 'Anti Link', c.security.antiLink.enabled], ['security', '🚨', 'Anti Raid', c.security.antiRaid.enabled],
+    ['security', '🎣', 'Anti Scam', c.security.antiScam.enabled], ['security', '💣', 'Anti Nuke', c.security.antiNuke.enabled], ['events', '📅', 'Event', !!c.events.channelId], ['selfroles', '🏷️', 'Self-Role', c.selfroles.panels.length > 0],
+  ];
+  $('#gd-feat').innerHTML = feats.map(([k, ic, n, on]) => `<a class="feat" href="#${k}"><span style="font-size:20px">${ic}</span><b>${n}</b><span class="st ${on ? 'on' : 'off'}">${on ? 'Aktif' : 'Mati'}</span></a>`).join('');
+  const whoCls = (w) => w === 'Semua member' ? 'm' : w;
+  const draw = () => {
+    const q = ($('#gd-q').value || '').toLowerCase();
+    if ((S.gdTab || 'cmd') === 'cmd') {
+      const list = G.commands.filter((x) => !q || (x.name + x.desc + x.cat).toLowerCase().includes(q));
+      const cats = [...new Set(list.map((x) => x.cat))];
+      $('#gd-body').innerHTML = cats.length ? cats.map((cat) => `<div class="card" style="padding:0;margin-bottom:14px"><div style="padding:14px 16px;border-bottom:1px solid var(--line)"><b>${esc(cat)}</b></div>${list.filter((x) => x.cat === cat).map((x) => `<div class="cmd"><div><code>${esc(x.name)}</code><div class="ex" data-ex="${esc(x.ex)}" title="Klik untuk copy">↳ ${esc(x.ex)}</div></div><span class="who ${whoCls(x.who)}">${esc(x.who)}</span><div>${esc(x.desc)}</div></div>`).join('')}</div>`).join('') : '<div class="card hint" style="text-align:center;padding:30px">Tidak ditemukan.</div>';
+      document.querySelectorAll('.ex').forEach((el) => el.onclick = () => { navigator.clipboard?.writeText(el.dataset.ex.split(' ')[0]); toast('📋 Command disalin: ' + el.dataset.ex.split(' ')[0]); });
+    } else {
+      const list = G.tutorials.filter((t) => !q || (t.title + t.steps.join(' ')).toLowerCase().includes(q));
+      $('#gd-body').innerHTML = `<div class="grid g2">${list.map((t) => `<div class="card tut"><h3>${t.icon} ${esc(t.title)}</h3><ol>${t.steps.map((st) => `<li>${md(st)}</li>`).join('')}</ol></div>`).join('')}</div>`;
+    }
+  };
+  document.querySelectorAll('#gd-tabs button').forEach((b) => b.onclick = () => { S.gdTab = b.dataset.k; document.querySelectorAll('#gd-tabs button').forEach((x) => x.classList.toggle('on', x === b)); draw(); });
+  $('#gd-q').oninput = draw;
+  $('#gd-post').onclick = (e) => { if (!$('#gd-ch').value) return toast('Pilih channel dulu', true); busy(e.target, async () => { await api('/guide/post', { method: 'POST', body: { channelId: $('#gd-ch').value } }); toast('✅ Panduan dikirim ke Discord'); }); };
+  draw();
+};
+
+
+// ================== AKSES DASHBOARD ==================
+const PAGE_NAMES = Object.fromEntries(PAGES.flatMap(([, items]) => items.map(([k, ic, n]) => [k, `${ic} ${n}`])));
+pages.access = () => {
+  const a = S.cfg.access;
+  return `<h1>👑 Akses Dashboard</h1><div class="sub">Atur siapa saja yang boleh masuk dashboard & halaman apa saja. Hanya <b>Super Admin</b> (kamu & owner server) yang bisa membuka halaman ini.</div>
+  <div class="grid g2"><div>
+    <div class="card"><h3>🔑 Siapa yang boleh login</h3>
+      <label>Mode</label><select id="ac-mode"><option value="custom" ${a.mode !== 'manage' ? 'selected' : ''}>Hanya role / orang yang dipilih</option><option value="manage" ${a.mode === 'manage' ? 'selected' : ''}>Semua yang punya izin "Manage Server"</option></select>
+      <label>Role yang boleh login</label>${roleChips('ac-roles', a.roleIds)}
+      <div class="hint" id="ac-defhint"></div>
+      <label>Orang tertentu (tambahan)</label><div class="row"><input id="ac-q" placeholder="🔍 Ketik nama member..." style="flex:1"></div><div id="ac-res" class="list"></div>
+      <div id="ac-users" class="list" style="margin-top:6px"></div></div>
+    <div class="card" style="margin-top:16px"><h3>👑 Super Admin</h3><div class="hint">Bisa membuka semua halaman + mengatur akses. Owner server selalu Super Admin.</div>
+      <div id="ac-supers" class="list" style="margin-top:8px"></div>
+      <div class="row" style="margin-top:8px"><input id="ac-sq" placeholder="🔍 Tambah Super Admin..." style="flex:1"></div><div id="ac-sres" class="list"></div></div>
+    <div class="card" style="margin-top:16px"><h3>✅ Yang boleh ACC / Tolak di Discord</h3><div class="hint">Tombol ACC / Tolak pengajuan & form <code>/anggota</code>. Kosong = role ADMIN & OWNER (plus yang punya izin Manage Roles).</div>
+      ${roleChips('ac-rev', a.reviewerRoleIds)}</div>
+  </div>
+  <div class="card"><h3>📄 Akses per halaman</h3><div class="hint">Kosong = semua yang boleh login bisa membuka. Pilih role untuk membatasi halaman tertentu (contoh: Keamanan & Moderasi hanya ADMIN).</div>
+    <div id="ac-pages" style="margin-top:12px;display:grid;gap:10px"></div></div></div>
+  <div class="actions" style="position:sticky;bottom:16px"><button class="primary" id="ac-save">💾 Simpan akses</button></div>`;
+};
+pages.access.init = async () => {
+  const a = S.cfg.access;
+  a.pages = a.pages || {};
+  const info = await api('/access/users');
+  const names = Object.fromEntries(info.users.map((u) => [u.id, u]));
+  if (!a.roleIds.length) $('#ac-defhint').innerHTML = `Belum dipilih → otomatis pakai role <b>${info.defaultRoleIds.map((r) => '@' + esc(roleName(r))).join(', ') || 'ADMIN / OWNER (tidak ditemukan)'}</b>.`;
+  const person = (u, removeCls) => `<a><span class="row" style="gap:8px">${u.avatar ? `<img src="${esc(u.avatar)}" style="width:26px;height:26px;border-radius:50%">` : ''}${esc(u.name || u.id)}${u.id === info.ownerId ? ' <span class="tag">Owner server</span>' : ''}</span>${removeCls ? `<button class="small danger ${removeCls}" data-id="${u.id}">✕</button>` : ''}</a>`;
+  const draw = () => {
+    $('#ac-users').innerHTML = a.userIds.map((id) => person(names[id] || { id }, 'ac-urm')).join('') || '<div class="hint">Belum ada orang tambahan.</div>';
+    $('#ac-supers').innerHTML = [...new Set([info.ownerId, ...a.superAdminIds])].map((id) => person(names[id] || { id }, id === info.ownerId || id === S.me.user.id ? '' : 'ac-srm')).join('');
+    document.querySelectorAll('.ac-urm').forEach((b) => b.onclick = (e) => { e.preventDefault(); a.userIds = a.userIds.filter((x) => x !== b.dataset.id); draw(); });
+    document.querySelectorAll('.ac-srm').forEach((b) => b.onclick = (e) => { e.preventDefault(); a.superAdminIds = a.superAdminIds.filter((x) => x !== b.dataset.id); draw(); });
+  };
+  const search = (inp, box, onPick) => {
+    let t;
+    $(inp).oninput = () => { clearTimeout(t); t = setTimeout(async () => {
+      const r = await api('/access/search?q=' + encodeURIComponent($(inp).value));
+      $(box).innerHTML = r.map((u) => `<a data-id="${u.id}" style="cursor:pointer"><span class="row" style="gap:8px"><img src="${esc(u.avatar)}" style="width:26px;height:26px;border-radius:50%">${esc(u.name)} <small class="hint">@${esc(u.username)}</small></span><small>+ tambah</small></a>`).join('');
+      $(box).querySelectorAll('a').forEach((el) => el.onclick = () => { const u = r.find((x) => x.id === el.dataset.id); names[u.id] = u; onPick(u.id); $(inp).value = ''; $(box).innerHTML = ''; draw(); });
+    }, 250); };
+  };
+  search('#ac-q', '#ac-res', (id) => { if (!a.userIds.includes(id)) a.userIds.push(id); });
+  search('#ac-sq', '#ac-sres', (id) => { if (!a.superAdminIds.includes(id)) a.superAdminIds.push(id); });
+  const pageKeys = PAGES.flatMap(([, items]) => items.map(([k]) => k)).filter((k) => !['home', 'access'].includes(k));
+  $('#ac-pages').innerHTML = pageKeys.map((k) => `<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg)"><div class="row" style="margin-bottom:6px"><b>${PAGE_NAMES[k]}</b><div class="spacer"></div><span class="hint" id="pg-st-${k}"></span></div>${roleChips('pg-' + k, a.pages[k] || [])}</div>`).join('');
+  const st = () => pageKeys.forEach((k) => { const n = readChips('pg-' + k).length; $('#pg-st-' + k).textContent = n ? `🔒 ${n} role` : '🌐 semua'; });
+  document.querySelector('#ac-pages').addEventListener('click', () => setTimeout(st, 0)); st();
+  draw();
+  $('#ac-save').onclick = (e) => busy(e.target, async () => {
+    a.mode = $('#ac-mode').value; a.roleIds = readChips('ac-roles'); a.reviewerRoleIds = readChips('ac-rev');
+    a.pages = Object.fromEntries(pageKeys.map((k) => [k, readChips('pg-' + k)]).filter(([, v]) => v.length));
+    await api('/config/access', { method: 'PUT', body: a });
+    toast('✅ Akses disimpan — berlaku langsung');
+  });
+};
+
+
+// ================== efek animasi ==================
+const fx = (() => {
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let booted = false; const t0 = Date.now();
+  const hideIntro = () => { const el = $('#intro'); if (!el) return; setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 700); }, calm ? 0 : Math.max(0, 1700 - (Date.now() - t0))); };
+  document.addEventListener('click', (e) => { if (e.target.closest('#intro')) $('#intro')?.classList.add('out'); }, true);
+
+  // angka naik
+  const countUp = (el) => {
+    const node = [...el.childNodes].find((n) => n.nodeType === 3 && /^\s*\d+\s*$/.test(n.textContent)); if (!node) return;
+    const end = +node.textContent, dur = 900, st = performance.now();
+    const step = (now) => { const k = Math.min(1, (now - st) / dur), e = 1 - Math.pow(1 - k, 3); node.textContent = Math.round(end * e); if (k < 1) requestAnimationFrame(step); };
+    node.textContent = '0'; requestAnimationFrame(step);
+  };
+
+  const page = () => {
+    const root = $('#root');
+    if (!booted) { root.firstElementChild?.classList.add('boot'); booted = true; setTimeout(() => root.firstElementChild?.classList.remove('boot'), 2200); }
+    root.querySelectorAll('.nav a,.navgroup').forEach((a, i) => a.style.setProperty('--i', i));
+    const c = $('.content'); if (!c) return;
+    [...c.children].forEach((el, i) => el.style.setProperty('--i', Math.min(i, 8)));
+    c.querySelectorAll('.grid').forEach((g) => [...g.children].forEach((el, j) => el.style.setProperty('--j', Math.min(j, 12))));
+    const h = c.querySelector('h1'); if (h) h.classList.add('shine');
+    if (!calm) c.querySelectorAll('.stat .num:not(.emo)').forEach(countUp);
+  };
+
+  // cahaya ikut kursor di kartu
+  document.addEventListener('pointermove', (e) => {
+    const el = e.target.closest?.('.tile,.feat,.card.stat'); if (!el) return;
+    const r = el.getBoundingClientRect(); el.style.setProperty('--mx', e.clientX - r.left + 'px'); el.style.setProperty('--my', e.clientY - r.top + 'px');
+  }, { passive: true });
+
+  // riak klik di tombol
+  document.addEventListener('pointerdown', (e) => {
+    if (calm) return; const b = e.target.closest?.('button,a.btn'); if (!b) return;
+    const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height), sp = document.createElement('span');
+    sp.className = 'ripple'; sp.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
+    b.append(sp); setTimeout(() => sp.remove(), 650);
+  });
+
+  // partikel emas melayang (ringan, berhenti saat tab tidak aktif)
+  const cv = $('#motes');
+  if (cv && !calm) {
+    const ctx = cv.getContext('2d'); let W, H, dots = [];
+    const size = () => { const dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px'; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      dots = Array.from({ length: Math.round(W * H / 38000) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.6 + .4, v: Math.random() * .25 + .06, a: Math.random() * Math.PI * 2, s: Math.random() * .02 + .005 })); };
+    size(); addEventListener('resize', size);
+    const tick = () => {
+      if (!document.hidden) {
+        ctx.clearRect(0, 0, W, H);
+        for (const d of dots) {
+          d.y -= d.v; d.a += d.s; d.x += Math.sin(d.a) * .25; if (d.y < -5) { d.y = H + 5; d.x = Math.random() * W; }
+          const o = .25 + Math.sin(d.a * 2) * .2;
+          ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 7); ctx.fillStyle = `rgba(233,209,139,${o})`; ctx.shadowColor = 'rgba(233,209,139,.8)'; ctx.shadowBlur = 6; ctx.fill();
+        }
+      }
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }
+  return { page, hideIntro };
+})();
+
 // ================== router ==================
 function render() {
   const [page, sub] = (location.hash.slice(1) || 'home').split('/');
-  S.page = pages[page] ? page : 'home';
+  S.page = pages[page] && (S.me.pages || []).includes(page) ? page : 'home';
   if (S.page === 'posts' && sub) S.postKey = sub;
   $('#root').innerHTML = layout(pages[S.page]());
   pages[S.page].init?.();
   window.scrollTo(0, 0);
+  fx.page();
 }
 window.onhashchange = render;
 
 function loginScreen() {
   const err = new URLSearchParams(location.search).get('error');
   const msg = { noaccess: '⛔ Akun kamu tidak punya akses. Dashboard hanya untuk staff dengan izin "Manage Server" di THE RESILIENT ORDER.', state: 'Sesi login kadaluarsa, coba lagi.', token: 'Login gagal (cek CLIENT_SECRET & Redirect di Developer Portal).', login: 'Login gagal, coba lagi.' }[err];
-  $('#root').innerHTML = `<div class="login"><div class="box"><div class="owl">🦉</div><h1>TRO <span>SYSTEM</span></h1><p>Dashboard resmi THE RESILIENT ORDER.<br>Masuk pakai akun Discord kamu.</p>${msg ? `<div class="err-box">${msg}</div>` : ''}<a class="btn" href="/login"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.3 18.3 0 0 0-5.6 0L8.6 3a19.7 19.7 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a20 20 0 0 0 6 3l1.3-2a12.8 12.8 0 0 1-2-1l.5-.3a14.2 14.2 0 0 0 12.2 0l.5.3-2 1 1.3 2a19.9 19.9 0 0 0 6-3c.5-5.2-.9-9.7-3.6-13.7ZM8 15.4c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>Login dengan Discord</a></div></div>`;
+  $('#root').innerHTML = `<div class="login"><div class="box"><div class="owl"></div><h1>TRO SYSTEM</h1><div class="motto">In wisdom, we endure.</div><p>Ruang kendali The Resilient Order.<br>Masuk dengan akun Discord kamu.</p>${msg ? `<div class="err-box">${msg}</div>` : ''}<a class="btn" href="/login"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.3 18.3 0 0 0-5.6 0L8.6 3a19.7 19.7 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a20 20 0 0 0 6 3l1.3-2a12.8 12.8 0 0 1-2-1l.5-.3a14.2 14.2 0 0 0 12.2 0l.5.3-2 1 1.3 2a19.9 19.9 0 0 0 6-3c.5-5.2-.9-9.7-3.6-13.7ZM8 15.4c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>Login dengan Discord</a></div></div>`;
 }
 
 (async () => {
   S.me = await api('/me').catch(() => ({ user: null }));
-  if (!S.me.allowed) return loginScreen();
+  if (!S.me.allowed) { loginScreen(); return fx.hideIntro(); }
   [S.guild, S.cfg] = await Promise.all([api('/guild'), api('/config')]);
-  if (!S.guild.channels) { $('#root').innerHTML = '<div class="login"><div class="box"><div class="owl">🦉</div><h1>Bot belum siap</h1><p>TRO SYSTEM masih menyambung ke Discord. Refresh halaman ini sebentar lagi.</p></div></div>'; return; }
+  if (!S.guild.channels) { $('#root').innerHTML = '<div class="login"><div class="box"><div class="owl">🦉</div><h1>Bot belum siap</h1><p>TRO SYSTEM masih menyambung ke Discord. Refresh halaman ini sebentar lagi.</p></div></div>'; return fx.hideIntro(); }
   const [apps, inv] = await Promise.all([api('/applications').catch(() => []), api('/invites').catch(() => null)]);
   S.pending = apps.filter((a) => a.status === 'pending').length;
   if (inv) { S.invToday = inv.items.filter((i) => i.date === inv.today).length; S.cfg.invitesLimit = [0, 6].includes(new Date(inv.today + 'T00:00:00Z').getUTCDay()) ? (inv.weekendLimit || '∞') : (inv.weekdayLimit || '∞'); }
   if (location.search) history.replaceState(null, '', '/' + location.hash);
   render();
+  fx.hideIntro();
 })();
 </script>
 </body>

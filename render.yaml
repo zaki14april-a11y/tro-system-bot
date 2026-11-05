@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: tro-system
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: CLIENT_SECRET
+        sync: false
+      - key: GUILD_ID
+        value: "1437179205740658899"
+      - key: CLIENT_ID
+        value: "1567251006528688278"
+      - key: SESSION_SECRET
+        generateValue: true

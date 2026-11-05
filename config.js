@@ -77,12 +77,49 @@ const defaults = () => ({
     questions: [
       { label: 'Username Roblox kamu?', placeholder: 'contoh: CALLMExAZAZEL', long: false, required: true },
       { label: 'Tahu TRO dari mana?', placeholder: 'teman / TikTok / map / lainnya', long: false, required: true },
-      { label: 'Umur kamu?', placeholder: 'contoh: 19', long: false, required: true },
-      { label: 'Kenapa mau gabung TRO?', placeholder: 'ceritain singkat aja', long: true, required: true },
       { label: 'Sudah baca & setuju rules TRO?', placeholder: 'ketik: SETUJU', long: false, required: true },
     ],
+    memberQuestions: [
+      { label: 'Nama', placeholder: 'contoh: Kyoo', long: false, required: true },
+      { label: 'USN Roblox', placeholder: 'contoh: kyokoo74', long: false, required: true },
+      { label: 'Tanggal lahir', placeholder: 'contoh: 23/03/2000 (usia dihitung otomatis)', long: false, required: true, key: 'birthdate' },
+      { label: 'Domisili (kota)', placeholder: 'contoh: Semarang', long: false, required: true },
+      { label: 'Alasan ingin bergabung dengan TRO', placeholder: 'ceritain singkat aja', long: true, required: true },
+    ],
+    memberReviewChannelId: '',
+    dataChannelId: '',
     panelMessageId: '',
   },
+  access: {
+    superAdminIds: ['563752367305261107'], // 👑 bisa atur akses (owner server selalu termasuk)
+    mode: 'custom', // 'custom' = hanya yang dipilih · 'manage' = semua yang punya izin Manage Server
+    roleIds: [],
+    userIds: [],
+    pages: {}, // { pageKey: [roleId, ...] } kosong = semua yang punya akses dashboard
+    reviewerRoleIds: [], // role yang boleh ACC/Tolak di Discord (selain admin)
+  },
+  tracker: { enabled: true, channelId: '1491145989426253905' },
+  tickets: {
+    enabled: true, panelChannelId: '', panelMessageId: '', categoryId: '', staffRoleIds: [], logChannelId: '',
+    panelTitle: '🎫 TICKET — TRO SUPPORT',
+    panelText: 'Butuh bantuan atau mau order? Klik tombol sesuai keperluan di bawah.\nSatu orang hanya bisa punya **1 tiket aktif**.',
+    welcome: 'Halo {user}! 👋 Staff akan segera membantu.\nJelaskan keperluan kamu di sini ya.',
+    types: [
+      { id: 'robux', label: 'Order Robux', emoji: '💰' },
+      { id: 'help', label: 'Bantuan', emoji: '🆘' },
+      { id: 'report', label: 'Laporan', emoji: '🚨' },
+    ],
+  },
+  levels: {
+    enabled: true, xpMin: 15, xpMax: 25, cooldown: 60, voiceXpPerMin: 8, announceChannelId: '',
+    levelUpMessage: '🎉 {user} naik ke **level {level}**! Terus aktif ya 🦉', rewards: [], noXpChannelIds: [], noXpRoleIds: [],
+  },
+  selfroles: { panels: [] },
+  moderation: { logChannelId: '', dmUser: true, autoActions: [{ warns: 3, action: 'timeout', minutes: 60 }, { warns: 5, action: 'kick', minutes: 0 }] },
+  events: { channelId: '', pingRoleId: '', reminders: [60, 10] },
+  birthday: { enabled: true, channelId: '', roleId: '', hour: 8, message: '🎂 Selamat ulang tahun {user}! Semoga panjang umur & makin keren bareng TRO Fams 🦉🎉' },
+  stats: { enabled: false, slots: [{ channelId: '', template: '👥 Member: {members}' }, { channelId: '', template: '🟢 Online: {online}' }, { channelId: '', template: '🤖 Bot: {bots}' }, { channelId: '', template: '🚀 Boost: {boosts}' }] },
+  tempvoice: { enabled: false, hubChannelId: '', categoryId: '', nameTemplate: '🔊 {user}', defaultLimit: 0 },
   applications: [],
   invites: {
     channelId: '',
@@ -116,11 +153,27 @@ function load() {
   return state;
 }
 
+let firstSave = true;
 function save() {
   fs.writeFileSync(FILE, JSON.stringify(state, null, 2));
+  if (firstSave) { firstSave = false; return; } // simpan pertama = hasil load, tidak perlu dicadangkan
+  require('./cloudsync').schedule();
+}
+
+let saveTimer;
+function saveSoon() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(save, 3000);
 }
 
 function get() { return state || load(); }
+
+// data per modul (bukan pengaturan) — dibuat otomatis
+function data(key, init) {
+  const s = get();
+  if (!s[key]) s[key] = init;
+  return s[key];
+}
 
 function set(section, value) {
   get()[section] = value;
@@ -135,4 +188,4 @@ function addLog(type, text) {
   save();
 }
 
-module.exports = { get, set, save, addLog, load };
+module.exports = { get, set, save, saveSoon, data, addLog, load };
