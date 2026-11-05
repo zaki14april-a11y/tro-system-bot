@@ -36,6 +36,8 @@ function setup({ client }) {
   }
 
   function routes(api) {
+    api.get('/autoroles/status', async (req, res) => res.json(await client.autoroles?.status(req.session.user.id) || { error: 'modul belum siap' }));
+    api.post('/autoroles/sweep', async (req, res) => { if (req.body.enable) client.autoroles?.enable(); res.json(await client.autoroles?.sweepNow().catch((e) => ({ error: e.message }))); });
     api.get('/channels/readonly', (req, res) => {
       const g = guild(); if (!g) return res.json({ items: [] });
       const items = g.channels.cache.filter((c) => [ChannelType.GuildText, ChannelType.GuildAnnouncement].includes(c.type)).sort((a, b) => (a.parent?.rawPosition ?? -1) - (b.parent?.rawPosition ?? -1) || a.rawPosition - b.rawPosition)
