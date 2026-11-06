@@ -179,9 +179,19 @@ function setup({ client, baseEmbed }) {
 
   // ======================= 🏛️ STRUKTUR & DAFTAR MEMBER =======================
   // spec = { title, roleIds, note } — dipakai untuk struktur utama & struktur tambahan (data-anggota, data-clan, dll)
+  // 🟢 aktif = chat/voice dalam N hari terakhir (atau punya role yang dianggap selalu aktif)
+  function activeInfo(m) {
+    const u = AC().users[m.id] || {}, days = ACT().inactiveDays || 14;
+    const last = Math.max(u.msg || 0, u.voice || 0);
+    const idle = Math.floor((Date.now() - (last || u.joined || m.joinedTimestamp || 0)) / DAY);
+    const always = (ACT().ignoreRoleIds || []).some((r) => m.roles.cache.has(r));
+    return { active: always || idle < days, idle, last };
+  }
   async function structureEmbeds(spec) {
     const g = guild();
     const members = await client.fetchMembers(g);
+    const mode = spec.mode || 'all', pins = new Set(spec.pinIds || []), hides = new Set(spec.hideIds || []);
+    let nActive = 0, nIdle = 0;
     const roles = (spec.roleIds || []).map((id) => g.roles.cache.get(id)).filter(Boolean);
     const shown = new Set();
     const embeds = [];
@@ -189,18 +199,23 @@ function setup({ client, baseEmbed }) {
     let no = 0;
     for (const r of roles) {
       const ex = spec.excludeRoleIds || [];
-      const list = members.filter((m) => !m.user.bot && m.roles.cache.has(r.id) && !shown.has(m.id) && !ex.some((x) => m.roles.cache.has(x))).sort((a, b) => a.displayName.localeCompare(b.displayName));
+      const list = members.filter((m) => {
+        if (m.user.bot || !m.roles.cache.has(r.id) || shown.has(m.id) || ex.some((x) => m.roles.cache.has(x))) return false;
+        if (hides.has(m.id)) return false;
+        if (mode === 'active') return pins.has(m.id) || activeInfo(m).active;
+        return true;
+      }).sort((a, b) => a.displayName.localeCompare(b.displayName));
       if (!list.size) continue;
-      list.forEach((m) => shown.add(m.id));
+      list.forEach((m) => { shown.add(m.id); if (activeInfo(m).active) nActive++; else nIdle++; });
       const clean = (t) => String(t).replace(/([*_~`|>\\])/g, '\\$1').slice(0, 40);
-      const lines = list.map((m) => `\`${String(++no).padStart(2, '0')}\` ${clean(m.displayName)}`);
+      const lines = list.map((m) => { const a = activeInfo(m); const pre = mode === 'overall' ? (a.active ? '🟢 ' : '⚪ ') : ''; const suf = mode === 'overall' && !a.active ? ` · ${a.idle} hari` : ''; return `\`${String(++no).padStart(2, '0')}\` ${pre}${clean(m.displayName)}${suf}`; });
       const chunks = [];
       let cur = '';
       for (const l of lines) { if ((cur + l + '\n').length > 1000) { chunks.push(cur); cur = ''; } cur += l + '\n'; }
       if (cur) chunks.push(cur);
       chunks.forEach((c, i) => fields.push({ name: i ? '‎' : `${r.name} — ${list.size}`, value: c }));
     }
-    for (let i = 0; i < fields.length; i += 12) embeds.push(baseEmbed({ title: i ? undefined : spec.title, description: i ? undefined : `${spec.note || `Daftar resmi pengurus & anggota **${g.name}**`}\nUpdate otomatis tiap ada perubahan role · Total: **${shown.size}** orang`, fields: fields.slice(i, i + 12), thumbnail: i ? null : undefined }));
+    for (let i = 0; i < fields.length; i += 12) embeds.push(baseEmbed({ title: i ? undefined : spec.title, description: i ? undefined : `${spec.note || `Daftar resmi pengurus & anggota **${g.name}**`}\n${mode === 'active' ? `Hanya member **aktif** (chat/voice ≤ ${ACT().inactiveDays || 14} hari) + pilihan admin · ` : mode === 'overall' ? `🟢 Aktif **${nActive}** · ⚪ Tidak aktif **${nIdle}** (≥ ${ACT().inactiveDays || 14} hari) · ` : ''}Update otomatis · Total: **${shown.size}** orang`, fields: fields.slice(i, i + 12), thumbnail: i ? null : undefined }));
     if (!embeds.length) embeds.push(baseEmbed({ title: spec.title, description: 'Belum ada role yang dipilih untuk struktur ini.' }));
     return embeds;
   }
@@ -223,7 +238,7 @@ function setup({ client, baseEmbed }) {
     const d = DIR(); d.extra ||= [];
     let any = false;
     if (d.structureChannelId) {
-      const ids = await postTo(d.structureChannelId, await structureEmbeds({ title: d.title, roleIds: d.structureRoleIds }), d.structureMessageIds || []);
+      const ids = await postTo(d.structureChannelId, await structureEmbeds({ title: d.title, roleIds: d.structureRoleIds, mode: d.mode || 'all', pinIds: d.pinIds, hideIds: d.hideIds }), d.structureMessageIds || []);
       if (ids) { d.structureMessageIds = ids; any = true; }
     }
     for (const x of d.extra) {
@@ -360,6 +375,8 @@ function setup({ client, baseEmbed }) {
     api.put('/members/directory', async (req, res) => {
       const d = DIR();
       for (const k of ['structureChannelId', 'visitorChannelId', 'title']) if (req.body[k] !== undefined) d[k] = String(req.body[k]);
+      if (['all', 'active', 'overall'].includes(req.body.mode)) d.mode = req.body.mode;
+      for (const k of ['pinIds', 'hideIds']) if (Array.isArray(req.body[k])) d[k] = req.body[k].map(String).filter((x) => /^\d{15,}$/.test(x));
       if (Array.isArray(req.body.structureRoleIds)) { if (req.body.structureChannelId !== undefined && d.structureChannelId !== req.body.prevChannelId) d.structureMessageIds = []; d.structureRoleIds = req.body.structureRoleIds; }
       cfg.save(); res.json({ ok: true });
     });
@@ -367,7 +384,7 @@ function setup({ client, baseEmbed }) {
     api.get('/members/sync', (req, res) => res.json(syncing || { running: false }));
     api.put('/members/directory/extra', async (req, res) => {
       const d = DIR(); const prev = d.extra || [];
-      d.extra = (req.body.items || []).map((x) => { const p = prev.find((y) => y.id === x.id); return { id: x.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 5), title: String(x.title || 'Struktur').slice(0, 200), note: String(x.note || '').slice(0, 300), channelId: String(x.channelId || ''), roleIds: (x.roleIds || []).map(String), excludeRoleIds: (x.excludeRoleIds || []).map(String), messageIds: p && p.channelId === x.channelId ? p.messageIds || [] : [] }; });
+      d.extra = (req.body.items || []).map((x) => { const p = prev.find((y) => y.id === x.id); return { id: x.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 5), title: String(x.title || 'Struktur').slice(0, 200), note: String(x.note || '').slice(0, 300), channelId: String(x.channelId || ''), roleIds: (x.roleIds || []).map(String), excludeRoleIds: (x.excludeRoleIds || []).map(String), mode: ['all', 'active', 'overall'].includes(x.mode) ? x.mode : 'all', pinIds: (x.pinIds || []).map(String), hideIds: (x.hideIds || []).map(String), messageIds: p && p.channelId === x.channelId ? p.messageIds || [] : [] }; });
       cfg.save(); res.json({ ok: true, result: await postStructure().catch((e) => e.message), items: d.extra });
     });
     api.post('/members/directory/post', async (req, res) => { try { res.json({ result: await postStructure() }); } catch (e) { res.status(400).json({ error: e.message }); } });
@@ -400,6 +417,7 @@ function setup({ client, baseEmbed }) {
 
     api.post('/members/broadcast/preview', async (req, res) => { try { const t = await resolveTargets(req.body); res.json({ count: t.length, sample: t.slice(0, 12).map((m) => m.displayName) }); } catch (e) { res.status(400).json({ error: e.message }); } });
     api.post('/members/broadcast', async (req, res) => { try { res.json(await startBroadcast(req.body, req.session.user.username)); } catch (e) { res.status(400).json({ error: e.message }); } });
+    api.post('/members/names', async (req, res) => { const g = guild(); const out = {}; for (const id of (req.body.ids || []).slice(0, 200)) { const m = g?.members.cache.get(String(id)); out[id] = m ? m.displayName : id; } res.json(out); });
     api.get('/members/broadcast/search', (req, res) => {
       const g = guild(); const q = String(req.query.q || '').toLowerCase(); if (!g || q.length < 2) return res.json([]);
       res.json([...g.members.cache.filter((m) => !m.user.bot && (m.user.username.toLowerCase().includes(q) || (m.displayName || '').toLowerCase().includes(q))).values()].slice(0, 10).map((m) => ({ id: m.id, name: m.displayName, username: m.user.username })));

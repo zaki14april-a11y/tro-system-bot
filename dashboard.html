@@ -1646,6 +1646,11 @@ pages.activity.init = async () => {
 // ================== 🏛️ STRUKTUR & DATA ==================
 pages.directory = () => `<h1>🏛️ Struktur & Data Member</h1><div class="sub">Daftar struktur/anggota otomatis (update sendiri tiap role berubah) + kartu data visitor. Kartu data <b>member</b> diatur di menu Verifikasi → Channel data anggota.</div>
   <div class="grid g2"><div class="card"><h3>🏛️ Struktur & daftar member</h3><label>Judul</label><input id="dr-title"><label>Channel struktur</label>${sel('dr-ch', chOptions('', '— Pilih channel —'))}
+    <label>Tampilkan</label><select id="dr-mode"><option value="all">Semua anggota</option><option value="active">Hanya member aktif (+ pilihan admin)</option><option value="overall">Aktif + tidak aktif (ditandai 🟢 / ⚪)</option></select>
+    <div class="hint">Aktif = chat/voice dalam batas hari di menu Keaktifan (sekarang <b id="dr-days">30</b> hari).</div>
+    <label>Selalu tampilkan (meski tidak aktif)</label><div class="chips" id="dr-pins"></div>
+    <label>Sembunyikan dari struktur</label><div class="chips" id="dr-hides"></div>
+    <div class="row" style="margin-top:8px;position:relative"><input id="dr-q" placeholder="Cari member untuk ditambah…" style="flex:1"><div id="dr-sug" class="card" style="position:absolute;top:44px;left:0;right:0;z-index:20;padding:6px;display:none"></div></div>
     <label>Role yang ditampilkan (urut sesuai klik / posisi role)</label><div id="dr-roles"></div>
     <div class="actions"><button class="primary" id="dr-save">💾 Simpan & kirim</button></div></div>
   <div class="card"><h3>🎟️ Data visitor / tamu</h3><div class="hint">Setiap Tamu yang di-ACC otomatis dibuatkan kartu data di channel ini.</div><label>Channel data visitor</label>${sel('dr-vis', chOptions('', '— Tidak dikirim —'))}
@@ -1659,10 +1664,10 @@ pages.directory.init = async () => {
   let extra = (d.extra || []).map((x) => ({ ...x, roleIds: [...(x.roleIds || [])] }));
   const drawX = () => {
     $('#dx-list').innerHTML = extra.length ? extra.map((x, i) => `<div class="card" style="padding:14px" data-i="${i}"><div class="row"><input class="dx-t" value="${esc(x.title)}" placeholder="Judul, contoh: 🗂️ DATA ANGGOTA TRO BOYS" style="flex:1"><select class="dx-c" style="width:260px">${chOptions(x.channelId)}</select><button class="small danger dx-del">Hapus</button></div>
-      <input class="dx-n" value="${esc(x.note || '')}" placeholder="Keterangan singkat (opsional)" style="margin-top:8px"><label>Jangan tampilkan yang punya role</label><select class="dx-x"><option value="">— Tidak ada —</option>${S.guild.roles.map((r) => `<option value="${r.id}" ${(x.excludeRoleIds || [])[0] === r.id ? 'selected' : ''}>@${esc(r.name)}</option>`).join('')}</select><label>Role yang ditampilkan (urut sesuai klik)</label>
+      <input class="dx-n" value="${esc(x.note || '')}" placeholder="Keterangan singkat (opsional)" style="margin-top:8px"><label>Tampilkan</label><select class="dx-m"><option value="all" ${(x.mode || 'all') === 'all' ? 'selected' : ''}>Semua anggota</option><option value="active" ${x.mode === 'active' ? 'selected' : ''}>Hanya member aktif</option><option value="overall" ${x.mode === 'overall' ? 'selected' : ''}>Aktif + tidak aktif (🟢 / ⚪)</option></select><label>Jangan tampilkan yang punya role</label><select class="dx-x"><option value="">— Tidak ada —</option>${S.guild.roles.map((r) => `<option value="${r.id}" ${(x.excludeRoleIds || [])[0] === r.id ? 'selected' : ''}>@${esc(r.name)}</option>`).join('')}</select><label>Role yang ditampilkan (urut sesuai klik)</label>
       <div class="chips" style="margin-top:8px">${S.guild.roles.map((r) => `<span class="chip dx-r ${x.roleIds.includes(r.id) ? 'on' : ''}" data-id="${r.id}" style="border-left:3px solid ${r.color}">${x.roleIds.includes(r.id) ? `<b>${x.roleIds.indexOf(r.id) + 1}.</b> ` : ''}@${esc(r.name)}</span>`).join('')}</div></div>`).join('') : '<div class="hint">Belum ada struktur tambahan.</div>';
     document.querySelectorAll('#dx-list>.card').forEach((el) => { const i = +el.dataset.i;
-      el.querySelector('.dx-t').oninput = (e) => extra[i].title = e.target.value; el.querySelector('.dx-n').oninput = (e) => extra[i].note = e.target.value; el.querySelector('.dx-c').onchange = (e) => extra[i].channelId = e.target.value; el.querySelector('.dx-x').onchange = (e) => extra[i].excludeRoleIds = e.target.value ? [e.target.value] : [];
+      el.querySelector('.dx-t').oninput = (e) => extra[i].title = e.target.value; el.querySelector('.dx-n').oninput = (e) => extra[i].note = e.target.value; el.querySelector('.dx-c').onchange = (e) => extra[i].channelId = e.target.value; el.querySelector('.dx-m').onchange = (e) => extra[i].mode = e.target.value; el.querySelector('.dx-x').onchange = (e) => extra[i].excludeRoleIds = e.target.value ? [e.target.value] : [];
       el.querySelector('.dx-del').onclick = () => { extra.splice(i, 1); drawX(); };
       el.querySelectorAll('.dx-r').forEach((c) => c.onclick = (ev) => { ev.stopPropagation(); const id = c.dataset.id; const k = extra[i].roleIds.indexOf(id); if (k >= 0) extra[i].roleIds.splice(k, 1); else extra[i].roleIds.push(id); drawX(); }); });
   };
@@ -1677,7 +1682,26 @@ pages.directory.init = async () => {
   const order = [...d.structureRoleIds];
   const draw = () => { $('#dr-roles').innerHTML = `<div class="chips">${S.guild.roles.map((r) => `<span class="chip ${order.includes(r.id) ? 'on' : ''}" data-id="${r.id}" style="border-left:3px solid ${r.color}">${order.includes(r.id) ? `<b>${order.indexOf(r.id) + 1}.</b> ` : ''}@${esc(r.name)}</span>`).join('')}</div>`; document.querySelectorAll('#dr-roles .chip').forEach((c) => c.onclick = () => { const i = order.indexOf(c.dataset.id); if (i >= 0) order.splice(i, 1); else order.push(c.dataset.id); draw(); }); };
   draw();
-  $('#dr-save').onclick = (e) => busy(e.target, async () => { await api('/members/directory', { method: 'PUT', body: { title: $('#dr-title').value, structureChannelId: $('#dr-ch').value, prevChannelId: d.structureChannelId, visitorChannelId: $('#dr-vis').value, structureRoleIds: order } }); d.structureChannelId = $('#dr-ch').value; const r = await api('/members/directory/post', { method: 'POST', body: {} }); toast(r.result === 'ok' ? '✅ Struktur dikirim/diperbarui' : '⚠️ Pilih channel struktur'); });
+  let pins = [...(d.pinIds || [])], hides = [...(d.hideIds || [])]; const names = {};
+  $('#dr-mode').value = d.mode || 'all';
+  api('/members/activity?days=99999').then((a) => { if ($('#dr-days')) $('#dr-days').textContent = a.cfg.inactiveDays; }).catch(() => {});
+  const drawPH = async () => {
+    const need = [...pins, ...hides].filter((id) => !names[id]);
+    if (need.length) Object.assign(names, await api('/members/names', { method: 'POST', body: { ids: need } }).catch(() => ({})));
+    const chip = (id, kind) => `<span class="chip on" data-k="${kind}" data-id="${id}">${esc(names[id] || id)} ✕</span>`;
+    $('#dr-pins').innerHTML = pins.map((id) => chip(id, 'p')).join('') || '<span class="hint">—</span>';
+    $('#dr-hides').innerHTML = hides.map((id) => chip(id, 'h')).join('') || '<span class="hint">—</span>';
+    document.querySelectorAll('#dr-pins .chip, #dr-hides .chip').forEach((c) => c.onclick = (ev) => { ev.stopPropagation(); if (c.dataset.k === 'p') pins = pins.filter((x) => x !== c.dataset.id); else hides = hides.filter((x) => x !== c.dataset.id); drawPH(); });
+  };
+  drawPH();
+  let qt; $('#dr-q').oninput = () => { clearTimeout(qt); qt = setTimeout(async () => { const q = $('#dr-q').value.trim(); if (q.length < 2) { $('#dr-sug').style.display = 'none'; return; }
+    const list = await api('/members/broadcast/search?q=' + encodeURIComponent(q)).catch(() => []);
+    $('#dr-sug').style.display = list.length ? 'block' : 'none';
+    $('#dr-sug').innerHTML = list.map((m) => `<div class="row" style="padding:6px 8px;gap:8px"><b style="flex:1">${esc(m.name)}</b><span class="hint">@${esc(m.username)}</span><button class="small" data-pin="${m.id}" data-n="${esc(m.name)}">Selalu tampil</button><button class="small" data-hide="${m.id}" data-n="${esc(m.name)}">Sembunyikan</button></div>`).join('');
+    document.querySelectorAll('[data-pin]').forEach((b) => b.onclick = () => { names[b.dataset.pin] = b.dataset.n; if (!pins.includes(b.dataset.pin)) pins.push(b.dataset.pin); hides = hides.filter((x) => x !== b.dataset.pin); $('#dr-sug').style.display = 'none'; $('#dr-q').value = ''; drawPH(); });
+    document.querySelectorAll('[data-hide]').forEach((b) => b.onclick = () => { names[b.dataset.hide] = b.dataset.n; if (!hides.includes(b.dataset.hide)) hides.push(b.dataset.hide); pins = pins.filter((x) => x !== b.dataset.hide); $('#dr-sug').style.display = 'none'; $('#dr-q').value = ''; drawPH(); });
+  }, 250); };
+  $('#dr-save').onclick = (e) => busy(e.target, async () => { await api('/members/directory', { method: 'PUT', body: { title: $('#dr-title').value, structureChannelId: $('#dr-ch').value, prevChannelId: d.structureChannelId, visitorChannelId: $('#dr-vis').value, structureRoleIds: order, mode: $('#dr-mode').value, pinIds: pins, hideIds: hides } }); d.structureChannelId = $('#dr-ch').value; const r = await api('/members/directory/post', { method: 'POST', body: {} }); toast(r.result === 'ok' ? '✅ Struktur dikirim/diperbarui' : '⚠️ Pilih channel struktur'); });
 };
 
 // ================== 🛒 TRO SHOP ==================
