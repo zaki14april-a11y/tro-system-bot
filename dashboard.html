@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TRO SYSTEM — Dashboard</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦉</text></svg>">
-<script>(function(){var t='pro';try{t=localStorage.getItem('tro-theme')||'pro'}catch(e){}var d=document.documentElement;d.dataset.theme=t;d.dataset.mode=['light','fajar','kertas'].indexOf(t)>-1?'light':'dark'})()</script>
+<script>(function(){var t='pro';try{t=localStorage.getItem('tro-theme')||'pro'}catch(e){}var d=document.documentElement;d.dataset.theme=t;d.dataset.mode=['light','fajar','kertas'].indexOf(t)>-1?'light':'dark';var v='auto';try{v=localStorage.getItem('tro-view')||'auto'}catch(e){}if(v==='hp'||(v==='auto'&&window.innerWidth<=900))d.classList.add('m')})()</script>
 <style>
 :root{
   --bg:#0f0f12;--panel:#17171c;--panel2:#1e1e25;--line:#2a2a33;--text:#ececf1;--muted:#9a9aa8;
@@ -567,6 +567,43 @@ html[data-mode=light] .login a.btn{color:#fff}
 .tp .opt .nm{display:block;padding:7px 9px;font-size:12.5px;font-weight:600;color:var(--text);background:var(--panel)}
 
 @media(max-width:900px){.fl{grid-template-columns:1fr}}
+
+/* ===== Mode HP / auto-scale ===== */
+.mbtn,.scrim{display:none}
+html.m .app{display:block}
+html.m aside,html.m:not([data-theme=ordo]) aside{display:block!important;position:fixed!important;left:0;top:0;bottom:0;height:100vh!important;height:100dvh!important;width:min(84vw,300px)!important;z-index:60;transform:translateX(-105%);transition:transform .25s ease;box-shadow:0 0 50px rgba(0,0,0,.55);overscroll-behavior:contain}
+html.m aside:before{display:none}
+html.m body.nav-open aside{transform:none}
+html.m body.nav-open{overflow:hidden}
+html.m body.nav-open .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:55}
+html.m .mbtn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;margin-right:auto;flex:none}
+html.m .mbtn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+html.m header,html.m:not([data-theme=ordo]) header{padding:8px 10px!important;gap:6px;justify-content:flex-end}
+html.m header .user b,html.m header .user .tag{display:none}
+html.m header .pill{font-size:0;padding:7px;gap:0}
+html.m .tp>button{font-size:0;gap:0;padding:8px 10px}
+html.m .tp .menu{position:fixed;left:8px;right:8px;top:58px;width:auto;max-height:78vh;overflow:auto}
+html.m .content,html.m:not([data-theme=ordo]) .content{padding:16px 12px 90px!important;max-width:100%!important}
+html.m h1{font-size:22px!important;line-height:1.25}
+html.m h2{font-size:18px}
+html.m .card{padding:14px!important}
+html.m .grid,html.m .g2,html.m .g3,html.m .g4,html.m .field-row,html.m .q-row,html.m .cmd,html.m .fl,html.m .app-card{grid-template-columns:1fr!important}
+html.m .g4{grid-template-columns:1fr 1fr!important}
+@media(max-width:340px){html.m .g4{grid-template-columns:1fr!important}}
+html.m .embed .ef{grid-template-columns:1fr 1fr}
+html.m .week{grid-template-columns:repeat(2,1fr)!important}
+html.m table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
+html.m .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+html.m .tabs::-webkit-scrollbar{display:none}
+html.m .tabs>*{flex-shrink:0}
+html.m input,html.m select,html.m textarea{font-size:16px!important;max-width:100%}
+html.m button{min-height:38px}
+html.m img,html.m video,html.m iframe,html.m pre{max-width:100%}
+html.m pre{overflow-x:auto}
+html.m #toast{left:12px;right:12px;bottom:12px}
+html.m .toast{max-width:none}
+html.view-hp body{max-width:480px;margin:0 auto;box-shadow:0 0 0 1px var(--line)}
+.vw{display:flex;gap:6px;margin:12px 0 2px}.vw button{flex:1;font-size:12.5px;padding:7px}.vw button.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--ring)}
 </style>
 </head>
 <body>
@@ -696,9 +733,19 @@ const THEMES = [
 ];
 const themePicker = () => { const cur = THEMES.find((t) => t[0] === theme()) || THEMES[0];
   return `<div class="tp" id="tp"><button type="button" onclick="event.stopPropagation();document.getElementById('tp').classList.toggle('open')"><span class="sw"><i style="background:${cur[3]}"></i><i style="background:${cur[2]}"></i><i style="background:${cur[4]}"></i></span>${cur[1]}</button>
-  <div class="menu" onclick="event.stopPropagation()"><h4>Tema dashboard (tersimpan di browser ini)</h4><div class="opts">${THEMES.map(([k, n, side, bg, ac]) => `<button type="button" class="opt ${k === cur[0] ? 'on' : ''}" onclick="setTheme('${k}')"><span class="pv" style="background:${bg}"><b style="background:${side}"></b><span><em style="width:40%;background:${ac}"></em><em style="width:25%;background:${side}"></em></span></span><span class="nm">${n}</span></button>`).join('')}</div></div></div>`; };
+  <div class="menu" onclick="event.stopPropagation()"><h4>Tema dashboard (tersimpan di browser ini)</h4><div class="opts">${THEMES.map(([k, n, side, bg, ac]) => `<button type="button" class="opt ${k === cur[0] ? 'on' : ''}" onclick="setTheme('${k}')"><span class="pv" style="background:${bg}"><b style="background:${side}"></b><span><em style="width:40%;background:${ac}"></em><em style="width:25%;background:${side}"></em></span></span><span class="nm">${n}</span></button>`).join('')}</div><h4 style="margin-top:14px">Tampilan</h4><div class="vw">${[['auto','Otomatis'],['hp','Mode HP'],['desktop','Desktop']].map(([k,n]) => `<button type="button" class="${viewMode() === k ? 'on' : ''}" onclick="setView('${k}')">${n}</button>`).join('')}</div></div></div>`; };
 document.addEventListener('click', () => document.getElementById('tp')?.classList.remove('open'));
 const theme = () => document.documentElement.dataset.theme || 'pro';
+// ===== auto-scale: Otomatis (ikut lebar layar) / Mode HP / Desktop =====
+const viewMode = () => { try { return localStorage.getItem('tro-view') || 'auto'; } catch (e) { return 'auto'; } };
+function applyView() {
+  const v = viewMode(), H = document.documentElement, vp = document.querySelector('meta[name=viewport]');
+  if (vp) vp.content = v === 'desktop' ? 'width=1280' : 'width=device-width, initial-scale=1, viewport-fit=cover';
+  H.classList.toggle('view-hp', v === 'hp');
+  H.classList.toggle('m', v === 'hp' || (v === 'auto' && window.innerWidth <= 900));
+}
+function setView(v) { try { localStorage.setItem('tro-view', v); } catch (e) {} applyView(); document.body.classList.remove('nav-open'); }
+window.addEventListener('resize', applyView); applyView();
 function setTheme(t) { document.documentElement.dataset.theme = t; document.documentElement.dataset.mode = ['light', 'fajar', 'kertas'].includes(t) ? 'light' : 'dark'; try { localStorage.setItem('tro-theme', t); } catch (e) {} render(); }
 // tema non-Ordo: buang emoji di depan judul/tombol biar bersih
 const EMO = /^[\s‍️]*(?:[\p{Extended_Pictographic}\p{Regional_Indicator}][‍️\u{1F3FB}-\u{1F3FF}]*)+[\s‍️]*/u;
@@ -726,8 +773,8 @@ function layout(inner) {
   return `<div class="app"><aside>
     <div class="brand"><img src="${esc(g.icon || g.bot?.avatar || '')}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'crest fb big'}))"><div>TRO <span>SYSTEM</span><small><b>XIII</b>The Resilient Order</small></div></div>
     ${PAGES.map(([grp, all]) => [grp, all.filter(([k]) => (S.me.pages || []).includes(k))]).filter(([, items]) => items.length).map(([grp, items]) => `<div class="navgroup">${grp}</div><nav class="nav">${items.map(([k, ic, n]) => `<a href="#${k}" class="${S.page === k ? 'active' : ''}">${icon(k)}<span class="ne">${ic}</span> ${n}${k === 'applications' && S.pending ? `<span class="badge">${S.pending}</span>` : ''}</a>`).join('')}</nav>`).join('')}
-  </aside><main>
-    <header>${themePicker()}<span class="pill"><span class="dot ${g.online ? 'on' : ''}"></span>${g.online ? 'Bot online' : 'Bot offline'}</span>
+  </aside><div class="scrim" onclick="document.body.classList.remove('nav-open')"></div><main>
+    <header><button type="button" class="mbtn" aria-label="Menu" onclick="document.body.classList.toggle('nav-open')"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>${themePicker()}<span class="pill"><span class="dot ${g.online ? 'on' : ''}"></span>${g.online ? 'Bot online' : 'Bot offline'}</span>
       <div class="user"><img src="${esc(S.me.user.avatar)}"><b>${esc(S.me.user.username)}</b>${S.me.superAdmin ? '<span class="tag">Super Admin</span>' : ''}</div><a href="/logout"><button class="small">Keluar</button></a></header>
     <div class="content">${inner}</div></main></div>`;
 }
@@ -2055,6 +2102,7 @@ function render() {
   const [page, sub] = (location.hash.slice(1) || 'home').split('/');
   S.page = pages[page] && (S.me.pages || []).includes(page) ? page : 'home';
   if (S.page === 'posts' && sub) S.postKey = sub;
+  document.body.classList.remove('nav-open');
   $('#root').innerHTML = layout(pages[S.page]());
   tidyText($('#root'));
   Promise.resolve(pages[S.page].init?.()).finally(() => tidyText($('#root')));
