@@ -3,7 +3,7 @@
 //  Tamu: verif langsung di onboarding (✅ Verified + 🎟️ TAMU)
 //  TRO MEMBER: tetap lewat form pengajuan bot + ACC admin
 // ============================================================
-const { Events, GuildOnboardingMode, GuildOnboardingPromptType, PermissionFlagsBits: P, ChannelType } = require('discord.js');
+const { Events, ActionRowBuilder, ButtonBuilder, ButtonStyle, GuildOnboardingMode, GuildOnboardingPromptType, PermissionFlagsBits: P, ChannelType } = require('discord.js');
 const cfg = require('./config');
 
 const GEN = [
@@ -53,8 +53,8 @@ const GUIDE = {
   ],
 };
 
-function setup({ client }) {
-  const D = () => cfg.data('onboarding', { lastApply: null, lastError: '', joined: 0 });
+function setup({ client, baseEmbed }) {
+  const D = () => cfg.data('onboarding', { lastApply: null, lastError: '', joined: 0, remindAuto: true, remindMax: 3, reminded: {}, panelMessageId: '' });
   const guild = () => client.guilds.cache.get(process.env.GUILD_ID) || client.guilds.cache.first();
   const role = (g, name) => g.roles.cache.find((r) => r.name === name);
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -134,6 +134,41 @@ function setup({ client }) {
     return { ok: true, actions: new_member_actions.length, resources: resource_channels.length };
   }
 
+  // 🔔 notif wajib verifikasi → arahkan ke halaman pertanyaan onboarding (Channels & Roles → Customize)
+  const verifyUrl = (g) => `https://discord.com/channels/${g.id}/customize-community`;
+  const verifyRow = (g) => new ActionRowBuilder().addComponents(new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(verifyUrl(g)).setLabel('Verifikasi sekarang').setEmoji('✅'));
+  const unverifiedMembers = async (g) => { const un = cfg.get().verify.unverifiedRoleId; if (!un) return []; const ms = client.fetchMembers ? await client.fetchMembers(g) : await g.members.fetch(); return [...ms.values()].filter((m) => !m.user.bot && m.roles.cache.has(un)); };
+  async function postVerifyNotice() {
+    const g = guild(); const v = cfg.get().verify; const ch = v.panelChannelId && await client.channels.fetch(v.panelChannelId).catch(() => null);
+    if (!ch) throw new Error('Channel verifikasi belum diset');
+    const payload = { content: v.unverifiedRoleId ? `<@&${v.unverifiedRoleId}>` : undefined, allowedMentions: { roles: v.unverifiedRoleId ? [v.unverifiedRoleId] : [] },
+      embeds: [baseEmbed({ title: '⚠️ WAJIB VERIFIKASI', description: `Kamu belum verifikasi, jadi channel TRO masih terkunci 🔒\n\nKlik **✅ Verifikasi sekarang** → jawab beberapa pertanyaan singkat (gender, generasi, domisili, notif) → semua channel langsung kebuka.\n\n🦉 Mau jadi **TRO MEMBER**? Setelah verifikasi, ajukan lewat panel di channel ini (di-ACC admin).`, color: '#f59e0b' })], components: [verifyRow(g)] };
+    const old = D().panelMessageId && await ch.messages.fetch(D().panelMessageId).catch(() => null);
+    if (old) await old.edit({ content: null, embeds: [baseEmbed({ title: '⚠️ WAJIB VERIFIKASI', description: '⬇️ Pengingat terbaru ada di bawah.', color: '#7f8c8d' })], components: [] }).catch(() => {}); // pesan lama tidak dihapus, cuma ditandai
+    const m = await ch.send(payload); D().panelMessageId = m.id; cfg.save();
+    return m.id;
+  }
+  let reminding = null;
+  async function remindAll(force) {
+    if (reminding) return { running: true, ...reminding };
+    const g = guild(); if (!g) throw new Error('Guild belum siap');
+    const list = await unverifiedMembers(g); const d = D(); d.reminded ??= {};
+    reminding = { total: list.length, sent: 0, skipped: 0, failed: 0 };
+    (async () => {
+      for (const m of list) {
+        const r = d.reminded[m.id] || { n: 0, at: 0 };
+        if (!force && (r.n >= (d.remindMax || 3) || Date.now() - r.at < 20 * 3600e3)) { reminding.skipped++; continue; }
+        const ok = await m.send({ embeds: [baseEmbed({ title: '⚠️ Kamu belum verifikasi di THE RESILIENT ORDER', description: `Hai ${m.displayName}! Biar bisa ngobrol & ikut kegiatan di **TRO**, verifikasi dulu ya — cuma beberapa klik.\n\nKlik **✅ Verifikasi sekarang** di bawah, jawab pertanyaan singkatnya, beres 🦉`, color: '#f59e0b' })], components: [verifyRow(g)] }).then(() => 1).catch(() => 0);
+        if (ok) { reminding.sent++; d.reminded[m.id] = { n: r.n + 1, at: Date.now() }; } else reminding.failed++;
+        await sleep(1500);
+      }
+      d.lastRemind = { at: new Date().toISOString(), ...reminding }; cfg.save(); reminding = null;
+    })().catch(() => { reminding = null; });
+    return { started: true, total: list.length };
+  }
+  // pengingat otomatis sehari sekali (maks remindMax kali per orang)
+  setInterval(() => { if (D().remindAuto && D().lastApply && guild()) remindAll(false).catch(() => {}); }, 6 * 3600e3).unref?.();
+
   // selesai onboarding (dapat ✅ Verified / 🎟️ TAMU) → cabut ⏳ Belum Verifikasi biar Verified tidak dicabut autoroles
   client.on(Events.GuildMemberUpdate, async (o, n) => {
     try {
@@ -142,7 +177,7 @@ function setup({ client }) {
       const ok = [ar.verifiedId, ...(v.guestRoleIds || [])].filter(Boolean);
       const gained = ok.some((id) => n.roles.cache.has(id) && !o.roles?.cache?.has(id));
       if (!gained) return;
-      await n.roles.remove(un, 'Selesai onboarding (verif tamu)').catch(() => {});
+      await n.roles.remove(un, 'Selesai onboarding (verif tamu)').catch(() => {}); delete D().reminded?.[n.id];
       D().joined = (D().joined || 0) + 1; cfg.saveSoon?.();
     } catch (e) { console.error('[onboarding]', e.message); }
   });
@@ -156,6 +191,10 @@ function setup({ client }) {
           current: cur ? { enabled: cur.enabled, mode: cur.mode, prompts: [...cur.prompts.values()].map((p) => ({ title: p.title, required: p.required, options: p.options.size })), defaultChannels: cur.defaultChannels.size } : null });
       } catch (e) { res.status(400).json({ error: e.message }); }
     });
+    api.get('/onboarding/unverified', async (req, res) => { try { const g = guild(); const l = await unverifiedMembers(g); res.json({ count: l.length, reminding, last: D().lastRemind || null, auto: D().remindAuto, sample: l.slice(0, 20).map((m) => ({ id: m.id, name: m.displayName, joined: m.joinedAt })) }); } catch (e) { res.status(400).json({ error: e.message }); } });
+    api.post('/onboarding/notice', async (req, res) => { try { res.json({ id: await postVerifyNotice() }); } catch (e) { res.status(400).json({ error: e.message }); } });
+    api.post('/onboarding/remind', async (req, res) => { try { res.json(await remindAll(!!req.body?.force)); } catch (e) { res.status(400).json({ error: e.message }); } });
+    api.put('/onboarding/settings', (req, res) => { const d = D(); if (req.body.remindAuto !== undefined) d.remindAuto = !!req.body.remindAuto; if (Number(req.body.remindMax) >= 0) d.remindMax = Number(req.body.remindMax); cfg.save(); res.json({ ok: true }); });
     api.post('/onboarding/guide', async (req, res) => { try { res.json(await applyGuide()); } catch (e) { D().guideError = e.message; cfg.save(); res.status(400).json({ error: e.message }); } });
     api.post('/onboarding/apply', async (req, res) => { try { res.json(await apply()); } catch (e) { res.status(400).json({ error: e.message }); } });
   }
