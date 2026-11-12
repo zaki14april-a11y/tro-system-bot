@@ -21,6 +21,8 @@ function setup({ client, baseEmbed }) {
     x.reviewChannelId ??= ''; x.dmBuyer ??= true; x.askReview ??= true;
     // 💳 pembayaran DANA + harga Robux per 1.000
     x.robuxRate ??= 157000; x.robuxMin ??= 100; x.robuxTax ??= 0; x.robuxCost ??= 145000; x.danaNumber ??= ''; x.danaName ??= ''; x.danaLink ??= 'https://link.dana.id/minta?full_url=https://qr.dana.id/v1/281012012026030286102268&r=kYJ875'; x.proofChannelId ??= '';
+    // 📦 tugas kirim Robux: DM ke penerima tugas setelah order dibayar
+    x.deliverUserIds ??= ['563752367305261107', '1417817696048775190']; x.robloxGroupId ??= '901582211'; x.deliverRemindMin ??= 15;
     if (!x.payMigrated) { x.payMigrated = true; if (/saweria|qris|gopay|transfer bank/i.test(x.payInfo || '')) x.payInfo = ''; }
     x.payInfo ??= '';
     x.guideText ??= '**1.** Cek harga di 「💰」price-list-robux atau 「🛍️」katalog-shop\n**2.** Buka tiket di 「🎟️」open-ticket-robux → pilih jenis order\n**3.** Klik **Isi form order** di tiket → total harga keluar otomatis\n**4.** Bayar sesuai metode yang tertera, kirim bukti di tiket\n**5.** Staff proses pesanan → kamu dapat DM tiap status berubah\n**6.** Selesai! Kasih review bintang ⭐ lewat DM — tampil di 「⭐」review-cust-trolley\n\n⚠️ **Transaksi hanya lewat tiket resmi.** Staff TRO tidak pernah minta bayar lewat DM pribadi.';
@@ -112,7 +114,7 @@ function setup({ client, baseEmbed }) {
       payment: String(b.payment ?? o.payment ?? '').slice(0, 60), note: String(b.note ?? o.note ?? '').slice(0, 500), ticketChannelId: String(b.ticketChannelId ?? o.ticketChannelId ?? ''),
     });
     const prevStatus = o.status;
-    if (b.status && b.status !== o.status) { o.history.push({ from: o.status, to: b.status, by, at: new Date().toISOString() }); o.status = b.status; if (['proses', 'selesai'].includes(b.status)) o.handledBy = by; if (b.status === 'selesai') { o.doneAt = new Date().toISOString(); if (p && p.stock !== '' && p.stock != null) p.stock = Math.max(0, Number(p.stock) - qty); } }
+    if (b.status && b.status !== o.status) { o.history.push({ from: o.status, to: b.status, by, at: new Date().toISOString() }); o.status = b.status; if (['proses', 'selesai'].includes(b.status)) o.handledBy = by; if (b.status === 'dibayar') { o.paidAt = new Date().toISOString(); setTimeout(() => sendDeliveryTask(o).catch((e) => console.error('[shop deliver]', e.message)), 500); } if (b.status === 'selesai') { o.doneAt = new Date().toISOString(); if (p && p.stock !== '' && p.stock != null) p.stock = Math.max(0, Number(p.stock) - qty); } }
     cfg.save();
     logOrder(o, b.status ? `Status → ${STATUS[o.status]} oleh ${by}` : `Order dicatat oleh ${by}`).catch(() => {});
     dmBuyer(o, isNew ? null : prevStatus).catch(() => {});
@@ -246,6 +248,62 @@ function setup({ client, baseEmbed }) {
     } catch (e) { const r = { content: '⚠️ ' + e.message, flags: MessageFlags.Ephemeral }; (it.deferred || it.replied ? it.editReply(r) : it.reply(r)).catch(() => {}); }
   });
 
+  // 📦 kartu tugas kirim Robux → DM penerima tugas (USN dikirim terpisah biar gampang di-copy)
+  const payoutUrl = () => `https://www.roblox.com/communities/configure?id=${S().robloxGroupId}#!/revenue/payouts`;
+  function deliveryEmbed(o, doneBy) {
+    return baseEmbed({ title: `📦 Kirim Robux — Order #${o.no}${doneBy ? ' ✅' : ''}`,
+      description: doneBy ? `✅ **Sudah dikirim** oleh **${doneBy}** <t:${Math.floor(Date.now() / 1000)}:R>.` : `Pembayaran **sudah dikonfirmasi**. Kirim Robux lewat **One-time Payout** grup, lalu klik **Robux sudah dikirim**.\nUsername dikirim terpisah di bawah — tahan & **Copy**.`,
+      fields: [
+        { name: 'Username Roblox (USN)', value: o.robloxUser ? `\`${o.robloxUser}\`` : '⚠️ belum diisi — cek tiket', inline: true },
+        { name: 'Jumlah', value: `**${o.robux ? Number(o.robux).toLocaleString('id-ID') + ' Robux' : o.productName}**`, inline: true },
+        { name: 'Total dibayar', value: rp(o.total), inline: true },
+        { name: 'Pembeli', value: `<@${o.customerId}>`, inline: true },
+        { name: 'Tiket', value: o.ticketChannelId ? `<#${o.ticketChannelId}>` : '-', inline: true },
+      ], color: doneBy ? '#30a46c' : '#f59e0b' });
+  }
+  function deliveryRow(o, disabled) {
+    return new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId(`tro-dlv:done:${o.id}`).setLabel('Robux sudah dikirim').setEmoji('✅').setStyle(ButtonStyle.Success).setDisabled(!!disabled),
+      new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(payoutUrl()).setLabel('Buka One-time Payout').setEmoji('💸'),
+      ...(o.robloxUser ? [new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(`https://www.roblox.com/search/users?keyword=${encodeURIComponent(o.robloxUser)}`).setLabel('Cek profil').setEmoji('🔎')] : []));
+  }
+  async function sendDeliveryTask(o, reminder) {
+    if (o.status !== 'dibayar') return;
+    o.deliveryMsgs ??= [];
+    for (const uid of S().deliverUserIds || []) {
+      const u = await client.users.fetch(uid).catch(() => null); if (!u) continue;
+      const m = await u.send({ content: reminder ? `⏰ **Pengingat:** order #${o.no} sudah dibayar tapi Robux belum dikirim.` : undefined, embeds: [deliveryEmbed(o)], components: [deliveryRow(o)] }).catch(() => null);
+      if (!m) continue;
+      o.deliveryMsgs.push({ ch: m.channelId, id: m.id });
+      if (o.robloxUser) await u.send({ content: o.robloxUser }).catch(() => {});
+    }
+    cfg.save();
+  }
+  // pengingat kalau sudah dibayar tapi belum dikirim
+  setInterval(() => {
+    const lim = (Number(S().deliverRemindMin) || 15) * 60e3, now = Date.now();
+    for (const o of D().orders) {
+      if (o.status !== 'dibayar' || !o.paidAt) continue;
+      const last = o.remindedAt ? new Date(o.remindedAt).getTime() : new Date(o.paidAt).getTime();
+      if (now - last >= lim && (o.reminders || 0) < 3) { o.remindedAt = new Date().toISOString(); o.reminders = (o.reminders || 0) + 1; sendDeliveryTask(o, true).catch(() => {}); }
+    }
+  }, 60e3).unref?.();
+  client.on(Events.InteractionCreate, async (it) => {
+    if (!it.isButton() || !it.customId.startsWith('tro-dlv:')) return;
+    try {
+      const o = D().orders.find((x) => x.id === it.customId.split(':')[2]);
+      if (!o) return it.reply({ content: '❌ Order tidak ditemukan.', flags: MessageFlags.Ephemeral });
+      if (!(S().deliverUserIds || []).includes(it.user.id) && !isStaff(it.member)) return it.reply({ content: '⛔ Kamu bukan penerima tugas kirim Robux.', flags: MessageFlags.Ephemeral });
+      if (o.status === 'selesai') return it.reply({ content: `✅ Order #${o.no} sudah ditandai selesai${o.deliveredBy ? ` oleh ${o.deliveredBy}` : ''}.`, flags: MessageFlags.Ephemeral });
+      o.deliveredBy = it.user.username; o.deliveredAt = new Date().toISOString();
+      upsertOrder({ id: o.id, status: 'selesai' }, `${it.user.username} (kirim Robux)`);
+      await it.update({ embeds: [deliveryEmbed(o, it.user.username)], components: [deliveryRow(o, true)] }).catch(() => {});
+      for (const d of o.deliveryMsgs || []) { if (d.id === it.message?.id) continue; const ch = await client.channels.fetch(d.ch).catch(() => null); const m = ch && await ch.messages.fetch(d.id).catch(() => null); if (m) m.edit({ embeds: [deliveryEmbed(o, it.user.username)], components: [deliveryRow(o, true)] }).catch(() => {}); }
+      const tk = o.ticketChannelId && await client.channels.fetch(o.ticketChannelId).catch(() => null);
+      if (tk) tk.send({ content: `<@${o.customerId}>`, embeds: [baseEmbed({ title: `✅ Robux terkirim — Order #${o.no}`, description: `**${o.robux ? Number(o.robux).toLocaleString('id-ID') + ' Robux' : o.productName}** sudah dikirim ke **${o.robloxUser || 'akun kamu'}** 🦉\nCek di Roblox ya (riwayat Robux / Transactions). Makasih udah belanja di ${S().brand}! Rating bisa lewat DM dari bot.`, color: '#30a46c' })], allowedMentions: { users: [o.customerId] } }).catch(() => {});
+    } catch (e) { it.reply({ content: '⚠️ ' + e.message, flags: MessageFlags.Ephemeral }).catch(() => {}); }
+  });
+
   // 📸 terima bukti TF: pembeli kirim gambar di tiket yang punya order menunggu bayar
   client.on(Events.MessageCreate, async (msg) => {
     try {
@@ -281,6 +339,9 @@ function setup({ client, baseEmbed }) {
       for (const [k, m] of [['panelChannelId', 'panelMessageId'], ['priceChannelId', 'priceMessageId'], ['guideChannelId', 'guideMessageId']]) if (b[k] !== undefined && b[k] !== s[k]) { s[k] = String(b[k]); s[m] = ''; }
       if (b.reviewChannelId !== undefined) s.reviewChannelId = String(b.reviewChannelId);
       if (Array.isArray(b.staffRoleIds)) s.staffRoleIds = b.staffRoleIds.map(String);
+      if (Array.isArray(b.deliverUserIds)) s.deliverUserIds = b.deliverUserIds.map(String).filter((x) => /^\d{15,}$/.test(x));
+      if (b.robloxGroupId !== undefined) s.robloxGroupId = String(b.robloxGroupId).replace(/\D/g, '');
+      if (b.deliverRemindMin !== undefined && Number(b.deliverRemindMin) >= 0) s.deliverRemindMin = Number(b.deliverRemindMin);
       for (const k of ['dmBuyer', 'askReview']) if (b[k] !== undefined) s[k] = !!b[k];
       cfg.save(); res.json({ ok: true }); });
     api.post('/shop/trolley/post', async (req, res) => { try { res.json(await postAllTrolley()); } catch (e) { res.status(400).json({ error: e.message }); } });
