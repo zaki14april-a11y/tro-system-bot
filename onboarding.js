@@ -92,7 +92,8 @@ function setup({ client, baseEmbed }) {
         options: GEN.map(([n, d, e]) => opt(n, d, e, [role(g, n)?.id])) },
       { title: 'Domisili kamu di mana?', singleSelect: true, required: true, inOnboarding: true, type: GuildOnboardingPromptType.Dropdown,
         options: PROV.map(([n, d, e]) => opt(n.replace('📍 ', ''), d, e, [role(g, n)?.id])) },
-      { title: 'Mau dapat notifikasi apa aja?', singleSelect: false, required: false, inOnboarding: true, type: GuildOnboardingPromptType.MultipleChoice,
+      { title: 'Mau dapat notifikasi apa aja?', singleSelect: false, required: false, inOnboarding: false, // Discord: maks 4 pertanyaan di layar onboarding → yang ini muncul di Channels & Roles → Customize
+        type: GuildOnboardingPromptType.MultipleChoice,
         options: NOTIF.map(([n, d, e]) => opt(n.replace(/^\S+\s/, ''), d, e, [role(g, n)?.id])) },
     ].map((p) => ({ ...p, options: p.options.filter((o) => o.roles.length) })).filter((p) => p.options.length);
   }
