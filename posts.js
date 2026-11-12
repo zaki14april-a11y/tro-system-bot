@@ -131,24 +131,24 @@ Aturan dapat berubah sewaktu-waktu. Tetap berada di server = setuju dengan perub
       {
         title: '💰 PRICE LIST ROBUX',
         description:
-`**Harga Robux: Rp155.000 / 1.000 RBX** (Rp155 per Robux)
+`**Harga Robux: Rp157.000 / 1.000 RBX** (Rp157 per Robux)
 **Via Username (USN)** — tanpa login akun & tanpa gamepass, Robux masuk utuh.
 
 \`\`\`
-  100 RBX  →  Rp15.500
-  200 RBX  →  Rp31.000
-  300 RBX  →  Rp46.500
-  400 RBX  →  Rp62.000
-  500 RBX  →  Rp77.500
-  600 RBX  →  Rp93.000
-  700 RBX  →  Rp108.500
-  800 RBX  →  Rp124.000
-  900 RBX  →  Rp139.500
-1.000 RBX  →  Rp155.000
-1.500 RBX  →  Rp232.500
-2.000 RBX  →  Rp310.000
-2.500 RBX  →  Rp387.500
-3.000 RBX  →  Rp465.000
+  100 RBX  →  Rp15.700
+  200 RBX  →  Rp31.400
+  300 RBX  →  Rp47.100
+  400 RBX  →  Rp62.800
+  500 RBX  →  Rp78.500
+  600 RBX  →  Rp94.200
+  700 RBX  →  Rp109.900
+  800 RBX  →  Rp125.600
+  900 RBX  →  Rp141.300
+1.000 RBX  →  Rp157.000
+1.500 RBX  →  Rp235.500
+2.000 RBX  →  Rp314.000
+2.500 RBX  →  Rp392.500
+3.000 RBX  →  Rp471.000
 \`\`\`
 Nominal lain? Tulis aja jumlahnya di form order, total keluar otomatis.
 
