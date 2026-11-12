@@ -108,11 +108,20 @@ function setup({ client, baseEmbed }) {
     // default channel: yang kelihatan untuk tamu terverifikasi (info + ngobrol), maks 30
     const pool = chansFor(g, [verified, tamu].filter(Boolean)).sort((a, b) => a.rawPosition - b.rawPosition);
     const defaultChannels = [...pool.keys()].slice(0, 30);
+    // Discord kadang membatasi jumlah pertanyaan → coba beberapa versi sampai diterima
+    const variants = [prompts, prompts.filter((p) => p.inOnboarding), prompts.filter((p) => p.inOnboarding).slice(0, 3), prompts.slice(0, 2)];
+    let lastErr = null;
+    for (const [vi, ps] of variants.entries()) {
+      if (vi && JSON.stringify(ps) === JSON.stringify(variants[vi - 1])) continue;
+      try {
+        const res = await g.editOnboarding({ enabled: true, mode: GuildOnboardingMode.OnboardingAdvanced, prompts: ps, defaultChannels, reason: 'TRO SYSTEM onboarding' });
+        Object.assign(D(), { lastApply: new Date().toISOString(), lastError: '', variant: vi }); cfg.save();
+        const guide = await applyGuide().catch((e) => { D().guideError = e.message; cfg.save(); return { ok: false, error: e.message }; });
+        return { ok: true, variant: vi, rolesCreated: made, prompts: res.prompts.size, questions: ps.map((p) => p.title), defaultChannels: res.defaultChannels.size, enabled: res.enabled, guide };
+      } catch (e) { lastErr = e; if (!/TOO_MANY|too many/i.test(e.message)) break; }
+    }
     try {
-      const res = await g.editOnboarding({ enabled: true, mode: GuildOnboardingMode.OnboardingAdvanced, prompts, defaultChannels, reason: 'TRO SYSTEM onboarding' });
-      Object.assign(D(), { lastApply: new Date().toISOString(), lastError: '' }); cfg.save();
-      const guide = await applyGuide().catch((e) => { D().guideError = e.message; cfg.save(); return { ok: false, error: e.message }; });
-      return { ok: true, rolesCreated: made, prompts: res.prompts.size, defaultChannels: res.defaultChannels.size, enabled: res.enabled, guide };
+      throw lastErr;
     } catch (e) {
       // kalau syarat channel kurang, coba simpan dulu tanpa enable biar pertanyaan tersimpan
       let saved = false;
@@ -188,7 +197,7 @@ function setup({ client, baseEmbed }) {
       try {
         const g = guild(); if (!g) return res.json({ ready: false });
         const cur = await g.fetchOnboarding().catch(() => null);
-        res.json({ ready: true, community: g.features.includes('COMMUNITY'), ...D(),
+        res.json({ ready: true, version: 'ob-3', community: g.features.includes('COMMUNITY'), ...D(),
           current: cur ? { enabled: cur.enabled, mode: cur.mode, prompts: [...cur.prompts.values()].map((p) => ({ title: p.title, required: p.required, options: p.options.size })), defaultChannels: cur.defaultChannels.size } : null });
       } catch (e) { res.status(400).json({ error: e.message }); }
     });
