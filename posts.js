@@ -132,7 +132,7 @@ Aturan dapat berubah sewaktu-waktu. Tetap berada di server = setuju dengan perub
         title: '💰 PRICE LIST ROBUX',
         description:
 `**Harga Robux: Rp155.000 / 1.000 RBX** (Rp155 per Robux)
-Via Username (USN) — tanpa login akun, aman & cepat.
+**Via Username (USN)** — tanpa login akun & tanpa gamepass, Robux masuk utuh.
 
 \`\`\`
   100 RBX  →  Rp15.500
@@ -208,7 +208,7 @@ Terima kasih atas dukungannya, TRO Family! 🦉`,
 - Gift Robux via Gamepass
 - Robux Gift Komunitas → [join community dulu](${COMMUNITY})
 
-**3️⃣** Klik **Isi form order** di ticket → isi jumlah Robux, username Roblox & nama akun DANA kamu → **total keluar otomatis**
+**3️⃣** Klik **Isi form order** di ticket → isi jumlah Robux, username Roblox (USN) & nama akun DANA kamu → **total keluar otomatis**
 **4️⃣** Transfer via **DANA** ke nomor yang muncul di ticket (DANA only)
 **5️⃣** Kirim **screenshot bukti TF** di ticket → bot catat, admin cek & konfirmasi
 **6️⃣** Tunggu admin proses ⏱️ **1–10 menit** — kamu dapat DM tiap status berubah
