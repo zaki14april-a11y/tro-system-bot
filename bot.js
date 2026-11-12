@@ -75,7 +75,7 @@ client.fetchMembers = async (g) => {
 // ---------------- verifikasi & undangan fams ----------------
 const fams = require('./fams').setup({ client, baseEmbed, securityLog });
 const tracker = require('./tracker').setup({ client, baseEmbed });
-const modules = ['notify', 'boost', 'archive', 'forms', 'channels', 'tickets', 'levels', 'engage', 'moderation', 'community', 'guide', 'members', 'shop', 'divisions']
+const modules = ['notify', 'boost', 'archive', 'forms', 'channels', 'tickets', 'levels', 'engage', 'moderation', 'community', 'guide', 'members', 'shop', 'divisions', 'onboarding']
   .map((name) => ({ name, ...require(`./${name}`).setup({ client, baseEmbed, securityLog }) }));
 
 // ---------------- postingan resmi ----------------
