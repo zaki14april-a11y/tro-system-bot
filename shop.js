@@ -18,14 +18,14 @@ function setup({ client, baseEmbed }) {
     x.panelChannelId ??= ''; x.panelMessageId ??= ''; x.priceChannelId ??= ''; x.priceMessageId ??= ''; x.guideChannelId ??= ''; x.guideMessageId ??= '';
     x.reviewChannelId ??= ''; x.dmBuyer ??= true; x.askReview ??= true;
     // 💳 pembayaran DANA + harga Robux per 1.000
-    x.robuxRate ??= 155000; x.robuxMin ??= 100; x.robuxTax ??= 30; x.robuxCost ??= 145000; x.danaNumber ??= ''; x.danaName ??= ''; x.proofChannelId ??= '';
+    x.robuxRate ??= 155000; x.robuxMin ??= 100; x.robuxTax ??= 0; x.robuxCost ??= 145000; x.danaNumber ??= ''; x.danaName ??= ''; x.proofChannelId ??= '';
     if (!x.payMigrated) { x.payMigrated = true; if (/saweria|qris|gopay|transfer bank/i.test(x.payInfo || '')) x.payInfo = ''; }
     x.payInfo ??= '';
     x.guideText ??= '**1.** Cek harga di 「💰」price-list-robux atau 「🛍️」katalog-shop\n**2.** Buka tiket di 「🎟️」open-ticket-robux → pilih jenis order\n**3.** Klik **Isi form order** di tiket → total harga keluar otomatis\n**4.** Bayar sesuai metode yang tertera, kirim bukti di tiket\n**5.** Staff proses pesanan → kamu dapat DM tiap status berubah\n**6.** Selesai! Kasih review bintang ⭐ lewat DM — tampil di 「⭐」review-cust-trolley\n\n⚠️ **Transaksi hanya lewat tiket resmi.** Staff TRO tidak pernah minta bayar lewat DM pribadi.';
     return x;
   };
   const D = () => cfg.data('shopData', { products: [], orders: [], counter: 0 });
-  // Roblox potong tax gamepass (default 30%) → pembeli bikin gamepass lebih mahal, harga dihitung dari harga gamepass
+  // via USN: tax 0% (Robux masuk utuh). Kalau suatu saat via gamepass, isi tax (mis. 30%) di dashboard → harga dihitung dari harga gamepass
   const gpPrice = (n) => { const t = Math.min(90, Math.max(0, Number(S().robuxTax) || 0)); return t ? Math.ceil((Number(n) || 0) * 100 / (100 - t)) : (Number(n) || 0); };
   const robuxPrice = (n) => Math.round(gpPrice(n) * (Number(S().robuxRate) || 155000) / 1000);
   const robuxCostOf = (n) => Math.round(gpPrice(n) * (Number(S().robuxCost) || 0) / 1000);
@@ -71,7 +71,7 @@ function setup({ client, baseEmbed }) {
         { name: 'Pembayaran', value: o.payment || '-', inline: true },
         { name: 'Ditangani', value: o.handledBy || '-', inline: true },
         { name: 'Tiket', value: o.ticketChannelId ? `<#${o.ticketChannelId}>` : '-', inline: true },
-        ...(o.gamepass ? [{ name: 'Harga gamepass', value: `**${o.gamepass.toLocaleString('id-ID')} Robux** (terima ${Number(o.robux || 0).toLocaleString('id-ID')} bersih)`, inline: true }] : []),
+        ...(o.gamepass && o.gamepass > (o.robux || 0) ? [{ name: 'Harga gamepass', value: `**${o.gamepass.toLocaleString('id-ID')} Robux** (terima ${Number(o.robux || 0).toLocaleString('id-ID')} bersih)`, inline: true }] : []),
         ...(o.robloxUser ? [{ name: 'Username Roblox', value: o.robloxUser, inline: true }] : []),
         ...(o.danaName || o.danaNo ? [{ name: 'DANA pengirim', value: [o.danaName, o.danaNo].filter(Boolean).join(' · '), inline: true }] : []),
         ...(o.proof?.url ? [{ name: 'Bukti TF', value: `[Lihat bukti](${o.proof.url})${o.proof.msgUrl ? ` · [pesan di tiket](${o.proof.msgUrl})` : ''}`, inline: true }] : []),
@@ -188,7 +188,7 @@ function setup({ client, baseEmbed }) {
         const names = D().products.filter((p) => p.active !== false).map((p) => p.name).join(', ');
         const modal = new ModalBuilder().setCustomId(`tro-shopm:${it.customId.split(':')[2]}`).setTitle(`Form order ${S().brand}`.slice(0, 45));
         const f = (id, label, ph, long, req = true) => new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId(id).setLabel(label).setPlaceholder(ph.slice(0, 100)).setStyle(long ? TextInputStyle.Paragraph : TextInputStyle.Short).setRequired(req).setMaxLength(long ? 500 : 100));
-        modal.addComponents(f('prod', 'Robux bersih yang mau diterima / produk', 'contoh: 1000 Robux (tax dihitung otomatis) / nama asset', false), f('rbx', 'Username Roblox', 'username akun Roblox penerima', false), f('dname', 'Nama akun DANA kamu (pengirim)', 'nama yang muncul di DANA', false), f('dno', 'Nomor DANA kamu (pengirim)', '08xxxxxxxxxx', false, false), f('note', 'Catatan (opsional)', 'link gamepass / detail lain', true, false));
+        modal.addComponents(f('prod', 'Jumlah Robux / nama produk', 'contoh: 1000 Robux · 2500 rbx · nama asset', false), f('rbx', 'Username Roblox (USN) penerima', 'username akun Roblox, bukan display name', false), f('dname', 'Nama akun DANA kamu (pengirim)', 'nama yang muncul di DANA', false), f('dno', 'Nomor DANA kamu (pengirim)', '08xxxxxxxxxx', false, false), f('note', 'Catatan (opsional)', 'link gamepass / detail lain', true, false));
         return it.showModal(modal);
       }
       if (it.isModalSubmit() && it.customId.startsWith('tro-shopm:')) {
@@ -197,9 +197,9 @@ function setup({ client, baseEmbed }) {
         if (rbxN && rbxN < (Number(S().robuxMin) || 0)) return it.reply({ content: `⚠️ Minimal order **${S().robuxMin} Robux**.`, flags: MessageFlags.Ephemeral });
         const qty = 1;
         const o = upsertOrder({ customerId: it.user.id, customerName: it.user.username, productId: p?.id, productName: rbxN ? `${rbxN.toLocaleString('id-ID')} Robux` : (p ? p.name : prod), category: rbxN ? 'robux' : p?.category, qty, total: rbxN ? robuxPrice(rbxN) : (p ? '' : 0), payment: 'DANA', note: g('note'), ticketChannelId: it.channelId }, `${it.user.username} (form)`);
-        Object.assign(o, rbxN ? { gamepass: gpPrice(rbxN), cost: robuxCostOf(rbxN), profit: o.total - robuxCostOf(rbxN) } : {}, { robux: rbxN || undefined, robloxUser: g('rbx').slice(0, 60), danaName: g('dname').slice(0, 60), danaNo: g('dno').replace(/[^\d+]/g, '').slice(0, 20) }); cfg.save(); setTimeout(() => logOrder(o).catch(() => {}), 4000);
+        Object.assign(o, rbxN ? { gamepass: gpPrice(rbxN) > rbxN ? gpPrice(rbxN) : undefined, cost: robuxCostOf(rbxN), profit: o.total - robuxCostOf(rbxN) } : {}, { robux: rbxN || undefined, robloxUser: g('rbx').slice(0, 60), danaName: g('dname').slice(0, 60), danaNo: g('dno').replace(/[^\d+]/g, '').slice(0, 20) }); cfg.save(); setTimeout(() => logOrder(o).catch(() => {}), 4000);
         const known = rbxN || p;
-        return it.reply({ content: (S().staffRoleIds || []).map((r) => `<@&${r}>`).join(' ') || undefined, embeds: [orderEmbed(o), baseEmbed({ title: '💳 Langkah berikutnya', description: `${known ? `Total yang harus dibayar: **${rp(o.total)}**${rbxN ? `\n\n🎟️ **Bikin gamepass seharga ${gpPrice(rbxN).toLocaleString('id-ID')} Robux** (Roblox potong tax ${S().robuxTax}% → kamu terima **${rbxN.toLocaleString('id-ID')} Robux bersih**)\n_Harga: ${gpPrice(rbxN).toLocaleString('id-ID')} Robux gamepass × ${rp(S().robuxRate)} / 1.000 — sudah termasuk tax_` : ''}` : '⚠️ Produk belum ada di katalog — staff akan konfirmasi harganya dulu, **jangan transfer dulu** sebelum harga dikonfirmasi.'}\n\n${payText()}`, color: '#f5c542' })], allowedMentions: { roles: S().staffRoleIds || [] } });
+        return it.reply({ content: (S().staffRoleIds || []).map((r) => `<@&${r}>`).join(' ') || undefined, embeds: [orderEmbed(o), baseEmbed({ title: '💳 Langkah berikutnya', description: `${known ? `Total yang harus dibayar: **${rp(o.total)}**${rbxN ? (gpPrice(rbxN) > rbxN ? `\n\n🎟️ **Bikin gamepass seharga ${gpPrice(rbxN).toLocaleString('id-ID')} Robux** (Roblox potong tax ${S().robuxTax}% → kamu terima **${rbxN.toLocaleString('id-ID')} Robux bersih**)` : `\n_${rbxN.toLocaleString('id-ID')} Robux × ${rp(S().robuxRate)} / 1.000 · via USN (username), Robux masuk utuh_`) : ''}` : '⚠️ Produk belum ada di katalog — staff akan konfirmasi harganya dulu, **jangan transfer dulu** sebelum harga dikonfirmasi.'}\n\n${payText()}`, color: '#f5c542' })], allowedMentions: { roles: S().staffRoleIds || [] } });
       }
       // ✅ / ❌ staff cek bukti TF
       if (it.isButton() && it.customId.startsWith('tro-pay:')) {
