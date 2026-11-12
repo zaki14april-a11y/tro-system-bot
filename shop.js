@@ -1,13 +1,13 @@
 // ============================================================
 //  🛒 TRO SHOP — produk (Robux / asset / script) & order
 // ============================================================
-const { Events, SlashCommandBuilder, MessageFlags, PermissionFlagsBits: P, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { Events, SlashCommandBuilder, MessageFlags, PermissionFlagsBits: P, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const cfg = require('./config');
 
 const newId = () => Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 4);
 const rp = (n) => 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID');
 const CATS = { robux: '💰 Robux', asset: '🧩 Asset', script: '📜 Script', map: '🗺️ Map', jasa: '🛠️ Jasa', lain: '📦 Lainnya' };
-const STATUS = { baru: '🆕 Baru', dibayar: '💳 Dibayar', proses: '⚙️ Diproses', selesai: '✅ Selesai', batal: '❌ Batal' };
+const STATUS = { baru: '🆕 Baru', cek: '🔎 Cek bukti TF', dibayar: '💳 Dibayar', proses: '⚙️ Diproses', selesai: '✅ Selesai', batal: '❌ Batal' };
 
 function setup({ client, baseEmbed }) {
   const S = () => {
@@ -17,11 +17,26 @@ function setup({ client, baseEmbed }) {
     x.brand ??= 'TROlley'; x.orderTypeIds ??= ['robux', 'asset'];
     x.panelChannelId ??= ''; x.panelMessageId ??= ''; x.priceChannelId ??= ''; x.priceMessageId ??= ''; x.guideChannelId ??= ''; x.guideMessageId ??= '';
     x.reviewChannelId ??= ''; x.dmBuyer ??= true; x.askReview ??= true;
-    x.payInfo ??= 'Pembayaran: **QRIS / DANA / GoPay / transfer bank**. Kirim bukti bayar di tiket ini, staff akan cek & proses.';
+    // 💳 pembayaran DANA + harga Robux per 1.000
+    x.robuxRate ??= 155000; x.robuxMin ??= 100; x.danaNumber ??= ''; x.danaName ??= ''; x.proofChannelId ??= '';
+    if (!x.payMigrated) { x.payMigrated = true; if (/saweria|qris|gopay|transfer bank/i.test(x.payInfo || '')) x.payInfo = ''; }
+    x.payInfo ??= '';
     x.guideText ??= '**1.** Cek harga di 「💰」price-list-robux atau 「🛍️」katalog-shop\n**2.** Buka tiket di 「🎟️」open-ticket-robux → pilih jenis order\n**3.** Klik **Isi form order** di tiket → total harga keluar otomatis\n**4.** Bayar sesuai metode yang tertera, kirim bukti di tiket\n**5.** Staff proses pesanan → kamu dapat DM tiap status berubah\n**6.** Selesai! Kasih review bintang ⭐ lewat DM — tampil di 「⭐」review-cust-trolley\n\n⚠️ **Transaksi hanya lewat tiket resmi.** Staff TRO tidak pernah minta bayar lewat DM pribadi.';
     return x;
   };
   const D = () => cfg.data('shopData', { products: [], orders: [], counter: 0 });
+  const robuxPrice = (n) => Math.round((Number(n) || 0) * (Number(S().robuxRate) || 155000) / 1000);
+  // "1000", "1.000 robux", "1k rbx", "2,5k" → jumlah Robux; selain itu null
+  function parseRobux(t) {
+    const x = String(t || '').trim().toLowerCase();
+    const m = x.match(/(?:r\$\s*)?(\d[\d.,]*)\s*(k|rb|ribu)?\s*(rbx|robux)/) || x.match(/^r\$\s*(\d[\d.,]*)\s*(k)?$/) || x.match(/^(\d[\d.]*)\s*(k|rb|ribu)?$/) || x.match(/^(\d+,\d+)\s*(k|rb|ribu)$/);
+    if (!m) return null;
+    const n = m[2] ? parseFloat(m[1].replace(/\./g, '').replace(',', '.')) * 1000 : parseInt(m[1].replace(/[.,]/g, ''), 10);
+    return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+  }
+  const payText = () => { const s = S();
+    return `💳 Pembayaran **hanya via DANA** → **${s.danaNumber || '(nomor DANA belum diisi)'}**${s.danaName ? ` a.n. **${s.danaName}**` : ''}\n📸 Setelah transfer, **kirim screenshot bukti TF di tiket ini** — bot otomatis catat & staff konfirmasi.${s.payInfo ? `\n${s.payInfo}` : ''}`; };
+  const isStaff = (m) => !!m && (m.permissions?.has(P.ManageMessages) || (S().staffRoleIds || []).some((r) => m.roles?.cache?.has(r)));
 
   function catalogEmbeds() {
     const s = S(), d = D();
@@ -53,9 +68,12 @@ function setup({ client, baseEmbed }) {
         { name: 'Pembayaran', value: o.payment || '-', inline: true },
         { name: 'Ditangani', value: o.handledBy || '-', inline: true },
         { name: 'Tiket', value: o.ticketChannelId ? `<#${o.ticketChannelId}>` : '-', inline: true },
+        ...(o.robloxUser ? [{ name: 'Username Roblox', value: o.robloxUser, inline: true }] : []),
+        ...(o.danaName || o.danaNo ? [{ name: 'DANA pengirim', value: [o.danaName, o.danaNo].filter(Boolean).join(' · '), inline: true }] : []),
+        ...(o.proof?.url ? [{ name: 'Bukti TF', value: `[Lihat bukti](${o.proof.url})${o.proof.msgUrl ? ` · [pesan di tiket](${o.proof.msgUrl})` : ''}`, inline: true }] : []),
         ...(o.note ? [{ name: 'Catatan', value: o.note }] : []),
       ],
-      color: { selesai: '#30a46c', batal: '#7f8c8d', dibayar: '#3b82f6', proses: '#f59e0b' }[o.status],
+      color: { selesai: '#30a46c', batal: '#7f8c8d', dibayar: '#3b82f6', proses: '#f59e0b', cek: '#a855f7' }[o.status],
     });
   }
 
@@ -103,7 +121,7 @@ function setup({ client, baseEmbed }) {
       if (sub === 'catat') {
         const prod = it.options.getString('produk'); const d = D();
         const p = d.products.find((x) => x.name.toLowerCase() === prod.toLowerCase() || x.id === prod);
-        const o = upsertOrder({ customerId: it.options.getUser('pembeli').id, customerName: it.options.getUser('pembeli').username, productId: p?.id, productName: prod, qty: it.options.getInteger('jumlah') || 1, total: it.options.getInteger('total') ?? '', payment: it.options.getString('bayar') || '', ticketChannelId: it.channelId }, by);
+        const o = upsertOrder({ customerId: it.options.getUser('pembeli').id, customerName: it.options.getUser('pembeli').username, productId: p?.id, productName: prod, qty: it.options.getInteger('jumlah') || 1, total: it.options.getInteger('total') ?? '', payment: it.options.getString('bayar') || 'DANA', ticketChannelId: it.channelId }, by);
         return it.reply({ embeds: [orderEmbed(o)], allowedMentions: { parse: [] } });
       }
       if (sub === 'status') {
@@ -124,7 +142,7 @@ function setup({ client, baseEmbed }) {
   const findProduct = (q) => { const d = D(); const t = String(q || '').toLowerCase().trim(); return d.products.find((p) => p.active !== false && (p.name.toLowerCase() === t)) || d.products.find((p) => p.active !== false && t && (p.name.toLowerCase().includes(t) || t.includes(p.name.toLowerCase()))); };
   function priceEmbed(cat) {
     const list = D().products.filter((p) => p.active !== false && (!cat || p.category === cat));
-    return baseEmbed({ title: cat === 'robux' ? `💰 PRICE LIST ROBUX — ${S().brand}` : `💰 DAFTAR HARGA — ${S().brand}`, description: list.length ? list.map((p) => `**${p.name}** — ${rp(p.price)}${p.stock !== '' && p.stock != null && Number(p.stock) <= 0 ? ' · ~~habis~~' : ''}${p.desc ? `\n> ${p.desc}` : ''}`).join('\n').slice(0, 4000) + `\n\n${S().payInfo}` : 'Harga sedang diperbarui. Tanya staff lewat tiket ya 🙏', color: '#f5c542' });
+    return baseEmbed({ title: cat === 'robux' ? `💰 PRICE LIST ROBUX — ${S().brand}` : `💰 DAFTAR HARGA — ${S().brand}`, description: list.length ? list.map((p) => `**${p.name}** — ${rp(p.price)}${p.stock !== '' && p.stock != null && Number(p.stock) <= 0 ? ' · ~~habis~~' : ''}${p.desc ? `\n> ${p.desc}` : ''}`).join('\n').slice(0, 4000) + `\n\n${payText()}` : 'Harga sedang diperbarui. Tanya staff lewat tiket ya 🙏', color: '#f5c542' });
   }
   async function upsertMsg(chKey, msgKey, payload) {
     const s = S(); if (!s[chKey]) return 'nochannel';
@@ -153,7 +171,7 @@ function setup({ client, baseEmbed }) {
   async function dmBuyer(o, prev) {
     const s = S(); if (!o.customerId || !s.dmBuyer || prev === o.status) return;
     const u = await client.users.fetch(o.customerId).catch(() => null); if (!u) return;
-    const msg = { dibayar: 'Pembayaran kamu sudah dikonfirmasi 💳', proses: 'Pesanan kamu sedang diproses ⚙️', selesai: 'Pesanan kamu **selesai**! Makasih udah belanja 🦉', batal: 'Pesanan kamu dibatalkan.' }[o.status];
+    const msg = { cek: 'Bukti transfer kamu **sudah diterima**, lagi dicek staff 🔎', dibayar: 'Pembayaran kamu sudah dikonfirmasi 💳', proses: 'Pesanan kamu sedang diproses ⚙️', selesai: 'Pesanan kamu **selesai**! Makasih udah belanja 🦉', batal: 'Pesanan kamu dibatalkan.' }[o.status];
     if (!msg) return;
     const comps = o.status === 'selesai' && s.askReview && !o.rating ? [new ActionRowBuilder().addComponents([1, 2, 3, 4, 5].map((n) => new ButtonBuilder().setCustomId(`tro-rev:${o.id}:${n}`).setLabel('⭐'.repeat(n)).setStyle(n >= 4 ? ButtonStyle.Success : ButtonStyle.Secondary)))] : [];
     u.send({ embeds: [baseEmbed({ title: `🧾 ${s.brand} — Order #${o.no}`, description: `${msg}\n\n**Produk:** ${o.productName}${o.qty > 1 ? ` ×${o.qty}` : ''}\n**Total:** ${rp(o.total)}${comps.length ? '\n\n**Kasih rating dong!** Klik bintang di bawah — review kamu bantu pembeli lain 🙏' : ''}`, color: '#f5c542' })], components: comps }).catch(() => {});
@@ -166,15 +184,33 @@ function setup({ client, baseEmbed }) {
         const names = D().products.filter((p) => p.active !== false).map((p) => p.name).join(', ');
         const modal = new ModalBuilder().setCustomId(`tro-shopm:${it.customId.split(':')[2]}`).setTitle(`Form order ${S().brand}`.slice(0, 45));
         const f = (id, label, ph, long, req = true) => new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId(id).setLabel(label).setPlaceholder(ph.slice(0, 100)).setStyle(long ? TextInputStyle.Paragraph : TextInputStyle.Short).setRequired(req).setMaxLength(long ? 500 : 100));
-        modal.addComponents(f('prod', 'Produk', names ? `contoh: ${names}` : 'contoh: 1000 Robux', false), f('qty', 'Jumlah', '1', false), f('rbx', 'Username Roblox', 'username akun Roblox kamu', false), f('pay', 'Metode bayar', 'QRIS / DANA / GoPay / transfer', false), f('note', 'Catatan (opsional)', 'link gamepass / detail lain', true, false));
+        modal.addComponents(f('prod', 'Order (jumlah Robux / nama produk)', 'contoh: 1000 Robux · 2500 rbx · nama asset', false), f('rbx', 'Username Roblox', 'username akun Roblox penerima', false), f('dname', 'Nama akun DANA kamu (pengirim)', 'nama yang muncul di DANA', false), f('dno', 'Nomor DANA kamu (pengirim)', '08xxxxxxxxxx', false, false), f('note', 'Catatan (opsional)', 'link gamepass / detail lain', true, false));
         return it.showModal(modal);
       }
       if (it.isModalSubmit() && it.customId.startsWith('tro-shopm:')) {
-        const prod = it.fields.getTextInputValue('prod'); const p = findProduct(prod);
-        const qty = Math.max(1, parseInt(it.fields.getTextInputValue('qty'), 10) || 1);
-        const note = [`Roblox: ${it.fields.getTextInputValue('rbx')}`, it.fields.getTextInputValue('note')].filter(Boolean).join(' · ');
-        const o = upsertOrder({ customerId: it.user.id, customerName: it.user.username, productId: p?.id, productName: p ? p.name : prod, category: p?.category, qty, total: p ? '' : 0, payment: it.fields.getTextInputValue('pay'), note, ticketChannelId: it.channelId }, `${it.user.username} (form)`);
-        return it.reply({ content: (S().staffRoleIds || []).map((r) => `<@&${r}>`).join(' ') || undefined, embeds: [orderEmbed(o), baseEmbed({ title: '💳 Langkah berikutnya', description: `${p ? `Total yang harus dibayar: **${rp(o.total)}**` : '⚠️ Produk belum ada di katalog — staff akan konfirmasi harganya dulu.'}\n\n${S().payInfo}`, color: '#f5c542' })], allowedMentions: { roles: S().staffRoleIds || [] } });
+        const g = (k) => { try { return it.fields.getTextInputValue(k) || ''; } catch { return ''; } };
+        const prod = g('prod'); const rbxN = parseRobux(prod); const p = rbxN ? null : findProduct(prod);
+        if (rbxN && rbxN < (Number(S().robuxMin) || 0)) return it.reply({ content: `⚠️ Minimal order **${S().robuxMin} Robux**.`, flags: MessageFlags.Ephemeral });
+        const qty = 1;
+        const o = upsertOrder({ customerId: it.user.id, customerName: it.user.username, productId: p?.id, productName: rbxN ? `${rbxN.toLocaleString('id-ID')} Robux` : (p ? p.name : prod), category: rbxN ? 'robux' : p?.category, qty, total: rbxN ? robuxPrice(rbxN) : (p ? '' : 0), payment: 'DANA', note: g('note'), ticketChannelId: it.channelId }, `${it.user.username} (form)`);
+        Object.assign(o, { robux: rbxN || undefined, robloxUser: g('rbx').slice(0, 60), danaName: g('dname').slice(0, 60), danaNo: g('dno').replace(/[^\d+]/g, '').slice(0, 20) }); cfg.save(); setTimeout(() => logOrder(o).catch(() => {}), 4000);
+        const known = rbxN || p;
+        return it.reply({ content: (S().staffRoleIds || []).map((r) => `<@&${r}>`).join(' ') || undefined, embeds: [orderEmbed(o), baseEmbed({ title: '💳 Langkah berikutnya', description: `${known ? `Total yang harus dibayar: **${rp(o.total)}**${rbxN ? `\n_(${rbxN.toLocaleString('id-ID')} Robux × ${rp(S().robuxRate)} / 1.000)_` : ''}` : '⚠️ Produk belum ada di katalog — staff akan konfirmasi harganya dulu, **jangan transfer dulu** sebelum harga dikonfirmasi.'}\n\n${payText()}`, color: '#f5c542' })], allowedMentions: { roles: S().staffRoleIds || [] } });
+      }
+      // ✅ / ❌ staff cek bukti TF
+      if (it.isButton() && it.customId.startsWith('tro-pay:')) {
+        const [, act, oid] = it.customId.split(':'); const o = D().orders.find((x) => x.id === oid);
+        if (!o) return it.reply({ content: '❌ Order tidak ditemukan.', flags: MessageFlags.Ephemeral });
+        if (!isStaff(it.member)) return it.reply({ content: '⛔ Cuma staff shop yang bisa konfirmasi pembayaran.', flags: MessageFlags.Ephemeral });
+        if (act === 'ok') {
+          upsertOrder({ id: o.id, status: 'dibayar' }, it.user.username);
+          await it.update({ components: [] }).catch(() => {});
+          return it.followUp({ content: `✅ Pembayaran order **#${o.no}** dikonfirmasi oleh ${it.user}. Pesanan segera diproses <@${o.customerId}> 🦉`, allowedMentions: { users: [o.customerId] } });
+        }
+        if (o.proof) o.proof.rejected = true;
+        upsertOrder({ id: o.id, status: 'baru' }, it.user.username);
+        await it.update({ components: [] }).catch(() => {});
+        return it.followUp({ content: `❌ Bukti TF order **#${o.no}** belum valid (dicek oleh ${it.user}). <@${o.customerId}> tolong kirim ulang screenshot bukti transfer DANA yang jelas ya.`, allowedMentions: { users: [o.customerId] } });
       }
       if (it.isButton() && it.customId.startsWith('tro-rev:')) {
         const [, oid, n] = it.customId.split(':'); const o = D().orders.find((x) => x.id === oid);
@@ -197,6 +233,25 @@ function setup({ client, baseEmbed }) {
     } catch (e) { const r = { content: '⚠️ ' + e.message, flags: MessageFlags.Ephemeral }; (it.deferred || it.replied ? it.editReply(r) : it.reply(r)).catch(() => {}); }
   });
 
+  // 📸 terima bukti TF: pembeli kirim gambar di tiket yang punya order menunggu bayar
+  client.on(Events.MessageCreate, async (msg) => {
+    try {
+      if (!msg.guild || msg.author.bot || !msg.attachments?.size) return;
+      const img = [...msg.attachments.values()].find((a) => /^image\//.test(a.contentType || '') || /\.(png|jpe?g|webp|gif|heic)$/i.test(a.name || ''));
+      if (!img) return;
+      const o = D().orders.find((x) => x.ticketChannelId === msg.channelId && x.customerId === msg.author.id && ['baru', 'cek'].includes(x.status));
+      if (!o) return;
+      let url = img.url;
+      const keepCh = (S().proofChannelId || S().logChannelId) && await client.channels.fetch(S().proofChannelId || S().logChannelId).catch(() => null);
+      if (keepCh) { const kept = await keepCh.send({ content: `📸 Bukti TF order **#${o.no}** dari <@${o.customerId}> · total ${rp(o.total)}`, files: [new AttachmentBuilder(img.url, { name: img.name || 'bukti.png' })], allowedMentions: { parse: [] } }).catch(() => null); if (kept?.attachments?.first()) url = kept.attachments.first().url; }
+      o.proof = { url, msgUrl: msg.url, at: new Date().toISOString() }; o.proofs = [...(o.proofs || []), o.proof].slice(-5);
+      upsertOrder({ id: o.id, status: 'cek' }, `${msg.author.username} (bukti TF)`);
+      const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`tro-pay:ok:${o.id}`).setLabel('Konfirmasi dibayar').setEmoji('✅').setStyle(ButtonStyle.Success), new ButtonBuilder().setCustomId(`tro-pay:no:${o.id}`).setLabel('Bukti tidak valid').setEmoji('❌').setStyle(ButtonStyle.Danger));
+      await msg.reply({ content: (S().staffRoleIds || []).map((r) => `<@&${r}>`).join(' ') || undefined, embeds: [baseEmbed({ title: `🔎 Bukti TF diterima — Order #${o.no}`, description: `Makasih ${msg.author}! Bukti transfer kamu sudah **tercatat**. Staff akan cek mutasi DANA lalu konfirmasi.\n\n**Order:** ${o.productName}\n**Total:** ${rp(o.total)}\n**Username Roblox:** ${o.robloxUser || '-'}\n**DANA pengirim:** ${[o.danaName, o.danaNo].filter(Boolean).join(' · ') || '-'}`, image: url, color: '#a855f7' })], components: [row], allowedMentions: { roles: S().staffRoleIds || [] } });
+      client.notifyStaff?.('order', { title: `Bukti TF masuk — Order #${o.no}`, description: `**Pembeli:** <@${o.customerId}>\n**Order:** ${o.productName} · **Total:** ${rp(o.total)}\n**DANA pengirim:** ${[o.danaName, o.danaNo].filter(Boolean).join(' · ') || '-'}\n**Tiket:** <#${o.ticketChannelId}>\nCek mutasi DANA lalu klik ✅ Konfirmasi di tiket.` });
+    } catch (e) { console.error('[shop proof]', e.message); }
+  });
+
   function routes(api) {
     api.get('/shop', (req, res) => res.json({ cfg: S(), ...D(), summary: summary(), cats: CATS, statuses: STATUS }));
     api.put('/shop/settings', (req, res) => { const s = S(); for (const k of ['catalogChannelId', 'logChannelId', 'title', 'footerNote']) if (req.body[k] !== undefined) { if (k === 'catalogChannelId' && s.catalogChannelId !== req.body[k]) s.catalogMessageId = ''; s[k] = String(req.body[k]); } cfg.save(); res.json({ ok: true }); });
@@ -208,7 +263,8 @@ function setup({ client, baseEmbed }) {
     });
     api.delete('/shop/products/:id', (req, res) => { const d = D(); d.products = d.products.filter((p) => p.id !== req.params.id); cfg.save(); postCatalog().catch(() => {}); res.json({ ok: true }); });
     api.put('/shop/trolley', (req, res) => { const s = S(); const b = req.body;
-      for (const k of ['brand', 'payInfo', 'guideText']) if (b[k] !== undefined) s[k] = String(b[k]).slice(0, 3000);
+      for (const k of ['brand', 'payInfo', 'guideText', 'danaNumber', 'danaName', 'proofChannelId']) if (b[k] !== undefined) s[k] = String(b[k]).slice(0, 3000);
+      for (const k of ['robuxRate', 'robuxMin']) if (b[k] !== undefined && b[k] !== '' && Number(b[k]) >= 0) s[k] = Math.round(Number(b[k]));
       for (const [k, m] of [['panelChannelId', 'panelMessageId'], ['priceChannelId', 'priceMessageId'], ['guideChannelId', 'guideMessageId']]) if (b[k] !== undefined && b[k] !== s[k]) { s[k] = String(b[k]); s[m] = ''; }
       if (b.reviewChannelId !== undefined) s.reviewChannelId = String(b.reviewChannelId);
       if (Array.isArray(b.staffRoleIds)) s.staffRoleIds = b.staffRoleIds.map(String);
@@ -226,12 +282,13 @@ function setup({ client, baseEmbed }) {
       .addStringOption((o) => o.setName('produk').setDescription('Nama produk').setRequired(true))
       .addIntegerOption((o) => o.setName('jumlah').setDescription('Jumlah (default 1)'))
       .addIntegerOption((o) => o.setName('total').setDescription('Total harga (kosong = otomatis dari katalog)'))
-      .addStringOption((o) => o.setName('bayar').setDescription('Metode bayar (QRIS, Dana, dll)')))
+      .addStringOption((o) => o.setName('bayar').setDescription('Metode bayar (default DANA)')))
     .addSubcommand((s) => s.setName('status').setDescription('Ubah status order')
       .addStringOption((o) => o.setName('nomor').setDescription('Nomor order, contoh 0001').setRequired(true))
       .addStringOption((o) => o.setName('status').setDescription('Status baru').setRequired(true).addChoices(...Object.entries(STATUS).map(([v, n]) => ({ name: n, value: v })))))
     .addSubcommand((s) => s.setName('list').setDescription('Lihat order yang masih aktif')).toJSON()];
 
+  client.trolley = { robuxPrice, payText, rate: () => S().robuxRate };
   return { commands, routes, postCatalog };
 }
 
