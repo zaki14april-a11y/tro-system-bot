@@ -32,6 +32,27 @@ const NOTIF = [
   ['🎤 Karaoke & Music', 'Sesi karaoke & musik', '🎤'],
 ];
 
+// 🧭 Server Guide: sambutan + langkah Get Started (urut, kayak jalan tutorial) + kotak info
+const GUIDE = {
+  author: '563752367305261107',
+  message: 'Selamat datang di THE RESILIENT ORDER! 🦉 Komunitas Roblox TRO TEAM. Ikuti langkah Get Started di bawah: kenalan, baca rules, ambil role, lalu sapa warga TRO. Mau jadi TRO MEMBER? Ajukan di #verifikasi (di-ACC admin).',
+  actions: [
+    [/who-we-are/, 0, 'Kenalan sama TRO', 'Siapa kami & apa aja di TRO', '🦉'],
+    [/」rules$/, 0, 'Baca rules TRO', 'Aturan biar semua nyaman', '📜'],
+    [/ambil-role/, 0, 'Ambil role kamu', 'Notif, mabar, karaoke & lainnya', '🎭'],
+    [/global-chat/, 1, 'Sapa warga TRO!', 'Kenalin diri kamu di sini', '💬'],
+    [/」verifikasi$/, 0, 'Mau jadi TRO MEMBER?', 'Isi form, tunggu ACC admin', '🪪'],
+  ],
+  resources: [
+    [/」announcements$/, 'Pengumuman', 'Info resmi TRO', '🔔'],
+    [/」events$/, 'Event', 'Acara & kegiatan TRO', '🎊'],
+    [/server-update/, 'Update server', 'Perubahan & fitur baru', '🆕'],
+    [/price-list-robux/, 'TROlley — harga Robux', 'Price list & cara beli', '💰'],
+    [/trolley-guide/, 'Cara order TROlley', 'Panduan order lewat tiket', '🛒'],
+    [/buka-tiket/, 'Butuh bantuan?', 'Buka tiket ke staff', '🎫'],
+  ],
+};
+
 function setup({ client }) {
   const D = () => cfg.data('onboarding', { lastApply: null, lastError: '', joined: 0 });
   const guild = () => client.guilds.cache.get(process.env.GUILD_ID) || client.guilds.cache.first();
@@ -89,7 +110,8 @@ function setup({ client }) {
     try {
       const res = await g.editOnboarding({ enabled: true, mode: GuildOnboardingMode.OnboardingAdvanced, prompts, defaultChannels, reason: 'TRO SYSTEM onboarding' });
       Object.assign(D(), { lastApply: new Date().toISOString(), lastError: '' }); cfg.save();
-      return { ok: true, rolesCreated: made, prompts: res.prompts.size, defaultChannels: res.defaultChannels.size, enabled: res.enabled };
+      const guide = await applyGuide().catch((e) => { D().guideError = e.message; cfg.save(); return { ok: false, error: e.message }; });
+      return { ok: true, rolesCreated: made, prompts: res.prompts.size, defaultChannels: res.defaultChannels.size, enabled: res.enabled, guide };
     } catch (e) {
       // kalau syarat channel kurang, coba simpan dulu tanpa enable biar pertanyaan tersimpan
       let saved = false;
@@ -97,6 +119,19 @@ function setup({ client }) {
       D().lastError = e.message; cfg.save();
       return { ok: false, error: e.message, savedDisabled: saved, rolesCreated: made, defaultChannels: defaultChannels.length };
     }
+  }
+
+  async function applyGuide() {
+    const g = guild(); if (!g) throw new Error('Guild belum siap');
+    const ar = cfg.data('autoroles', {}), v = cfg.get().verify;
+    const seen = chansFor(g, [ar.verifiedId || role(g, '✅ Verified')?.id, (v.guestRoleIds || [])[0]].filter(Boolean));
+    const find = (re) => seen.find((c) => re.test(c.name));
+    const new_member_actions = GUIDE.actions.map(([re, type, title, description, emoji]) => { const c = find(re); return c && { channel_id: c.id, action_type: type, title, description, emoji: { name: emoji }, icon: null }; }).filter(Boolean);
+    const resource_channels = GUIDE.resources.map(([re, title, description, emoji]) => { const c = find(re); return c && { channel_id: c.id, title, description, emoji: { name: emoji }, icon: null }; }).filter(Boolean);
+    const body = { enabled: true, welcome_message: { author_ids: [GUIDE.author], message: GUIDE.message }, new_member_actions, resource_channels };
+    await client.rest.put(`/guilds/${g.id}/new-member-welcome`, { body });
+    D().guideAt = new Date().toISOString(); D().guideError = ''; cfg.save();
+    return { ok: true, actions: new_member_actions.length, resources: resource_channels.length };
   }
 
   // selesai onboarding (dapat ✅ Verified / 🎟️ TAMU) → cabut ⏳ Belum Verifikasi biar Verified tidak dicabut autoroles
@@ -121,6 +156,7 @@ function setup({ client }) {
           current: cur ? { enabled: cur.enabled, mode: cur.mode, prompts: [...cur.prompts.values()].map((p) => ({ title: p.title, required: p.required, options: p.options.size })), defaultChannels: cur.defaultChannels.size } : null });
       } catch (e) { res.status(400).json({ error: e.message }); }
     });
+    api.post('/onboarding/guide', async (req, res) => { try { res.json(await applyGuide()); } catch (e) { D().guideError = e.message; cfg.save(); res.status(400).json({ error: e.message }); } });
     api.post('/onboarding/apply', async (req, res) => { try { res.json(await apply()); } catch (e) { res.status(400).json({ error: e.message }); } });
   }
 
