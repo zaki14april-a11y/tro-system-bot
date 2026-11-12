@@ -23,6 +23,8 @@ function setup({ client, baseEmbed }) {
     x.robuxRate ??= 157000; x.robuxMin ??= 100; x.robuxTax ??= 0; x.robuxCost ??= 145000; x.danaNumber ??= ''; x.danaName ??= ''; x.danaLink ??= 'https://link.dana.id/minta?full_url=https://qr.dana.id/v1/281012012026030286102268&r=kYJ875'; x.proofChannelId ??= '';
     // 📦 tugas kirim Robux: DM ke penerima tugas setelah order dibayar
     x.deliverUserIds ??= ['563752367305261107', '1417817696048775190']; x.robloxGroupId ??= '901582211'; x.deliverRemindMin ??= 15;
+    // 📦 stok Robux ('' = tak terbatas). Dipotong saat order dikonfirmasi dibayar, dikembalikan kalau dibatalkan
+    x.robuxStock ??= ''; x.communityUrl ??= 'https://www.roblox.com/share/g/901582211'; x.stockAnnounceChannelId ??= '1451475306329280512'; x.soldOutAnnounced ??= false;
     if (!x.payMigrated) { x.payMigrated = true; if (/saweria|qris|gopay|transfer bank/i.test(x.payInfo || '')) x.payInfo = ''; }
     x.payInfo ??= '';
     x.guideText ??= '**1.** Cek harga di 「💰」price-list-robux atau 「🛍️」katalog-shop\n**2.** Buka tiket di 「🎟️」open-ticket-robux → pilih jenis order\n**3.** Klik **Isi form order** di tiket → total harga keluar otomatis\n**4.** Bayar sesuai metode yang tertera, kirim bukti di tiket\n**5.** Staff proses pesanan → kamu dapat DM tiap status berubah\n**6.** Selesai! Kasih review bintang ⭐ lewat DM — tampil di 「⭐」review-cust-trolley\n\n⚠️ **Transaksi hanya lewat tiket resmi.** Staff TRO tidak pernah minta bayar lewat DM pribadi.';
@@ -32,6 +34,28 @@ function setup({ client, baseEmbed }) {
   // via USN: tax 0% (Robux masuk utuh). Kalau suatu saat via gamepass, isi tax (mis. 30%) di dashboard → harga dihitung dari harga gamepass
   const gpPrice = (n) => { const t = Math.min(90, Math.max(0, Number(S().robuxTax) || 0)); return t ? Math.ceil((Number(n) || 0) * 100 / (100 - t)) : (Number(n) || 0); };
   const robuxPrice = (n) => Math.round(gpPrice(n) * (Number(S().robuxRate) || 157000) / 1000);
+  const hasStock = () => S().robuxStock !== '' && S().robuxStock != null;
+  // Robux yang lagi "ditahan" order belum dibayar (≤ 3 jam) biar ga oversell
+  const heldRobux = (exceptId) => D().orders.filter((o) => o.id !== exceptId && o.robux && !o.stockDeducted && ['baru', 'cek'].includes(o.status) && Date.now() - new Date(o.createdAt).getTime() < 3 * 3600e3).reduce((a, o) => a + Number(o.robux), 0);
+  const availRobux = (exceptId) => hasStock() ? Math.max(0, Number(S().robuxStock) - heldRobux(exceptId)) : Infinity;
+  async function stockChanged() {
+    const s = S(); upsertMsg('panelChannelId', 'panelMessageId', orderPanel()).catch(() => {});
+    if (!hasStock()) return;
+    const st = Number(s.robuxStock);
+    if (st < (Number(s.robuxMin) || 100) && !s.soldOutAnnounced && s.stockAnnounceChannelId) {
+      s.soldOutAnnounced = true; cfg.save();
+      const ch = await client.channels.fetch(s.stockAnnounceChannelId).catch(() => null);
+      if (ch) ch.send({ embeds: [baseEmbed({ title: '🔴 ROBUX SOLD OUT', description: `Stok Robux **habis** — makasih buat semua yang udah order 🦉\nOrder yang sudah dibayar tetap diproses. Restock diumumkan di channel ini.`, color: '#e5484d' })] }).catch(() => {});
+      client.notifyStaff?.('order', { title: 'Stok Robux habis', description: `Sisa stok **${st} RBX**. Form order Robux otomatis menolak sampai stok diisi lagi di dashboard → TRO Shop.` });
+    }
+  }
+  function moveStock(o, dir) {
+    if (!hasStock() || !o.robux) return;
+    if (dir < 0 && !o.stockDeducted) { S().robuxStock = Math.max(0, Number(S().robuxStock) - Number(o.robux)); o.stockDeducted = true; }
+    else if (dir > 0 && o.stockDeducted) { S().robuxStock = Number(S().robuxStock) + Number(o.robux); o.stockDeducted = false; S().soldOutAnnounced = false; }
+    else return;
+    cfg.save(); stockChanged().catch(() => {});
+  }
   const robuxCostOf = (n) => Math.round(gpPrice(n) * (Number(S().robuxCost) || 0) / 1000);
   // "1000", "1.000 robux", "1k rbx", "2,5k" → jumlah Robux; selain itu null
   function parseRobux(t) {
@@ -114,7 +138,7 @@ function setup({ client, baseEmbed }) {
       payment: String(b.payment ?? o.payment ?? '').slice(0, 60), note: String(b.note ?? o.note ?? '').slice(0, 500), ticketChannelId: String(b.ticketChannelId ?? o.ticketChannelId ?? ''),
     });
     const prevStatus = o.status;
-    if (b.status && b.status !== o.status) { o.history.push({ from: o.status, to: b.status, by, at: new Date().toISOString() }); o.status = b.status; if (['proses', 'selesai'].includes(b.status)) o.handledBy = by; if (b.status === 'dibayar') { o.paidAt = new Date().toISOString(); setTimeout(() => sendDeliveryTask(o).catch((e) => console.error('[shop deliver]', e.message)), 500); } if (b.status === 'selesai') { o.doneAt = new Date().toISOString(); if (p && p.stock !== '' && p.stock != null) p.stock = Math.max(0, Number(p.stock) - qty); } }
+    if (b.status && b.status !== o.status) { o.history.push({ from: o.status, to: b.status, by, at: new Date().toISOString() }); o.status = b.status; if (['proses', 'selesai'].includes(b.status)) o.handledBy = by; if (b.status === 'dibayar') { moveStock(o, -1); o.paidAt = new Date().toISOString(); setTimeout(() => sendDeliveryTask(o).catch((e) => console.error('[shop deliver]', e.message)), 500); } if (b.status === 'batal') moveStock(o, +1); if (b.status === 'selesai') { moveStock(o, -1); o.doneAt = new Date().toISOString(); if (p && p.stock !== '' && p.stock != null) p.stock = Math.max(0, Number(p.stock) - qty); } }
     cfg.save();
     logOrder(o, b.status ? `Status → ${STATUS[o.status]} oleh ${by}` : `Order dicatat oleh ${by}`).catch(() => {});
     dmBuyer(o, isNew ? null : prevStatus).catch(() => {});
@@ -168,7 +192,7 @@ function setup({ client, baseEmbed }) {
   }
   function orderPanel() {
     const types = (cfg.get().tickets?.types || []).filter((t) => S().orderTypeIds.includes(t.id));
-    return { embeds: [baseEmbed({ title: `🛒 ${S().brand.toUpperCase()} — ORDER`, description: `Mau beli **Robux, asset, script, map, atau jasa**? Klik tombol di bawah → tiket privat kebuka → **isi form order** → bayar via **DANA** (scan QR / tombol di tiket) → **kirim screenshot bukti TF** → staff proses → beres.\n\n💰 Robux via USN: **${rp(S().robuxRate)} / 1.000 RBX** · nominal bebas, min. ${S().robuxMin} RBX\n💰 Harga: ${(S().priceChannelId || cfg.get().posts?.['price-list']?.channelId) ? `<#${S().priceChannelId || cfg.get().posts['price-list'].channelId}>` : 'lihat katalog'}${S().catalogChannelId ? ` · 🛍️ Katalog: <#${S().catalogChannelId}>` : ''} · 📖 Panduan: ${S().guideChannelId ? `<#${S().guideChannelId}>` : '-'}\n⭐ Review pembeli: ${S().reviewChannelId ? `<#${S().reviewChannelId}>` : '-'}\n\n_1 orang 1 tiket aktif. Transaksi hanya lewat tiket resmi._`, color: '#f5c542' })],
+    return { embeds: [baseEmbed({ title: `🛒 ${S().brand.toUpperCase()} — ORDER`, description: `Mau beli **Robux, asset, script, map, atau jasa**? Klik tombol di bawah → tiket privat kebuka → **isi form order** → bayar via **DANA** (scan QR / tombol di tiket) → **kirim screenshot bukti TF** → staff proses → beres.\n\n💰 Robux: **${rp(S().robuxRate)} / 1.000 RBX** · nominal bebas, min. ${S().robuxMin} RBX\n🎁 Dikirim **lewat komunitas TRO langsung ke USN** kamu — wajib [join komunitas](${S().communityUrl}) dulu\n${hasStock() ? (availRobux() >= (Number(S().robuxMin) || 100) ? `📦 **Stok tersedia: ${availRobux().toLocaleString('id-ID')} RBX** — siapa cepat dia dapat\n` : '🔴 **Stok Robux HABIS** — tunggu restock\n') : ''}💰 Harga: ${(S().priceChannelId || cfg.get().posts?.['price-list']?.channelId) ? `<#${S().priceChannelId || cfg.get().posts['price-list'].channelId}>` : 'lihat katalog'}${S().catalogChannelId ? ` · 🛍️ Katalog: <#${S().catalogChannelId}>` : ''} · 📖 Panduan: ${S().guideChannelId ? `<#${S().guideChannelId}>` : '-'}\n⭐ Review pembeli: ${S().reviewChannelId ? `<#${S().reviewChannelId}>` : '-'}\n\n_1 orang 1 tiket aktif. Transaksi hanya lewat tiket resmi._`, color: '#f5c542' })],
       components: types.length ? [new ActionRowBuilder().addComponents(types.slice(0, 5).map((t) => { const b = new ButtonBuilder().setCustomId(`tro-tk:open:${t.id}`).setLabel(t.label.slice(0, 80)).setStyle(ButtonStyle.Success); if (t.emoji) b.setEmoji(t.emoji); return b; }))] : [] };
   }
   const guidePayload = () => ({ embeds: [baseEmbed({ title: `📖 CARA ORDER DI ${S().brand.toUpperCase()}`, description: S().guideText, color: '#f5c542' })] });
@@ -206,11 +230,12 @@ function setup({ client, baseEmbed }) {
         const g = (k) => { try { return it.fields.getTextInputValue(k) || ''; } catch { return ''; } };
         const prod = g('prod'); const rbxN = parseRobux(prod); const p = rbxN ? null : findProduct(prod);
         if (rbxN && rbxN < (Number(S().robuxMin) || 0)) return it.reply({ content: `⚠️ Minimal order **${S().robuxMin} Robux**.`, flags: MessageFlags.Ephemeral });
+        if (rbxN && rbxN > availRobux()) { const a = availRobux(); return it.reply({ content: a >= (Number(S().robuxMin) || 100) ? `⚠️ Stok Robux tinggal **${a.toLocaleString('id-ID')} RBX**. Kurangi jumlahnya lalu isi form lagi ya.` : '🔴 Maaf, stok Robux lagi **habis**. Pantau pengumuman restock ya 🙏', flags: MessageFlags.Ephemeral }); }
         const qty = 1;
         const o = upsertOrder({ customerId: it.user.id, customerName: it.user.username, productId: p?.id, productName: rbxN ? `${rbxN.toLocaleString('id-ID')} Robux` : (p ? p.name : prod), category: rbxN ? 'robux' : p?.category, qty, total: rbxN ? robuxPrice(rbxN) : (p ? '' : 0), payment: 'DANA', note: g('note'), ticketChannelId: it.channelId }, `${it.user.username} (form)`);
-        Object.assign(o, rbxN ? { gamepass: gpPrice(rbxN) > rbxN ? gpPrice(rbxN) : undefined, cost: robuxCostOf(rbxN), profit: o.total - robuxCostOf(rbxN) } : {}, { robux: rbxN || undefined, robloxUser: g('rbx').slice(0, 60), danaName: g('dname').slice(0, 60), danaNo: g('dno').replace(/[^\d+]/g, '').slice(0, 20) }); cfg.save(); setTimeout(() => logOrder(o).catch(() => {}), 4000);
+        Object.assign(o, rbxN ? { gamepass: gpPrice(rbxN) > rbxN ? gpPrice(rbxN) : undefined, cost: robuxCostOf(rbxN), profit: o.total - robuxCostOf(rbxN) } : {}, { robux: rbxN || undefined, robloxUser: g('rbx').slice(0, 60), danaName: g('dname').slice(0, 60), danaNo: g('dno').replace(/[^\d+]/g, '').slice(0, 20) }); cfg.save(); setTimeout(() => logOrder(o).catch(() => {}), 4000); if (rbxN && hasStock()) upsertMsg('panelChannelId', 'panelMessageId', orderPanel()).catch(() => {});
         const known = rbxN || p; const px = payExtras();
-        return it.reply({ content: (S().staffRoleIds || []).map((r) => `<@&${r}>`).join(' ') || undefined, embeds: [orderEmbed(o), baseEmbed({ title: '💳 Langkah berikutnya', description: `${known ? `Total yang harus dibayar: **${rp(o.total)}**${rbxN ? (gpPrice(rbxN) > rbxN ? `\n\n🎟️ **Bikin gamepass seharga ${gpPrice(rbxN).toLocaleString('id-ID')} Robux** (Roblox potong tax ${S().robuxTax}% → kamu terima **${rbxN.toLocaleString('id-ID')} Robux bersih**)` : `\n_${rbxN.toLocaleString('id-ID')} Robux × ${rp(S().robuxRate)} / 1.000 · via USN (username), Robux masuk utuh_`) : ''}` : '⚠️ Produk belum ada di katalog — staff akan konfirmasi harganya dulu, **jangan transfer dulu** sebelum harga dikonfirmasi.'}\n\n${payText()}`, color: '#f5c542', image: known ? px.image : undefined })], files: known ? px.files : [], components: known ? px.components : [], allowedMentions: { roles: S().staffRoleIds || [] } });
+        return it.reply({ content: (S().staffRoleIds || []).map((r) => `<@&${r}>`).join(' ') || undefined, embeds: [orderEmbed(o), baseEmbed({ title: '💳 Langkah berikutnya', description: `${known ? `Total yang harus dibayar: **${rp(o.total)}**${rbxN ? (gpPrice(rbxN) > rbxN ? `\n\n🎟️ **Bikin gamepass seharga ${gpPrice(rbxN).toLocaleString('id-ID')} Robux** (Roblox potong tax ${S().robuxTax}% → kamu terima **${rbxN.toLocaleString('id-ID')} Robux bersih**)` : `\n_${rbxN.toLocaleString('id-ID')} Robux × ${rp(S().robuxRate)} / 1.000_\n🎁 Robux dikirim **lewat komunitas Roblox TRO langsung ke USN kamu** (masuk utuh, tanpa login). **Wajib sudah join komunitas** → [join di sini](${S().communityUrl})`) : ''}` : '⚠️ Produk belum ada di katalog — staff akan konfirmasi harganya dulu, **jangan transfer dulu** sebelum harga dikonfirmasi.'}\n\n${payText()}`, color: '#f5c542', image: known ? px.image : undefined })], files: known ? px.files : [], components: known ? px.components : [], allowedMentions: { roles: S().staffRoleIds || [] } });
       }
       // ✅ / ❌ staff cek bukti TF
       if (it.isButton() && it.customId.startsWith('tro-pay:')) {
@@ -324,7 +349,7 @@ function setup({ client, baseEmbed }) {
   });
 
   function routes(api) {
-    api.get('/shop', (req, res) => res.json({ cfg: S(), ...D(), summary: summary(), cats: CATS, statuses: STATUS }));
+    api.get('/shop', (req, res) => res.json({ cfg: S(), ...D(), summary: summary(), cats: CATS, statuses: STATUS, stock: hasStock() ? { stock: Number(S().robuxStock), held: heldRobux(), avail: availRobux() } : null }));
     api.put('/shop/settings', (req, res) => { const s = S(); for (const k of ['catalogChannelId', 'logChannelId', 'title', 'footerNote']) if (req.body[k] !== undefined) { if (k === 'catalogChannelId' && s.catalogChannelId !== req.body[k]) s.catalogMessageId = ''; s[k] = String(req.body[k]); } cfg.save(); res.json({ ok: true }); });
     api.post('/shop/products', (req, res) => {
       const d = D(); const b = req.body; if (!String(b.name || '').trim()) return res.status(400).json({ error: 'Nama produk wajib' });
@@ -335,6 +360,8 @@ function setup({ client, baseEmbed }) {
     api.delete('/shop/products/:id', (req, res) => { const d = D(); d.products = d.products.filter((p) => p.id !== req.params.id); cfg.save(); postCatalog().catch(() => {}); res.json({ ok: true }); });
     api.put('/shop/trolley', (req, res) => { const s = S(); const b = req.body;
       for (const k of ['brand', 'payInfo', 'guideText', 'danaNumber', 'danaName', 'danaLink', 'proofChannelId']) if (b[k] !== undefined) s[k] = String(b[k]).slice(0, 3000);
+      if (b.communityUrl !== undefined && /^https:\/\//.test(b.communityUrl)) s.communityUrl = String(b.communityUrl);
+      if (b.robuxStock !== undefined) { const v = String(b.robuxStock).trim(); const nv = v === '' ? '' : Math.max(0, Math.round(Number(v) || 0)); if (nv !== s.robuxStock) { s.robuxStock = nv; s.soldOutAnnounced = false; setTimeout(() => stockChanged().catch(() => {}), 200); } }
       for (const k of ['robuxRate', 'robuxMin', 'robuxTax', 'robuxCost']) if (b[k] !== undefined && b[k] !== '' && Number(b[k]) >= 0) s[k] = Math.round(Number(b[k]));
       for (const [k, m] of [['panelChannelId', 'panelMessageId'], ['priceChannelId', 'priceMessageId'], ['guideChannelId', 'guideMessageId']]) if (b[k] !== undefined && b[k] !== s[k]) { s[k] = String(b[k]); s[m] = ''; }
       if (b.reviewChannelId !== undefined) s.reviewChannelId = String(b.reviewChannelId);
