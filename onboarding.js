@@ -35,13 +35,13 @@ const NOTIF = [
 // 🧭 Server Guide: sambutan + langkah Get Started (urut, kayak jalan tutorial) + kotak info
 const GUIDE = {
   author: '563752367305261107',
-  message: 'Selamat datang di THE RESILIENT ORDER! 🦉 Komunitas Roblox TRO TEAM. Ikuti langkah Get Started di bawah: kenalan, baca rules, ambil role, lalu sapa warga TRO. Mau jadi TRO MEMBER? Ajukan di #verifikasi (di-ACC admin).',
+  message: 'Selamat datang di THE RESILIENT ORDER! 🦉 Komunitas Roblox TRO TEAM. Ikuti 5 langkah Get Started di bawah, urut ya: 1️⃣ Baca rules → 2️⃣ Ambil role → 3️⃣ Sapa di public chat → 4️⃣ Cek TROlley shop → 5️⃣ Ajukan jadi TRO MEMBER (di-ACC admin).',
   actions: [
-    [/who-we-are/, 0, 'Kenalan sama TRO', 'Siapa kami & apa aja di TRO', '🦉'],
-    [/」rules$/, 0, 'Baca rules TRO', 'Aturan biar semua nyaman', '📜'],
-    [/ambil-role/, 0, 'Ambil role kamu', 'Notif, mabar, karaoke & lainnya', '🎭'],
-    [/global-chat/, 1, 'Sapa warga TRO!', 'Kenalin diri kamu di sini', '💬'],
-    [/」verifikasi$/, 0, 'Mau jadi TRO MEMBER?', 'Isi form, tunggu ACC admin', '🪪'],
+    [/」rules$/, 0, 'Baca rules TRO dulu', 'Aturan biar semua nyaman', '📜'],
+    [/ambil-role/, 0, 'Ambil role kamu (gender, notif, dll)', 'Notif, mabar, karaoke & lainnya', '🎭'],
+    [/global-chat/, 1, 'Sapa warga TRO di public chat!', 'Kenalin diri kamu di sini', '💬'],
+    [/katalog-shop/, 0, 'Cek TROlley shop — Robux & item', 'Katalog & cara order', '🛍️'],
+    [/」verifikasi$/, 0, 'Mau jadi TRO MEMBER? Ajukan di sini', 'Isi form, tunggu ACC admin', '🪪'],
   ],
   resources: [
     [/」announcements$/, 'Pengumuman', 'Info resmi TRO', '🔔'],
@@ -192,7 +192,53 @@ function setup({ client, baseEmbed }) {
     } catch (e) { console.error('[onboarding]', e.message); }
   });
 
+  // 🦉 TUTORIAL TRO MEMBER — begitu di-ACC (dapat role member), kasih "jalan" ke channel khusus member
+  const STEP_EMOJI = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'];
+  function memberOnlyChannels(g, member) {
+    const v = cfg.get().verify, guest = (v.guestRoleIds || []).map((id) => g.roles.cache.get(id)).find(Boolean) || g.roles.everyone;
+    const view = P.ViewChannel;
+    return [...g.channels.cache.values()]
+      .filter((c) => [ChannelType.GuildText, ChannelType.GuildAnnouncement, ChannelType.GuildForum].includes(c.type))
+      .filter((c) => c.permissionsFor(member)?.has(view) && !c.permissionsFor(guest)?.has(view))
+      .sort((a, b) => (a.parent?.rawPosition ?? -1) - (b.parent?.rawPosition ?? -1) || a.rawPosition - b.rawPosition);
+  }
+  async function sendMemberTutorial(member, force = false) {
+    const d = D(); d.memberTut = d.memberTut || {};
+    if (!force && d.memberTut[member.id]) return 'sudah';
+    const g = member.guild, chans = memberOnlyChannels(g, member).slice(0, 6);
+    const url = (c) => `https://discord.com/channels/${g.id}/${c.id}`;
+    const steps = chans.map((c, i) => `${STEP_EMOJI[i]} **${c.name.replace(/^「.*?」/, '')}** → <#${c.id}>${c.topic ? `\n   ↳ ${c.topic.split('\n')[0].slice(0, 90)}` : ''}`).join('\n');
+    const embed = baseEmbed({
+      title: '🦉 SELAMAT! KAMU RESMI TRO MEMBER',
+      description: `Halo <@${member.id}>, pengajuan kamu udah **di-ACC admin** 🎉\nSekarang ada channel khusus member yang kebuka buat kamu. Ikuti jalannya, urut ya:\n\n${steps || '_Semua channel member udah kebuka — cek daftar channel kamu._'}\n\n✅ Selesai? Kenalin diri kamu di chat member & pakai role **TRO MEMBER** dengan bangga!`,
+      color: '#d4af37', thumbnail: member.displayAvatarURL?.(),
+    });
+    const rows = [];
+    for (let i = 0; i < chans.length; i += 5) rows.push(new ActionRowBuilder().addComponents(chans.slice(i, i + 5).map((c, j) => new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(url(c)).setLabel(`${i + j + 1}. ${c.name.replace(/^「.*?」/, '').slice(0, 70)}`))));
+    const payload = { embeds: [embed], components: rows.slice(0, 2) };
+    let where = 'dm';
+    const ok = await member.send(payload).catch(() => null);
+    if (!ok) { // DM ditutup → kirim di channel member pertama, tag orangnya
+      const ch = chans.find((c) => c.type !== ChannelType.GuildForum && c.permissionsFor(g.members.me)?.has(P.SendMessages));
+      if (!ch) return 'gagal';
+      await ch.send({ content: `<@${member.id}>`, ...payload, allowedMentions: { users: [member.id] } }); where = ch.id;
+    }
+    d.memberTut[member.id] = { at: new Date().toISOString(), where }; cfg.save();
+    return where;
+  }
+  client.on(Events.GuildMemberUpdate, async (o, n) => {
+    try {
+      const ids = cfg.get().verify.memberRoleIds || [];
+      if (!ids.some((id) => n.roles.cache.has(id) && !o.roles?.cache?.has(id))) return;
+      if (D().memberTutOff) return;
+      setTimeout(() => sendMemberTutorial(n).catch((e) => console.error('[member-tutorial]', e.message)), 4000); // tunggu permission role kebaca
+    } catch (e) { console.error('[member-tutorial]', e.message); }
+  });
+
   function routes(api) {
+    api.get('/onboarding/member-tutorial', async (req, res) => { try { const g = guild(); const me = g.members.me; const ids = cfg.get().verify.memberRoleIds || []; const sample = g.members.cache.find((m) => ids.some((id) => m.roles.cache.has(id))); res.json({ off: !!D().memberTutOff, sent: Object.keys(D().memberTut || {}).length, channels: sample ? memberOnlyChannels(g, sample).map((c) => c.name) : [], botCanDM: !!me }); } catch (e) { res.status(400).json({ error: e.message }); } });
+    api.post('/onboarding/member-tutorial/test', async (req, res) => { try { const g = guild(); const m = await g.members.fetch(String(req.body.userId || '')); res.json({ where: await sendMemberTutorial(m, true) }); } catch (e) { res.status(400).json({ error: e.message }); } });
+    api.put('/onboarding/member-tutorial', (req, res) => { D().memberTutOff = !req.body.on; cfg.save(); res.json({ ok: true, on: !D().memberTutOff }); });
     api.get('/onboarding', async (req, res) => {
       try {
         const g = guild(); if (!g) return res.json({ ready: false });
