@@ -194,18 +194,21 @@ function setup({ client, baseEmbed }) {
 
   // 🦉 TUTORIAL TRO MEMBER — begitu di-ACC (dapat role member), kasih "jalan" ke channel khusus member
   const STEP_EMOJI = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'];
-  function memberOnlyChannels(g, member) {
+  // urutan "jalan" tutorial member: rules → pengumuman → chat → jadwal → seragam → store
+  const MEMBER_ORDER = [/rules-tro/, /member-announcement/, /chat-member/, /schedule-event|jadwal/, /seragam/, /member-store/, /member-media/];
+  function memberOnlyChannels(g) {
     const v = cfg.get().verify, guest = (v.guestRoleIds || []).map((id) => g.roles.cache.get(id)).find(Boolean) || g.roles.everyone;
-    const view = P.ViewChannel;
+    const mem = (v.memberRoleIds || []).map((id) => g.roles.cache.get(id)).find(Boolean); if (!mem) return [];
+    const view = P.ViewChannel, rank = (c) => { const i = MEMBER_ORDER.findIndex((re) => re.test(c.name)); return i < 0 ? 99 : i; };
     return [...g.channels.cache.values()]
       .filter((c) => [ChannelType.GuildText, ChannelType.GuildAnnouncement, ChannelType.GuildForum].includes(c.type))
-      .filter((c) => c.permissionsFor(member)?.has(view) && !c.permissionsFor(guest)?.has(view))
-      .sort((a, b) => (a.parent?.rawPosition ?? -1) - (b.parent?.rawPosition ?? -1) || a.rawPosition - b.rawPosition);
+      .filter((c) => c.permissionsFor(mem)?.has(view) && !c.permissionsFor(guest)?.has(view))
+      .sort((a, b) => rank(a) - rank(b) || (a.parent?.rawPosition ?? -1) - (b.parent?.rawPosition ?? -1) || a.rawPosition - b.rawPosition);
   }
   async function sendMemberTutorial(member, force = false) {
     const d = D(); d.memberTut = d.memberTut || {};
     if (!force && d.memberTut[member.id]) return 'sudah';
-    const g = member.guild, chans = memberOnlyChannels(g, member).slice(0, 6);
+    const g = member.guild, chans = memberOnlyChannels(g).slice(0, 6);
     const url = (c) => `https://discord.com/channels/${g.id}/${c.id}`;
     const steps = chans.map((c, i) => `${STEP_EMOJI[i]} **${c.name.replace(/^「.*?」/, '')}** → <#${c.id}>${c.topic ? `\n   ↳ ${c.topic.split('\n')[0].slice(0, 90)}` : ''}`).join('\n');
     const embed = baseEmbed({
@@ -236,7 +239,7 @@ function setup({ client, baseEmbed }) {
   });
 
   function routes(api) {
-    api.get('/onboarding/member-tutorial', async (req, res) => { try { const g = guild(); const me = g.members.me; const ids = cfg.get().verify.memberRoleIds || []; const sample = g.members.cache.find((m) => ids.some((id) => m.roles.cache.has(id))); res.json({ off: !!D().memberTutOff, sent: Object.keys(D().memberTut || {}).length, channels: sample ? memberOnlyChannels(g, sample).map((c) => c.name) : [], botCanDM: !!me }); } catch (e) { res.status(400).json({ error: e.message }); } });
+    api.get('/onboarding/member-tutorial', async (req, res) => { try { const g = guild(); res.json({ off: !!D().memberTutOff, sent: Object.keys(D().memberTut || {}).length, channels: memberOnlyChannels(g).map((c) => c.name) }); } catch (e) { res.status(400).json({ error: e.message }); } });
     api.post('/onboarding/member-tutorial/test', async (req, res) => { try { const g = guild(); const m = await g.members.fetch(String(req.body.userId || '')); res.json({ where: await sendMemberTutorial(m, true) }); } catch (e) { res.status(400).json({ error: e.message }); } });
     api.put('/onboarding/member-tutorial', (req, res) => { D().memberTutOff = !req.body.on; cfg.save(); res.json({ ok: true, on: !D().memberTutOff }); });
     api.get('/onboarding', async (req, res) => {
