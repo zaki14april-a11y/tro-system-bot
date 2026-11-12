@@ -103,7 +103,7 @@ Aturan dapat berubah sewaktu-waktu. Tetap berada di server = setuju dengan perub
         description: 'Hanya link di channel ini yang **resmi**. Hati-hati link palsu yang mengatasnamakan TRO.',
         fields: [
           { name: '🎮 Roblox Community TRO', value: COMMUNITY },
-          { name: '💸 Saweria (pembayaran resmi)', value: SAWERIA },
+          { name: '💳 Pembayaran resmi', value: 'Hanya via **DANA** — nomor resmi diberikan di ticket order. Selain itu = **palsu**.' },
         ],
       },
     ],
@@ -131,23 +131,31 @@ Aturan dapat berubah sewaktu-waktu. Tetap berada di server = setuju dengan perub
       {
         title: '💰 PRICE LIST ROBUX',
         description:
-`**Via Username (USN)** — tanpa login akun, aman & cepat.
+`**Harga Robux: Rp155.000 / 1.000 RBX** (Rp155 per Robux)
+Via Username (USN) — tanpa login akun, aman & cepat.
 
 \`\`\`
-  100 RBX  →  Rp15.000
-  200 RBX  →  Rp30.000
-  300 RBX  →  Rp45.000
-  400 RBX  →  Rp60.000
-  500 RBX  →  Rp75.000
-  600 RBX  →  Rp90.000
-  700 RBX  →  Rp105.000
-  800 RBX  →  Rp120.000
-  900 RBX  →  Rp135.000
-1.000 RBX  →  Rp150.000
+  100 RBX  →  Rp15.500
+  200 RBX  →  Rp31.000
+  300 RBX  →  Rp46.500
+  400 RBX  →  Rp62.000
+  500 RBX  →  Rp77.500
+  600 RBX  →  Rp93.000
+  700 RBX  →  Rp108.500
+  800 RBX  →  Rp124.000
+  900 RBX  →  Rp139.500
+1.000 RBX  →  Rp155.000
+1.500 RBX  →  Rp232.500
+2.000 RBX  →  Rp310.000
+2.500 RBX  →  Rp387.500
+3.000 RBX  →  Rp465.000
 \`\`\`
-✅ Proses cepat setelah pembayaran
+Nominal lain? Tulis aja jumlahnya di form order, total keluar otomatis.
+
+✅ Proses cepat setelah pembayaran dikonfirmasi
 ✅ Tanpa login akun
-💸 Pembayaran **hanya via Saweria** → ${SAWERIA}
+💳 Pembayaran **hanya via DANA** — nomor DANA resmi muncul di tiket setelah kamu isi form order
+📸 Kirim **screenshot bukti TF** di tiket, bot otomatis catat
 
 📌 **Cara order:** buka ticket di ${TICKET}
 ⚠️ Khusus member yang sudah stay **min. 14 hari** di komunitas.
@@ -200,15 +208,10 @@ Terima kasih atas dukungannya, TRO Family! 🦉`,
 - Gift Robux via Gamepass
 - Robux Gift Komunitas → [join community dulu](${COMMUNITY})
 
-**3️⃣** Isi format ini di ticket:
-\`\`\`
-Username Roblox :
-Order           :
-Nominal         :
-Bukti bayar     :
-\`\`\`
-**4️⃣** Bayar via **Saweria only** → ${SAWERIA}
-**5️⃣** Tunggu admin proses ⏱️ **1–10 menit**
+**3️⃣** Klik **Isi form order** di ticket → isi jumlah Robux, username Roblox & nama akun DANA kamu → **total keluar otomatis**
+**4️⃣** Transfer via **DANA** ke nomor yang muncul di ticket (DANA only)
+**5️⃣** Kirim **screenshot bukti TF** di ticket → bot catat, admin cek & konfirmasi
+**6️⃣** Tunggu admin proses ⏱️ **1–10 menit** — kamu dapat DM tiap status berubah
 
 📋 Lihat harga di ${PRICELIST}`,
       },
