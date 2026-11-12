@@ -3,6 +3,8 @@
 // ============================================================
 const { Events, SlashCommandBuilder, MessageFlags, PermissionFlagsBits: P, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const cfg = require('./config');
+const fs = require('fs');
+const { danaCardPath } = require('./dana-card');
 
 const newId = () => Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 4);
 const rp = (n) => 'Rp ' + Math.round(Number(n) || 0).toLocaleString('id-ID');
@@ -18,7 +20,7 @@ function setup({ client, baseEmbed }) {
     x.panelChannelId ??= ''; x.panelMessageId ??= ''; x.priceChannelId ??= ''; x.priceMessageId ??= ''; x.guideChannelId ??= ''; x.guideMessageId ??= '';
     x.reviewChannelId ??= ''; x.dmBuyer ??= true; x.askReview ??= true;
     // 💳 pembayaran DANA + harga Robux per 1.000
-    x.robuxRate ??= 157000; x.robuxMin ??= 100; x.robuxTax ??= 0; x.robuxCost ??= 145000; x.danaNumber ??= ''; x.danaName ??= ''; x.proofChannelId ??= '';
+    x.robuxRate ??= 157000; x.robuxMin ??= 100; x.robuxTax ??= 0; x.robuxCost ??= 145000; x.danaNumber ??= ''; x.danaName ??= ''; x.danaLink ??= 'https://link.dana.id/minta?full_url=https://qr.dana.id/v1/281012012026030286102268&r=kYJ875'; x.proofChannelId ??= '';
     if (!x.payMigrated) { x.payMigrated = true; if (/saweria|qris|gopay|transfer bank/i.test(x.payInfo || '')) x.payInfo = ''; }
     x.payInfo ??= '';
     x.guideText ??= '**1.** Cek harga di 「💰」price-list-robux atau 「🛍️」katalog-shop\n**2.** Buka tiket di 「🎟️」open-ticket-robux → pilih jenis order\n**3.** Klik **Isi form order** di tiket → total harga keluar otomatis\n**4.** Bayar sesuai metode yang tertera, kirim bukti di tiket\n**5.** Staff proses pesanan → kamu dapat DM tiap status berubah\n**6.** Selesai! Kasih review bintang ⭐ lewat DM — tampil di 「⭐」review-cust-trolley\n\n⚠️ **Transaksi hanya lewat tiket resmi.** Staff TRO tidak pernah minta bayar lewat DM pribadi.';
@@ -38,7 +40,14 @@ function setup({ client, baseEmbed }) {
     return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
   }
   const payText = () => { const s = S();
-    return `💳 Pembayaran **hanya via DANA** → **${s.danaNumber || '(nomor DANA belum diisi)'}**${s.danaName ? ` a.n. **${s.danaName}**` : ''}\n📸 Setelah transfer, **kirim screenshot bukti TF di tiket ini** — bot otomatis catat & staff konfirmasi.${s.payInfo ? `\n${s.payInfo}` : ''}`; };
+    const hasQr = !!danaCardPath(s.danaLink);
+    const to = s.danaNumber ? `→ **${s.danaNumber}**${s.danaName ? ` a.n. **${s.danaName}**` : ''}` : (hasQr || s.danaLink ? `→ ${hasQr ? '**scan QR DANA** di bawah' : ''}${hasQr && s.danaLink ? ' atau ' : ''}${s.danaLink ? 'klik tombol **Bayar via DANA**' : ''}` : '→ (nomor DANA belum diisi)');
+    return `💳 Pembayaran **hanya via DANA** ${to}\n📸 Setelah transfer, **kirim screenshot bukti TF di tiket ini** — bot otomatis catat & staff konfirmasi.${s.payInfo ? `\n${s.payInfo}` : ''}`; };
+  // QR DANA + tombol link, ikut dikirim bareng info pembayaran di tiket
+  const payExtras = () => { const s = S(), out = { files: [], components: [], image: undefined };
+    const qr = danaCardPath(s.danaLink); if (qr) { out.files.push(new AttachmentBuilder(qr, { name: 'dana-qr.png' })); out.image = 'attachment://dana-qr.png'; }
+    if (/^https:\/\//.test(s.danaLink || '')) out.components.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(s.danaLink).setLabel('Bayar via DANA').setEmoji('💳')));
+    return out; };
   const isStaff = (m) => !!m && (m.permissions?.has(P.ManageMessages) || (S().staffRoleIds || []).some((r) => m.roles?.cache?.has(r)));
 
   function catalogEmbeds() {
@@ -198,8 +207,8 @@ function setup({ client, baseEmbed }) {
         const qty = 1;
         const o = upsertOrder({ customerId: it.user.id, customerName: it.user.username, productId: p?.id, productName: rbxN ? `${rbxN.toLocaleString('id-ID')} Robux` : (p ? p.name : prod), category: rbxN ? 'robux' : p?.category, qty, total: rbxN ? robuxPrice(rbxN) : (p ? '' : 0), payment: 'DANA', note: g('note'), ticketChannelId: it.channelId }, `${it.user.username} (form)`);
         Object.assign(o, rbxN ? { gamepass: gpPrice(rbxN) > rbxN ? gpPrice(rbxN) : undefined, cost: robuxCostOf(rbxN), profit: o.total - robuxCostOf(rbxN) } : {}, { robux: rbxN || undefined, robloxUser: g('rbx').slice(0, 60), danaName: g('dname').slice(0, 60), danaNo: g('dno').replace(/[^\d+]/g, '').slice(0, 20) }); cfg.save(); setTimeout(() => logOrder(o).catch(() => {}), 4000);
-        const known = rbxN || p;
-        return it.reply({ content: (S().staffRoleIds || []).map((r) => `<@&${r}>`).join(' ') || undefined, embeds: [orderEmbed(o), baseEmbed({ title: '💳 Langkah berikutnya', description: `${known ? `Total yang harus dibayar: **${rp(o.total)}**${rbxN ? (gpPrice(rbxN) > rbxN ? `\n\n🎟️ **Bikin gamepass seharga ${gpPrice(rbxN).toLocaleString('id-ID')} Robux** (Roblox potong tax ${S().robuxTax}% → kamu terima **${rbxN.toLocaleString('id-ID')} Robux bersih**)` : `\n_${rbxN.toLocaleString('id-ID')} Robux × ${rp(S().robuxRate)} / 1.000 · via USN (username), Robux masuk utuh_`) : ''}` : '⚠️ Produk belum ada di katalog — staff akan konfirmasi harganya dulu, **jangan transfer dulu** sebelum harga dikonfirmasi.'}\n\n${payText()}`, color: '#f5c542' })], allowedMentions: { roles: S().staffRoleIds || [] } });
+        const known = rbxN || p; const px = payExtras();
+        return it.reply({ content: (S().staffRoleIds || []).map((r) => `<@&${r}>`).join(' ') || undefined, embeds: [orderEmbed(o), baseEmbed({ title: '💳 Langkah berikutnya', description: `${known ? `Total yang harus dibayar: **${rp(o.total)}**${rbxN ? (gpPrice(rbxN) > rbxN ? `\n\n🎟️ **Bikin gamepass seharga ${gpPrice(rbxN).toLocaleString('id-ID')} Robux** (Roblox potong tax ${S().robuxTax}% → kamu terima **${rbxN.toLocaleString('id-ID')} Robux bersih**)` : `\n_${rbxN.toLocaleString('id-ID')} Robux × ${rp(S().robuxRate)} / 1.000 · via USN (username), Robux masuk utuh_`) : ''}` : '⚠️ Produk belum ada di katalog — staff akan konfirmasi harganya dulu, **jangan transfer dulu** sebelum harga dikonfirmasi.'}\n\n${payText()}`, color: '#f5c542', image: known ? px.image : undefined })], files: known ? px.files : [], components: known ? px.components : [], allowedMentions: { roles: S().staffRoleIds || [] } });
       }
       // ✅ / ❌ staff cek bukti TF
       if (it.isButton() && it.customId.startsWith('tro-pay:')) {
@@ -267,7 +276,7 @@ function setup({ client, baseEmbed }) {
     });
     api.delete('/shop/products/:id', (req, res) => { const d = D(); d.products = d.products.filter((p) => p.id !== req.params.id); cfg.save(); postCatalog().catch(() => {}); res.json({ ok: true }); });
     api.put('/shop/trolley', (req, res) => { const s = S(); const b = req.body;
-      for (const k of ['brand', 'payInfo', 'guideText', 'danaNumber', 'danaName', 'proofChannelId']) if (b[k] !== undefined) s[k] = String(b[k]).slice(0, 3000);
+      for (const k of ['brand', 'payInfo', 'guideText', 'danaNumber', 'danaName', 'danaLink', 'proofChannelId']) if (b[k] !== undefined) s[k] = String(b[k]).slice(0, 3000);
       for (const k of ['robuxRate', 'robuxMin', 'robuxTax', 'robuxCost']) if (b[k] !== undefined && b[k] !== '' && Number(b[k]) >= 0) s[k] = Math.round(Number(b[k]));
       for (const [k, m] of [['panelChannelId', 'panelMessageId'], ['priceChannelId', 'priceMessageId'], ['guideChannelId', 'guideMessageId']]) if (b[k] !== undefined && b[k] !== s[k]) { s[k] = String(b[k]); s[m] = ''; }
       if (b.reviewChannelId !== undefined) s.reviewChannelId = String(b.reviewChannelId);
