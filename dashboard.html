@@ -1769,7 +1769,7 @@ pages.shop.init = async () => {
       <label>Role staff shop yang di-ping saat form order masuk</label>${roleChips('tr-staff', c.staffRoleIds || [])}
       <label class="row" style="text-transform:none"><input type="checkbox" id="tr-dm" ${c.dmBuyer ? 'checked' : ''} style="width:auto"> DM pembeli tiap status order berubah</label>
       <label class="row" style="text-transform:none"><input type="checkbox" id="tr-ask" ${c.askReview ? 'checked' : ''} style="width:auto"> Minta review bintang setelah order selesai</label></div>
-    <div><div class="grid g2" style="gap:10px"><div><label>Harga per 1.000 Robux (Rp)</label><input type="number" id="tr-rate" value="${esc(c.robuxRate ?? 155000)}"></div><div><label>Minimal order (Robux)</label><input type="number" id="tr-min" value="${esc(c.robuxMin ?? 100)}"></div></div>
+    <div><div class="grid g2" style="gap:10px"><div><label>Harga per 1.000 Robux (Rp)</label><input type="number" id="tr-rate" value="${esc(c.robuxRate ?? 157000)}"></div><div><label>Minimal order (Robux)</label><input type="number" id="tr-min" value="${esc(c.robuxMin ?? 100)}"></div></div>
       <div class="grid g2" style="gap:10px"><div><label>Tax gamepass (%) — 0 kalau via USN</label><input type="number" id="tr-tax" value="${esc(c.robuxTax ?? 0)}"></div><div><label>Harga modal per 1.000 Robux (Rp)</label><input type="number" id="tr-cost" value="${esc(c.robuxCost ?? 145000)}"></div></div>
       <div class="hint" id="tr-rate-h"></div>
       <div class="grid g2" style="gap:10px"><div><label>Nomor DANA toko</label><input id="tr-dno" value="${esc(c.danaNumber || '')}" placeholder="08xxxxxxxxxx"></div><div><label>Atas nama (a.n.)</label><input id="tr-dnm" value="${esc(c.danaName || '')}"></div></div>
