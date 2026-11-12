@@ -15,7 +15,7 @@ const REDIRECT = `${BASE_URL}/callback`;
 
 // ---------------- akses dashboard ----------------
 const PAGE_OF = [
-  [/^\/config\/(verify)$|^\/verify\//, 'verify'], [/^\/applications|^\/data-requests/, 'applications'], [/^\/config\/tracker$|^\/tracker/, 'tracker'],
+  [/^\/config\/(verify)$|^\/verify\/|^\/onboarding/, 'verify'], [/^\/applications|^\/data-requests/, 'applications'], [/^\/config\/tracker$|^\/tracker/, 'tracker'],
   [/^\/config\/(welcome|goodbye)$|^\/test\//, 'welcome'], [/^\/config\/autorole$/, 'autorole'], [/^\/invites/, 'invites'],
   [/^\/config\/events$|^\/events/, 'events'], [/^\/config\/(birthday|stats)$|^\/birthdays|^\/stats/, 'birthday'], [/^\/config\/tempvoice$|^\/tempvoice/, 'tempvoice'],
   [/^\/config\/levels$|^\/levels/, 'levels'], [/^\/giveaways/, 'giveaway'], [/^\/config\/selfroles$|^\/selfroles/, 'selfroles'],
