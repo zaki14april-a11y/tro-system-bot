@@ -18,7 +18,7 @@ function setup({ client, baseEmbed }) {
     x.panelChannelId ??= ''; x.panelMessageId ??= ''; x.priceChannelId ??= ''; x.priceMessageId ??= ''; x.guideChannelId ??= ''; x.guideMessageId ??= '';
     x.reviewChannelId ??= ''; x.dmBuyer ??= true; x.askReview ??= true;
     // 💳 pembayaran DANA + harga Robux per 1.000
-    x.robuxRate ??= 155000; x.robuxMin ??= 100; x.robuxTax ??= 0; x.robuxCost ??= 145000; x.danaNumber ??= ''; x.danaName ??= ''; x.proofChannelId ??= '';
+    x.robuxRate ??= 157000; x.robuxMin ??= 100; x.robuxTax ??= 0; x.robuxCost ??= 145000; x.danaNumber ??= ''; x.danaName ??= ''; x.proofChannelId ??= '';
     if (!x.payMigrated) { x.payMigrated = true; if (/saweria|qris|gopay|transfer bank/i.test(x.payInfo || '')) x.payInfo = ''; }
     x.payInfo ??= '';
     x.guideText ??= '**1.** Cek harga di 「💰」price-list-robux atau 「🛍️」katalog-shop\n**2.** Buka tiket di 「🎟️」open-ticket-robux → pilih jenis order\n**3.** Klik **Isi form order** di tiket → total harga keluar otomatis\n**4.** Bayar sesuai metode yang tertera, kirim bukti di tiket\n**5.** Staff proses pesanan → kamu dapat DM tiap status berubah\n**6.** Selesai! Kasih review bintang ⭐ lewat DM — tampil di 「⭐」review-cust-trolley\n\n⚠️ **Transaksi hanya lewat tiket resmi.** Staff TRO tidak pernah minta bayar lewat DM pribadi.';
@@ -27,7 +27,7 @@ function setup({ client, baseEmbed }) {
   const D = () => cfg.data('shopData', { products: [], orders: [], counter: 0 });
   // via USN: tax 0% (Robux masuk utuh). Kalau suatu saat via gamepass, isi tax (mis. 30%) di dashboard → harga dihitung dari harga gamepass
   const gpPrice = (n) => { const t = Math.min(90, Math.max(0, Number(S().robuxTax) || 0)); return t ? Math.ceil((Number(n) || 0) * 100 / (100 - t)) : (Number(n) || 0); };
-  const robuxPrice = (n) => Math.round(gpPrice(n) * (Number(S().robuxRate) || 155000) / 1000);
+  const robuxPrice = (n) => Math.round(gpPrice(n) * (Number(S().robuxRate) || 157000) / 1000);
   const robuxCostOf = (n) => Math.round(gpPrice(n) * (Number(S().robuxCost) || 0) / 1000);
   // "1000", "1.000 robux", "1k rbx", "2,5k" → jumlah Robux; selain itu null
   function parseRobux(t) {
