@@ -10,7 +10,9 @@ const { Events, ChannelType, PermissionFlagsBits: P, EmbedBuilder, ActionRowBuil
 const cfg = require('./config');
 
 const GOLD = 0xd4af37, NAVY = 0x1b2448, GREEN = 0x30a46c, RED = 0xe5484d, AMBER = 0xf59e0b;
-const ROLES = { staff: ['🧪 LABS STAFF', 0xd4af37], client: ['💎 CLIENT', 0x5865f2], member: ['👤 MEMBER', 0x9a9aa8] };
+// urutan = hierarki (atas → bawah)
+const ROLES = { owner: ['👑 OWNER', 0xf0d27a], dev: ['🛠️ DEVELOPER', 0x9b59b6], staff: ['🧪 LABS STAFF', 0xd4af37], client: ['💎 CLIENT', 0x5865f2], member: ['👤 MEMBER', 0x9a9aa8] };
+const STAFF_PERMS = () => [P.ManageMessages, P.ManageThreads, P.ManageChannels, P.ViewChannel, P.SendMessages, P.AttachFiles, P.EmbedLinks, P.ReadMessageHistory, P.MentionEveryone];
 const STATUS = { baru: '🆕 Menunggu harga', bayar: '💳 Menunggu pembayaran', cek: '🔎 Cek bukti bayar', dibayar: '✅ Dibayar — script disiapkan', selesai: '📦 Selesai', batal: '❌ Batal' };
 
 // struktur server: [kategori, [[nama, tipe, mode]]]
@@ -61,20 +63,20 @@ function setup({ client }) {
     if (g?.iconURL()) e.setThumbnail(g.iconURL({ size: 256 }));
     return e;
   };
-  const isStaff = (m) => !!m && (m.permissions.has(P.Administrator) || m.roles.cache.has(D().roles.staff) || m.id === m.guild.ownerId);
+  const isStaff = (m) => !!m && (m.permissions.has(P.Administrator) || m.roles.cache.has(D().roles.staff) || m.roles.cache.has(D().roles.dev) || m.id === m.guild.ownerId);
 
   // ---------- SETUP (idempotent: yang sudah ada dipakai ulang, tidak dihapus) ----------
   async function ensureRole(g, key) {
     const [name, color] = ROLES[key], d = D();
     let r = (d.roles[key] && g.roles.cache.get(d.roles[key])) || g.roles.cache.find((x) => x.name === name);
-    if (!r) r = await g.roles.create({ name, color, hoist: true, mentionable: key === 'staff', reason: 'TRO LABS setup',
-      permissions: key === 'staff' ? [P.ManageMessages, P.ManageThreads, P.ManageChannels, P.ViewChannel, P.SendMessages, P.AttachFiles, P.EmbedLinks, P.ReadMessageHistory, P.MentionEveryone] : [] });
+    if (!r) r = await g.roles.create({ name, color, hoist: true, mentionable: ['staff', 'dev'].includes(key), reason: 'TRO LABS setup',
+      permissions: key === 'owner' ? [P.Administrator] : ['staff', 'dev'].includes(key) ? STAFF_PERMS() : [] });
     d.roles[key] = r.id; return r;
   }
   function overwrites(g, mode, R, voice = false) {
     const ev = g.roles.everyone.id, me = client.user.id;
     const base = [{ id: me, allow: [P.ViewChannel, P.SendMessages, P.EmbedLinks, P.AttachFiles, P.ManageMessages, P.ManageThreads, P.ReadMessageHistory, P.CreatePublicThreads, P.SendMessagesInThreads] },
-      { id: R.staff.id, allow: [P.ViewChannel, P.SendMessages, P.AttachFiles, P.EmbedLinks, P.ManageMessages, P.ManageThreads, P.CreatePublicThreads, P.SendMessagesInThreads] }];
+      ...[R.staff, R.dev].map((r) => ({ id: r.id, allow: [P.ViewChannel, P.SendMessages, P.AttachFiles, P.EmbedLinks, P.ManageMessages, P.ManageThreads, P.CreatePublicThreads, P.SendMessagesInThreads] }))];
     if (mode === 'open') return [{ id: ev, allow: voice ? [P.ViewChannel, P.SendMessages, P.Connect, P.Speak] : [P.ViewChannel, P.SendMessages], deny: [] }, ...base];
     if (mode === 'client') return [{ id: ev, allow: [P.ViewChannel, P.ReadMessageHistory], deny: [P.SendMessages, P.CreatePublicThreads] }, { id: R.client.id, allow: [P.SendMessages, P.AttachFiles, P.EmbedLinks] }, ...base];
     // ro / panel: semua lihat, cuma staff nulis; forum: member boleh komentar di post
@@ -84,7 +86,14 @@ function setup({ client }) {
     const g = labsGuild(); if (!g) throw new Error('Server TRO LABS belum ketemu. Bikin servernya (nama mengandung "TRO LABS") lalu invite bot TRO SYSTEM.');
     if (!g.members.me.permissions.has(P.Administrator) && !g.members.me.permissions.has(P.ManageChannels)) throw new Error('Bot butuh izin Administrator / Manage Channels & Roles di TRO LABS.');
     const d = D(), done = [];
-    const R = { staff: await ensureRole(g, 'staff'), client: await ensureRole(g, 'client'), member: await ensureRole(g, 'member') };
+    const R = {}; for (const k of Object.keys(ROLES)) R[k] = await ensureRole(g, k);
+    // susun hierarki tepat di bawah role bot
+    const top = g.members.me.roles.highest.position - 1;
+    await g.roles.setPositions(Object.keys(ROLES).map((k, i) => ({ role: R[k].id, position: Math.max(1, top - i) }))).catch((e) => done.push(`⚠️ urutan role: ${e.message}`));
+    const owner = await g.members.fetch(g.ownerId).catch(() => null);
+    if (owner && !owner.roles.cache.has(R.owner.id)) { await owner.roles.add(R.owner.id, 'TRO LABS owner').catch(() => {}); done.push('👑 OWNER → pemilik server'); }
+    // member lama yang belum punya role apa pun → 👤 MEMBER
+    for (const m of (await g.members.fetch().catch(() => new Map())).values()) if (!m.user.bot && m.roles.cache.size <= 1) await m.roles.add(R.member.id).catch(() => {});
     await g.channels.fetch();
     for (const [catName, chans] of LAYOUT) {
       let cat = g.channels.cache.find((c) => c.type === ChannelType.GuildCategory && c.name === catName);
@@ -174,7 +183,7 @@ function setup({ client }) {
       permissionOverwrites: [{ id: g.roles.everyone.id, deny: [P.ViewChannel] },
         { id: it.user.id, allow: [P.ViewChannel, P.SendMessages, P.AttachFiles, P.ReadMessageHistory] },
         { id: client.user.id, allow: [P.ViewChannel, P.SendMessages, P.AttachFiles, P.EmbedLinks, P.ManageChannels, P.ReadMessageHistory] },
-        ...(d.roles.staff ? [{ id: d.roles.staff, allow: [P.ViewChannel, P.SendMessages, P.AttachFiles, P.ReadMessageHistory] }] : [])],
+        ...[d.roles.staff, d.roles.dev].filter(Boolean).map((id) => ({ id, allow: [P.ViewChannel, P.SendMessages, P.AttachFiles, P.ReadMessageHistory] }))],
       reason: `TRO LABS order #${o.no}` });
     o.channelId = c.id;
     const m = await c.send({ content: `<@${it.user.id}>${d.roles.staff ? ` <@&${d.roles.staff}>` : ''}`, embeds: [orderEmbed(o)], components: [staffRow(o)], allowedMentions: { users: [it.user.id], roles: d.roles.staff ? [d.roles.staff] : [] } });
