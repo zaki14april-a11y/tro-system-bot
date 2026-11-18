@@ -259,6 +259,22 @@ function setup({ client }) {
     api.post('/labs/setup', async (req, res) => { try { res.json(await setupServer()); } catch (e) { D().lastError = e.message; cfg.save(); res.status(400).json({ error: e.message }); } });
     api.put('/labs/settings', async (req, res) => { const d = D(); for (const k of ['danaNumber', 'danaName', 'danaLink', 'robuxNote']) if (typeof req.body[k] === 'string') d[k] = req.body[k].trim(); cfg.save(); await postInfo().catch(() => {}); cfg.save(); res.json({ ok: true }); });
     api.get('/labs/orders', (req, res) => res.json(D().orders.slice(-100).reverse()));
+    // pasang logo TRO LABS jadi icon server + rapihin urutan role (satu per satu)
+    api.post('/labs/icon', async (req, res) => { try { const g = labsGuild(); if (!g) throw new Error('Server TRO LABS belum ketemu'); await g.setIcon(require('./labs-logo').render(512), 'TRO LABS logo'); res.json({ ok: true, icon: g.iconURL({ size: 256 }) }); } catch (e) { res.status(400).json({ error: e.message }); } });
+    api.post('/labs/roles/order', async (req, res) => {
+      try {
+        const g = labsGuild(); if (!g) throw new Error('Server TRO LABS belum ketemu'); await g.roles.fetch();
+        const d = D(), out = [], me = g.members.me.roles.highest;
+        // dari bawah ke atas: MEMBER dulu, OWNER terakhir (tepat di bawah role bot)
+        for (const k of Object.keys(ROLES).reverse()) {
+          const r = g.roles.cache.get(d.roles[k]); if (!r) continue;
+          const target = me.position - 1;
+          await r.setPosition(target, { reason: 'TRO LABS urutan role' }).then(() => out.push(`✅ ${r.name}`)).catch((e) => out.push(`❌ ${r.name}: ${e.message}`));
+          await g.roles.fetch();
+        }
+        res.json({ result: out, order: [...g.roles.cache.values()].sort((a, b) => b.position - a.position).map((r) => `${r.position} ${r.name}`) });
+      } catch (e) { res.status(400).json({ error: e.message }); }
+    });
   }
   return { commands: [], routes };
 }
