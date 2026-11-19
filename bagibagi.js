@@ -67,17 +67,46 @@ function setup({ client }) {
     return g.channels.cache.find((c) => c.isTextBased?.() && /bagi|sawer|donasi|donate/i.test(c.name)) || null;
   }
 
-  async function postDiscord(row) {
-    const ch = logChannel(); if (!ch) return;
+  const MIN_RP = 1000; // sama dengan minimal donasi di map
+  const teksMap = (row, map) => {
+    if (row.test) return '🧪 Tes (semua map)';
+    if (row.amount < MIN_RP) return '⚠️ Di bawah Rp1.000, nggak masuk map';
+    const m = map || (row.map !== 'AUTO' ? row.map : null);
+    if (m === 'TUNNEL') return '🌀 TUNNEL';
+    if (m === 'OTR') return '🎶 ON THE RUGS';
+    if (row.mapStatus === 'nunggu') return '⏸️ Belum ada server online, masuk pas map nyala';
+    return '⏳ Ngecek map tempat donatur online…';
+  };
+  function buatEmbed(row, map) {
     const pesan = String(row.message || '').replace(/#(OTR|TUNNEL)\b\s*/i, '').trim();
     const e = new EmbedBuilder().setColor(ORANGE).setTitle(row.test ? '🧪 Tes donasi Bagi-Bagi' : '💸 Donasi baru lewat Bagi-Bagi')
       .addFields(
         { name: 'Dari', value: String(row.name || 'Anonim').slice(0, 100), inline: true },
         { name: 'Jumlah', value: `${rupiah(row.amount)}\n≈ R$${Math.floor(row.amount / (D().rate || 110)).toLocaleString('id-ID')}`, inline: true },
-        { name: 'Map', value: row.map === 'TUNNEL' ? '🌀 TUNNEL' : row.map === 'OTR' ? '🎶 ON THE RUGS' : '📍 Map tempat donatur online', inline: true },
-      ).setFooter({ text: 'bagibagi.co/TRO_LABS • trolabs.github.io/donasi' }).setTimestamp();
+        { name: 'Map', value: teksMap(row, map), inline: true },
+      ).setFooter({ text: 'bagibagi.co/TRO_LABS • trolabs.github.io/donasi' }).setTimestamp(new Date(row.time || Date.now()));
     if (pesan) e.setDescription(`> ${pesan.slice(0, 300)}`);
-    await ch.send({ embeds: [e] }).catch(() => {});
+    return e;
+  }
+
+  async function postDiscord(row) {
+    const ch = logChannel(); if (!ch) return;
+    const msg = await ch.send({ embeds: [buatEmbed(row)] }).catch(() => null);
+    if (!msg) return;
+    row.dc = { c: ch.id, m: msg.id }; cfg.save();
+    // donasi tanpa kode map: kalau 90 detik belum ada map yang ngeklaim -> tandain nunggu server
+    if (!row.test && row.amount >= MIN_RP && row.map === 'AUTO') {
+      setTimeout(() => { if (!(D().klaim || {})[row.id]) { row.mapStatus = 'nunggu'; cfg.save(); editDiscord(row); } }, 90_000);
+    }
+  }
+  // map yang ngeklaim donasi -> kartu Discord ikut diupdate
+  async function editDiscord(row, map) {
+    if (!row?.dc) return;
+    try {
+      const ch = client.channels.cache.get(row.dc.c) || await client.channels.fetch(row.dc.c);
+      const msg = await ch.messages.fetch(row.dc.m);
+      await msg.edit({ embeds: [buatEmbed(row, map)] });
+    } catch { /* pesan kehapus / bot nggak punya akses: biarin */ }
   }
 
   async function terima(body, test = false) {
@@ -112,6 +141,8 @@ function setup({ client }) {
         d.klaim[i] = { map, at: Date.now() };
         const keys = Object.keys(d.klaim); if (keys.length > 500) keys.sort((x, y) => d.klaim[x].at - d.klaim[y].at).slice(0, keys.length - 500).forEach((k) => delete d.klaim[k]);
         cfg.save();
+        const row = (d.donations || []).find((x) => x.id === i);
+        if (row && row.amount >= MIN_RP) { row.map = map; row.mapStatus = 'masuk'; cfg.save(); editDiscord(row, map); }
       }
       res.json({ map: d.klaim[i].map });
     });
