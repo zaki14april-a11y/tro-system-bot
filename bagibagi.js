@@ -24,8 +24,18 @@ function setup({ client }) {
     seen: [],
     donations: [],
     rejected: [],
+    recent: [],
     lastError: '',
   });
+
+  // donasi tes dari tombol "Send Webhook Test" Bagi-Bagi jangan masuk leaderboard map
+  const TES_LAMA = ['bagibagi-965b3d64-1f5e-4361-a01b-5b58df37190c'];
+  (() => { const d = D(); let ubah = false;
+    for (const x of d.feed || []) if (TES_LAMA.includes(x.i) && !x.t) { x.t = 1; ubah = true; }
+    for (const x of d.donations || []) if (TES_LAMA.includes(x.id) && !x.test) { x.test = true; ubah = true; }
+    if (ubah) cfg.save(); })();
+  const tandaTes = (b) => Object.entries(b || {}).some(([k, v]) => /test|sandbox|dummy/i.test(k) && v && v !== 'false' && v !== '0')
+    || /test|sandbox|dummy/i.test(String(b?.transaction_id || '') + String(b?.status || '') + String(b?.type || ''));
 
   const sign = (token, data) => crypto.createHmac('sha256', token).update(data).digest('hex');
   const same = (a, b) => { try { const x = Buffer.from(String(a), 'hex'), y = Buffer.from(String(b), 'hex'); return x.length > 0 && x.length === y.length && crypto.timingSafeEqual(x, y); } catch { return false; } };
@@ -101,7 +111,8 @@ function setup({ client }) {
         return res.status(401).json({ error: 'signature salah' });
       }
       res.json({ ok: true }); // balas cepat biar Bagi-Bagi nggak timeout
-      terima(req.body || {}).catch((e) => { D().lastError = String(e.message || e); cfg.save(); });
+      { const d = D(); d.recent ||= []; d.recent.unshift({ time: new Date().toISOString(), body: JSON.stringify(req.body || {}).slice(0, 600) }); d.recent = d.recent.slice(0, 5); }
+      terima(req.body || {}, tandaTes(req.body)).catch((e) => { D().lastError = String(e.message || e); cfg.save(); });
     });
   }
 
@@ -109,7 +120,7 @@ function setup({ client }) {
   function routes(api) {
     api.get('/bagibagi', (req, res) => {
       const d = D();
-      res.json({ tokenSet: !!process.env.BAGIBAGI_TOKEN, channel: logChannel()?.name || '', rate: d.rate, seq: d.seq || 0, lastError: d.lastError, donations: d.donations.slice(0, 20), rejected: (d.rejected || []).slice(0, 5) });
+      res.json({ tokenSet: !!process.env.BAGIBAGI_TOKEN, channel: logChannel()?.name || '', rate: d.rate, seq: d.seq || 0, lastError: d.lastError, donations: d.donations.slice(0, 20), rejected: (d.rejected || []).slice(0, 5), recent: (d.recent || []).slice(0, 5) });
     });
     api.put('/bagibagi/settings', (req, res) => {
       const d = D(), b = req.body || {};
