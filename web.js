@@ -48,7 +48,7 @@ function computeAccess(userId) {
 
 const app = express();
 app.set('trust proxy', 1);
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '1mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(session({
   secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
   resave: false,
@@ -57,6 +57,8 @@ app.use(session({
 }));
 
 app.get('/health', (req, res) => res.send('ok'));
+// webhook publik dari modul (mis. Bagi-Bagi) — tanpa login
+bot.modules.forEach((m) => m.publicRoutes?.(app));
 
 // ---------------- login Discord ----------------
 app.get('/login', (req, res) => {
