@@ -1,12 +1,11 @@
 // ============================================================
 //  💸 BAGI-BAGI → MAP ROBLOX — BY TRO TEAM AZAZEL
 //  Webhook Bagi-Bagi (bagibagi.co/TRO_LABS) masuk ke sini, dicek signature-nya,
-//  lalu diteruskan ke semua map (OTR, TUNNEL) lewat Roblox Open Cloud MessagingService.
-//  Format pesan sama persis dengan jembatan Saweria lama: { i, n, r, m, t } → game nggak perlu diubah.
-//  Pilih map lewat kode di pesan: #OTR / #TUNNEL (diatur di game).
+//  lalu masuk antrian FEED. Server map (OTR, TUNNEL) baca feed ini tiap beberapa detik
+//  lewat HttpService → GET /bagibagi/feed?after=<seq>. Nggak butuh API key Roblox.
+//  Format item sama dengan jembatan Saweria lama: { i, n, r, m, t } → alur Robux & #OTR/#TUNNEL di game tetap.
 //  Rahasia diambil dari .env (BUKAN disimpan di data):
-//    BAGIBAGI_TOKEN  = Webhook Token dari Bagi-Bagi (Stream Overlay → Integrasi)
-//    ROBLOX_OC_KEY   = Open Cloud API key (izin messaging-service:publish ke universe map)
+//    BAGIBAGI_TOKEN  = Webhook Token dari Bagi-Bagi (Integrasi Overlay → Custom Webhook)
 //  Data di cfg.data('bagibagi') — tidak menyentuh data lain.
 // ============================================================
 const crypto = require('crypto');
@@ -20,10 +19,8 @@ function setup({ client }) {
   const D = () => cfg.data('bagibagi', {
     channelId: '',
     rate: 110, // Rp per 1 Robux (sama dengan RP_PER_ROBUX di game)
-    targets: [
-      { name: 'OTR', universeId: '9102889671', topic: 'OTR_Saweria' },
-      { name: 'TUNNEL', universeId: '10772957242', topic: 'TUNNEL_Saweria' },
-    ],
+    seq: 0,
+    feed: [],
     seen: [],
     donations: [],
     rejected: [],
@@ -42,20 +39,13 @@ function setup({ client }) {
     return cands.some((c) => same(c, got));
   }
 
-  async function publish(info) {
-    const key = process.env.ROBLOX_OC_KEY;
-    if (!key) throw new Error('ROBLOX_OC_KEY belum diisi di .env');
-    const message = JSON.stringify(info);
-    const hasil = [];
-    for (const t of D().targets || []) {
-      try {
-        const r = await fetch(`https://apis.roblox.com/messaging-service/v1/universes/${t.universeId}/topics/${encodeURIComponent(t.topic)}`, {
-          method: 'POST', headers: { 'x-api-key': key, 'content-type': 'application/json' }, body: JSON.stringify({ message }),
-        });
-        hasil.push({ map: t.name, ok: r.ok, status: r.status, err: r.ok ? '' : (await r.text()).slice(0, 160) });
-      } catch (e) { hasil.push({ map: t.name, ok: false, status: 0, err: String(e.message || e).slice(0, 160) }); }
-    }
-    return hasil;
+  // masuk antrian feed (dibaca server map)
+  function antre(info) {
+    const d = D(); d.feed ||= []; d.seq = (d.seq || 0) + 1;
+    d.feed.push({ s: d.seq, at: Date.now(), ...info });
+    const batas = Date.now() - 7 * 86_400_000;
+    d.feed = d.feed.filter((x) => x.at > batas).slice(-300);
+    return d.seq;
   }
 
   const kodeMap = (m) => { const k = String(m || '').match(/#(OTR|TUNNEL)\b/i); return k ? k[1].toUpperCase() : 'OTR'; };
@@ -86,18 +76,23 @@ function setup({ client }) {
     if (id && d.seen.includes(id)) return { duplicate: true };
     const info = { i: id || `bb-${Date.now()}`, n: String(body.name || '').slice(0, 40), r: Math.floor(Number(body.amount) || 0), m: String(body.message || '').slice(0, 200), t: test ? 1 : 0 };
     if (id) { d.seen.unshift(id); d.seen = d.seen.slice(0, 500); }
-    const hasil = await publish(info).catch((e) => [{ map: '-', ok: false, status: 0, err: e.message }]);
-    const row = { id: info.i, name: info.n, amount: info.r, message: info.m, map: kodeMap(info.m), test, time: new Date().toISOString(), hasil };
+    const seq = antre(info);
+    const row = { seq, id: info.i, name: info.n, amount: info.r, message: info.m, map: kodeMap(info.m), test, time: new Date().toISOString() };
     d.donations.unshift(row); d.donations = d.donations.slice(0, 100);
-    d.lastError = hasil.filter((h) => !h.ok).map((h) => `${h.map}: ${h.status} ${h.err}`).join(' | ');
     cfg.save();
-    cfg.addLog?.('bagibagi', `${row.name} ${rupiah(row.amount)} → ${row.map}${d.lastError ? ' (gagal: ' + d.lastError + ')' : ''}`);
+    cfg.addLog?.('bagibagi', `${row.name} ${rupiah(row.amount)} → ${row.map}${test ? ' (tes)' : ''}`);
     postDiscord(row);
-    return { ok: true, hasil };
+    return { ok: true, seq };
   }
 
-  // webhook publik (tanpa login dashboard)
+  // webhook & feed publik (tanpa login dashboard)
   function publicRoutes(app) {
+    // dibaca server Roblox: item sesudah seq tertentu
+    app.get('/bagibagi/feed', (req, res) => {
+      const d = D(), after = Number(req.query.after) || 0;
+      res.set('Cache-Control', 'no-store');
+      res.json({ latest: d.seq || 0, now: Date.now(), items: (d.feed || []).filter((x) => x.s > after).slice(0, 50) });
+    });
     app.post('/bagibagi/webhook', async (req, res) => {
       if (!validSignature(req)) {
         const d = D(); // catat buat debug (tanpa token)
@@ -114,14 +109,13 @@ function setup({ client }) {
   function routes(api) {
     api.get('/bagibagi', (req, res) => {
       const d = D();
-      res.json({ tokenSet: !!process.env.BAGIBAGI_TOKEN, keySet: !!process.env.ROBLOX_OC_KEY, channel: logChannel()?.name || '', rate: d.rate, targets: d.targets, lastError: d.lastError, donations: d.donations.slice(0, 20), rejected: (d.rejected || []).slice(0, 5) });
+      res.json({ tokenSet: !!process.env.BAGIBAGI_TOKEN, channel: logChannel()?.name || '', rate: d.rate, seq: d.seq || 0, lastError: d.lastError, donations: d.donations.slice(0, 20), rejected: (d.rejected || []).slice(0, 5) });
     });
     api.put('/bagibagi/settings', (req, res) => {
       const d = D(), b = req.body || {};
       if (b.channelId !== undefined) d.channelId = String(b.channelId || '');
       if (b.rate) d.rate = Math.max(1, Number(b.rate) || 110);
-      if (Array.isArray(b.targets)) d.targets = b.targets.map((t) => ({ name: String(t.name || ''), universeId: String(t.universeId || ''), topic: String(t.topic || '') })).filter((t) => t.universeId && t.topic);
-      cfg.save(); res.json({ ok: true, targets: d.targets });
+      cfg.save(); res.json({ ok: true });
     });
     api.post('/bagibagi/test', async (req, res) => {
       const b = req.body || {};
