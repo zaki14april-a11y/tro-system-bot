@@ -58,7 +58,7 @@ function setup({ client }) {
     return d.seq;
   }
 
-  const kodeMap = (m) => { const k = String(m || '').match(/#(OTR|TUNNEL)\b/i); return k ? k[1].toUpperCase() : 'OTR'; };
+  const kodeMap = (m) => { const k = String(m || '').match(/#(OTR|TUNNEL)\b/i); return k ? k[1].toUpperCase() : 'AUTO'; };
 
   function logChannel() {
     const g = client.guilds.cache.get(process.env.GUILD_ID); if (!g) return null;
@@ -74,7 +74,7 @@ function setup({ client }) {
       .addFields(
         { name: 'Dari', value: String(row.name || 'Anonim').slice(0, 100), inline: true },
         { name: 'Jumlah', value: `${rupiah(row.amount)}\n≈ R$${Math.floor(row.amount / (D().rate || 110)).toLocaleString('id-ID')}`, inline: true },
-        { name: 'Map', value: row.map === 'TUNNEL' ? '🌀 TUNNEL' : '🎶 ON THE RUGS', inline: true },
+        { name: 'Map', value: row.map === 'TUNNEL' ? '🌀 TUNNEL' : row.map === 'OTR' ? '🎶 ON THE RUGS' : '📍 Map tempat donatur online', inline: true },
       ).setFooter({ text: 'bagibagi.co/TRO_LABS • trolabs.github.io/donasi' }).setTimestamp();
     if (pesan) e.setDescription(`> ${pesan.slice(0, 300)}`);
     await ch.send({ embeds: [e] }).catch(() => {});
@@ -102,6 +102,22 @@ function setup({ client }) {
       const d = D(), after = Number(req.query.after) || 0;
       res.set('Cache-Control', 'no-store');
       res.json({ latest: d.seq || 0, now: Date.now(), items: (d.feed || []).filter((x) => x.s > after).slice(0, 50) });
+    });
+    // donasi tanpa kode map: server map yang ada donaturnya klaim duluan, sisanya ikut (biar nggak dobel OTR + TUNNEL)
+    app.post('/bagibagi/klaim', (req, res) => {
+      const d = D(), i = String(req.body?.i || '').slice(0, 80), map = String(req.body?.map || '').toUpperCase();
+      if (!i || !/^(OTR|TUNNEL)$/.test(map)) return res.status(400).json({ error: 'data kurang' });
+      d.klaim ||= {};
+      if (!d.klaim[i]) {
+        d.klaim[i] = { map, at: Date.now() };
+        const keys = Object.keys(d.klaim); if (keys.length > 500) keys.sort((x, y) => d.klaim[x].at - d.klaim[y].at).slice(0, keys.length - 500).forEach((k) => delete d.klaim[k]);
+        cfg.save();
+      }
+      res.json({ map: d.klaim[i].map });
+    });
+    app.get('/bagibagi/klaim', (req, res) => {
+      const k = (D().klaim || {})[String(req.query.i || '')];
+      res.set('Cache-Control', 'no-store'); res.json({ map: k ? k.map : null });
     });
     app.post('/bagibagi/webhook', async (req, res) => {
       if (!validSignature(req)) {
