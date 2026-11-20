@@ -77,12 +77,16 @@ function setup({ client }) {
     if (row.mapStatus === 'nunggu') return '⏸️ Belum ada server online, masuk pas map nyala';
     return '⏳ Ngecek map tempat donatur online…';
   };
+  // menu Donasi Robux di website -> pesan diawali "R$<jumlah>" ; selain itu = Donasi Cash (GOLD)
+  const AWAL_RBX = /^\s*R\$\s*[\d.,]+\s*[^\w\s]*\s*/i;
   function buatEmbed(row, map) {
-    const pesan = String(row.message || '').replace(/#(OTR|TUNNEL)\b\s*/i, '').trim();
-    const e = new EmbedBuilder().setColor(ORANGE).setTitle(row.test ? '🧪 Tes donasi Bagi-Bagi' : '💸 Donasi baru lewat Bagi-Bagi')
+    const robux = AWAL_RBX.test(String(row.message || ''));
+    const pesan = String(row.message || '').replace(AWAL_RBX, '').replace(/#(OTR|TUNNEL)\b\s*/i, '').trim();
+    const judul = row.test ? '🧪 Tes donasi Bagi-Bagi' : robux ? '💎 Donasi Robux lewat Bagi-Bagi' : '🪙 Donasi Cash (GOLD) lewat Bagi-Bagi';
+    const e = new EmbedBuilder().setColor(robux ? 0x00b06f : ORANGE).setTitle(judul)
       .addFields(
         { name: 'Dari', value: String(row.name || 'Anonim').slice(0, 100), inline: true },
-        { name: 'Jumlah', value: `${rupiah(row.amount)}\n≈ R$${Math.floor(row.amount / (D().rate || 110)).toLocaleString('id-ID')}`, inline: true },
+        { name: 'Jumlah', value: robux ? `${rupiah(row.amount)}\n= R$${Math.floor(row.amount / (D().rate || 110)).toLocaleString('id-ID')}` : `${rupiah(row.amount)}\n= ${Math.floor(row.amount).toLocaleString('id-ID')} GOLD`, inline: true },
         { name: 'Map', value: teksMap(row, map), inline: true },
       ).setFooter({ text: 'bagibagi.co/TRO_LABS • trolabs.github.io/donasi' }).setTimestamp(new Date(row.time || Date.now()));
     if (pesan) e.setDescription(`> ${pesan.slice(0, 300)}`);
