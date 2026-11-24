@@ -3,7 +3,7 @@
 //  Webhook Bagi-Bagi (bagibagi.co/TRO_LABS) masuk ke sini, dicek signature-nya,
 //  lalu masuk antrian FEED. Server map (OTR, TUNNEL) baca feed ini tiap beberapa detik
 //  lewat HttpService → GET /bagibagi/feed?after=<seq>. Nggak butuh API key Roblox.
-//  Format item sama dengan jembatan Saweria lama: { i, n, r, m, t } → alur Robux & #OTR/#TUNNEL di game tetap.
+//  Format item sama dengan jembatan donasi lama: { i, n, r, m, t } → alur Robux & #OTR/#TUNNEL di game tetap.
 //  Rahasia diambil dari .env (BUKAN disimpan di data):
 //    BAGIBAGI_TOKEN  = Webhook Token dari Bagi-Bagi (Integrasi Overlay → Custom Webhook)
 //  Data di cfg.data('bagibagi') — tidak menyentuh data lain.
@@ -88,21 +88,48 @@ function setup({ client }) {
         { name: 'Dari', value: String(row.name || 'Anonim').slice(0, 100), inline: true },
         { name: 'Jumlah', value: robux ? `${rupiah(row.amount)}\n= R$${Math.floor(row.amount / (D().rate || 110)).toLocaleString('id-ID')}` : `${rupiah(row.amount)}\n= ${Math.floor(row.amount).toLocaleString('id-ID')} GOLD`, inline: true },
         { name: 'Map', value: teksMap(row, map), inline: true },
-      ).setFooter({ text: 'bagibagi.co/TRO_LABS • trolabs.github.io/donasi' }).setTimestamp(new Date(row.time || Date.now()));
+      ).setFooter({ text: `Total bulan ini ${rupiah(totalBulanIni())} • trolabs.github.io/#donasi` }).setTimestamp(new Date(row.time || Date.now()));
     if (pesan) e.setDescription(`> ${pesan.slice(0, 300)}`);
     return e;
   }
 
+  // total donasi asli (bukan tes) bulan berjalan, buat footer kartu
+  function totalBulanIni() {
+    const now = new Date(); const awal = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    return (D().donations || []).filter((x) => !x.test && new Date(x.time).getTime() >= awal).reduce((a, x) => a + (Number(x.amount) || 0), 0);
+  }
+  // BAGIBAGI_DC_AMAN_V1: kirim kartu ke Discord, gagal -> dicoba lagi otomatis sampai masuk
+  const lagiKirim = new Set();
   async function postDiscord(row) {
-    const ch = logChannel(); if (!ch) return;
-    const msg = await ch.send({ embeds: [buatEmbed(row)] }).catch(() => null);
-    if (!msg) return;
-    row.dc = { c: ch.id, m: msg.id }; cfg.save();
+    if (!row || row.dc || lagiKirim.has(row.id)) return;
+    lagiKirim.add(row.id);
+    try {
+      for (let coba = 0; coba < 4 && !row.dc; coba++) {
+        if (coba) await new Promise((r) => setTimeout(r, 5000 * coba));
+        const ch = logChannel(); if (!ch) { row.dcErr = 'channel log Bagi-Bagi nggak ketemu'; continue; }
+        const msg = await ch.send({ embeds: [buatEmbed(row)] }).catch((e) => { row.dcErr = String(e.message || e).slice(0, 120); return null; });
+        if (msg) { row.dc = { c: ch.id, m: msg.id }; delete row.dcErr; }
+      }
+      cfg.save();
+    } finally { lagiKirim.delete(row.id); }
+    if (!row.dc) return; // sisanya diulang sama penyapu tiap 2 menit
     // donasi tanpa kode map: kalau 90 detik belum ada map yang ngeklaim -> tandain nunggu server
-    if (!row.test && row.amount >= MIN_RP && row.map === 'AUTO') {
+    if (!row.test && row.amount >= MIN_RP && row.map === 'AUTO' && !row.mapStatus) {
       setTimeout(() => { if (!(D().klaim || {})[row.id]) { row.mapStatus = 'nunggu'; cfg.save(); editDiscord(row); } }, 90_000);
     }
   }
+  // penyapu: donasi 7 hari terakhir yang kartunya belum masuk Discord (bot restart / Discord down) -> kirim ulang
+  function sapuDiscord() {
+    const batas = Date.now() - 7 * 86_400_000;
+    for (const row of (D().donations || []).slice().reverse()) {
+      if (!row.dc && !row.test && !row.dcLama && new Date(row.time).getTime() > batas) postDiscord(row);
+    }
+  }
+  // donasi lama sebelum fitur ini: jangan dikirim ulang (biar nggak dobel di Discord)
+  (() => { const d = D(); if (d.dcMigrasi) return; for (const x of d.donations || []) if (!x.dc) x.dcLama = true; d.dcMigrasi = 1; cfg.save(); })();
+  client.once?.('ready', () => setTimeout(sapuDiscord, 15_000));
+  setInterval(sapuDiscord, 120_000);
+
   // map yang ngeklaim donasi -> kartu Discord ikut diupdate
   async function editDiscord(row, map) {
     if (!row?.dc) return;
@@ -167,6 +194,86 @@ function setup({ client }) {
     });
   }
 
+  // ============ SAWERIA_KE_BAGIBAGI_V1: semua Discord pindah dari Saweria ke Bagi-Bagi ============
+  const LINK_DONASI = 'https://trolabs.github.io/#donasi';
+  const adaSaweria = (t) => /saweria/i.test(String(t || ''));
+  const gantiSaweria = (t) => String(t)
+    .replace(/https?:\/\/(?:www\.)?saweria\.co(?:\/[\w\-]*)?/gi, LINK_DONASI)
+    .replace(/(?:www\.)?saweria\.co(?:\/[\w\-]*)?/gi, 'trolabs.github.io/#donasi')
+    .replace(/SAWERIA/g, 'BAGI-BAGI').replace(/Saweria/g, 'Bagi-Bagi').replace(/saweria/gi, 'bagi-bagi');
+  // ganti di semua teks dalam objek (postingan tersimpan, pengaturan) tanpa ngubah struktur data
+  function gantiDalam(obj, jejak = new WeakSet()) {
+    let n = 0;
+    if (!obj || typeof obj !== 'object' || jejak.has(obj)) return 0;
+    jejak.add(obj);
+    for (const k of Object.keys(obj)) {
+      const v = obj[k];
+      if (typeof v === 'string' && adaSaweria(v)) { obj[k] = gantiSaweria(v); n++; }
+      else if (v && typeof v === 'object') n += gantiDalam(v, jejak);
+    }
+    return n;
+  }
+  async function bersihSaweria() {
+    const lap = { waktu: new Date().toISOString(), data: 0, whitelist: false, channel: [], pesanBot: [], pesanOrang: [], gagal: [] };
+    // 1) data/pengaturan bot (postingan, teks tiket, shop, dll) — bagian bagibagi & log nggak disentuh
+    const st = cfg.get();
+    const al = st.security?.antiLink;
+    if (al && Array.isArray(al.whitelist)) {
+      al.whitelist = al.whitelist.filter((h) => !adaSaweria(h));
+      for (const h of ['bagibagi.co', 'trolabs.github.io']) if (!al.whitelist.includes(h)) { al.whitelist.push(h); lap.whitelist = true; }
+    }
+    for (const k of Object.keys(st)) if (!['bagibagi', 'logs', 'log'].includes(k)) lap.data += gantiDalam(st[k]);
+    cfg.save();
+    // 2) Discord: nama channel, topik, pesan bot yang masih nyebut Saweria
+    for (const g of client.guilds.cache.values()) {
+      const chs = await g.channels.fetch().catch(() => null); if (!chs) continue;
+      for (const ch of chs.values()) {
+        if (!ch) continue;
+        try {
+          if (adaSaweria(ch.name)) { const lama = ch.name; await ch.setName(gantiSaweria(ch.name)); lap.channel.push(`${g.name}: #${lama} → #${ch.name}`); }
+          if (adaSaweria(ch.topic)) { await ch.setTopic(gantiSaweria(ch.topic)); lap.channel.push(`${g.name}: topik #${ch.name}`); }
+        } catch (e) { lap.gagal.push(`#${ch.name}: ${String(e.message || e).slice(0, 80)}`); }
+        if (!ch.isTextBased?.() || !ch.messages) continue;
+        let pesan; try { pesan = await ch.messages.fetch({ limit: 100 }); } catch { continue; }
+        // postingan resmi bot (bisa lebih lama dari 100 pesan terakhir)
+        for (const [key, mid] of Object.entries(st.postIds || {})) {
+          if (st.posts?.[key]?.channelId !== ch.id || !mid || pesan.has(mid)) continue;
+          try { const m = await ch.messages.fetch(mid); pesan.set(m.id, m); } catch { /* */ }
+        }
+        try { const pin = await ch.messages.fetchPinned(); for (const m of pin.values()) pesan.set(m.id, m); } catch { /* */ }
+        for (const m of pesan.values()) {
+          const json = { content: m.content || '', embeds: m.embeds.map((e) => e.toJSON()), components: m.components.map((c) => c.toJSON()) };
+          const teks = JSON.stringify(json);
+          if (!adaSaweria(teks)) continue;
+          const url = `https://discord.com/channels/${g.id}/${ch.id}/${m.id}`;
+          if (m.author?.id !== client.user.id) { lap.pesanOrang.push(`${g.name} #${ch.name} (${m.author?.username}) ${url}`); continue; }
+          try {
+            const baru = JSON.parse(gantiSaweria(teks));
+            await m.edit({ content: baru.content || null, embeds: baru.embeds, components: baru.components });
+            lap.pesanBot.push(`${g.name} #${ch.name} ${url}`);
+          } catch (e) { lap.gagal.push(`${url}: ${String(e.message || e).slice(0, 80)}`); }
+        }
+      }
+    }
+    const d = D(); d.sawLapor = lap; d.sawSelesai = 1; cfg.save();
+    cfg.addLog?.('bagibagi', `Saweria → Bagi-Bagi: data ${lap.data}, channel ${lap.channel.length}, pesan bot ${lap.pesanBot.length}, pesan orang ${lap.pesanOrang.length}`);
+    // lapor ke channel log Bagi-Bagi biar keliatan
+    const ch = logChannel();
+    if (ch) {
+      const baris = [
+        `✅ Data & postingan bot diganti: **${lap.data}** teks`,
+        `✅ Channel/topik diganti: **${lap.channel.length}**`,
+        `✅ Pesan bot diedit: **${lap.pesanBot.length}**`,
+        lap.pesanOrang.length ? `⚠️ Pesan member/admin yang masih nyebut Saweria (bot nggak bisa edit, hapus/edit manual):\n${lap.pesanOrang.slice(0, 15).join('\n')}` : '✅ Nggak ada pesan member yang nyebut Saweria',
+        lap.gagal.length ? `❌ Gagal: ${lap.gagal.slice(0, 8).join('\n')}` : '',
+      ].filter(Boolean).join('\n');
+      ch.send({ embeds: [new EmbedBuilder().setColor(ORANGE).setTitle('🔁 Saweria → Bagi-Bagi').setDescription(baris.slice(0, 4000)).setFooter({ text: LINK_DONASI })] }).catch(() => {});
+    }
+    return lap;
+  }
+  const jalanBersih = () => { if (!D().sawSelesai) bersihSaweria().catch((e) => { D().lastError = 'bersihSaweria: ' + String(e.message || e); cfg.save(); }); };
+  if (client.isReady?.()) setTimeout(jalanBersih, 20_000); else client.once?.('ready', () => setTimeout(jalanBersih, 20_000));
+
   // dashboard (perlu login)
   function routes(api) {
     api.get('/bagibagi', (req, res) => {
@@ -179,6 +286,8 @@ function setup({ client }) {
       if (b.rate) d.rate = Math.max(1, Number(b.rate) || 110);
       cfg.save(); res.json({ ok: true });
     });
+    api.get('/bagibagi/saweria', (req, res) => res.json(D().sawLapor || null));
+    api.post('/bagibagi/saweria', async (req, res) => res.json(await bersihSaweria()));
     api.post('/bagibagi/test', async (req, res) => {
       const b = req.body || {};
       res.json(await terima({ transaction_id: `tes-${Date.now()}`, name: b.name || 'CALLMExAZAZEL', amount: b.amount || 11000, message: b.message || '#OTR tes Bagi-Bagi' }, b.real !== true));
