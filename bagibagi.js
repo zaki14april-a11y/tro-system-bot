@@ -197,7 +197,10 @@ function setup({ client }) {
   // ============ SAWERIA_KE_BAGIBAGI_V1: semua Discord pindah dari Saweria ke Bagi-Bagi ============
   const LINK_DONASI = 'https://trolabs.github.io/#donasi';
   const adaSaweria = (t) => /saweria/i.test(String(t || ''));
-  const gantiSaweria = (t) => String(t)
+  // kalimat "Saweria sudah tidak dipakai" jangan jadi "Bagi-Bagi sudah tidak dipakai" (artinya kebalik)
+  const KALIMAT_SALAH = /(\**)\s*(?:Saweria|Bagi-Bagi)(\**)\s+(sudah|udah)\s+(\**)\s*(tidak|nggak|ga|gak)/gi;
+  const benerinKalimat = (t) => String(t).replace(KALIMAT_SALAH, (m, a, b, c, d, e) => `${a}Metode bayar lama${b} ${c} ${d}${e}`);
+  const gantiSaweria = (t) => benerinKalimat(t)
     .replace(/https?:\/\/(?:www\.)?saweria\.co(?:\/[\w\-]*)?/gi, LINK_DONASI)
     .replace(/(?:www\.)?saweria\.co(?:\/[\w\-]*)?/gi, 'trolabs.github.io/#donasi')
     .replace(/SAWERIA/g, 'BAGI-BAGI').replace(/Saweria/g, 'Bagi-Bagi').replace(/saweria/gi, 'bagi-bagi');
@@ -224,8 +227,12 @@ function setup({ client }) {
     }
     for (const k of Object.keys(st)) if (!['bagibagi', 'logs', 'log'].includes(k)) lap.data += gantiDalam(st[k]);
     cfg.save();
-    // 2) Discord: nama channel, topik, pesan bot yang masih nyebut Saweria
+    // 2) Discord: nama webhook, nama channel, topik, pesan bot yang masih nyebut Saweria
     for (const g of client.guilds.cache.values()) {
+      try {
+        const hooks = await g.fetchWebhooks();
+        for (const h of hooks.values()) if (adaSaweria(h.name)) { const lama = h.name; await h.edit({ name: gantiSaweria(h.name) }); lap.channel.push(`${g.name}: webhook ${lama} → ${h.name}`); }
+      } catch (e) { lap.gagal.push(`webhook ${g.name}: ${String(e.message || e).slice(0, 80)}`); }
       const chs = await g.channels.fetch().catch(() => null); if (!chs) continue;
       for (const ch of chs.values()) {
         if (!ch) continue;
@@ -244,7 +251,8 @@ function setup({ client }) {
         for (const m of pesan.values()) {
           const json = { content: m.content || '', embeds: m.embeds.map((e) => e.toJSON()), components: m.components.map((c) => c.toJSON()) };
           const teks = JSON.stringify(json);
-          if (!adaSaweria(teks)) continue;
+          if (!adaSaweria(teks) && !(KALIMAT_SALAH.test(teks) && m.author?.id === client.user.id)) continue;
+          KALIMAT_SALAH.lastIndex = 0;
           const url = `https://discord.com/channels/${g.id}/${ch.id}/${m.id}`;
           if (m.author?.id !== client.user.id) { lap.pesanOrang.push(`${g.name} #${ch.name} (${m.author?.username}) ${url}`); continue; }
           try {
@@ -255,7 +263,7 @@ function setup({ client }) {
         }
       }
     }
-    const d = D(); d.sawLapor = lap; d.sawSelesai = 1; cfg.save();
+    const d = D(); d.sawLapor = lap; d.sawSelesai = 2; cfg.save();
     cfg.addLog?.('bagibagi', `Saweria → Bagi-Bagi: data ${lap.data}, channel ${lap.channel.length}, pesan bot ${lap.pesanBot.length}, pesan orang ${lap.pesanOrang.length}`);
     // lapor ke channel log Bagi-Bagi biar keliatan
     const ch = logChannel();
@@ -271,7 +279,7 @@ function setup({ client }) {
     }
     return lap;
   }
-  const jalanBersih = () => { if (!D().sawSelesai) bersihSaweria().catch((e) => { D().lastError = 'bersihSaweria: ' + String(e.message || e); cfg.save(); }); };
+  const jalanBersih = () => { if ((D().sawSelesai || 0) < 2) bersihSaweria().catch((e) => { D().lastError = 'bersihSaweria: ' + String(e.message || e); cfg.save(); }); };
   if (client.isReady?.()) setTimeout(jalanBersih, 20_000); else client.once?.('ready', () => setTimeout(jalanBersih, 20_000));
 
   // dashboard (perlu login)
