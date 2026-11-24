@@ -52,7 +52,7 @@ const defaults = () => ({
       enabled: true,
       blockInvites: true,
       blockAllLinks: false,
-      whitelist: ['roblox.com', 'saweria.co', 'youtube.com', 'youtu.be', 'tiktok.com', 'instagram.com', 'spotify.com', 'tenor.com', 'discord.com'],
+      whitelist: ['roblox.com', 'bagibagi.co', 'trolabs.github.io', 'youtube.com', 'youtu.be', 'tiktok.com', 'instagram.com', 'spotify.com', 'tenor.com', 'discord.com'],
     },
     antiMention: { enabled: true, max: 5, timeoutMinutes: 10 },
     antiRaid: { enabled: true, joins: 8, seconds: 15, lockdownMinutes: 10, minAccountAgeDays: 0 },
