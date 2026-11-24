@@ -5,7 +5,7 @@
 //  (bukan posting ulang), jadi channel tetap rapi.
 // ============================================================
 
-const SAWERIA = 'https://saweria.co/trofamily';
+const DONASI = 'https://trolabs.github.io/#donasi';
 const COMMUNITY = 'https://www.roblox.com/share/g/901582211';
 const VARSITY = 'https://www.roblox.com/id/catalog/109129268100447/TRO-VARSITY';
 const NEW_JACKET = 'https://www.roblox.com/id/catalog/107963076693736/New-Jacket-TRO-Family';
