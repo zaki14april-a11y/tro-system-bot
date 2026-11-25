@@ -146,6 +146,10 @@ function setup({ client }) {
     if (id && d.seen.includes(id)) return { duplicate: true };
     const info = { i: id || `bb-${Date.now()}`, n: String(body.name || '').slice(0, 40), r: Math.floor(Number(body.amount) || 0), m: String(body.message || '').slice(0, 200), t: test ? 1 : 0 };
     if (id) { d.seen.unshift(id); d.seen = d.seen.slice(0, 500); }
+    // TRO LABS: kalau pesan ada kode BELI-xxxxx -> ini beli script, bukan donasi map. Proses otomatis, jangan masuk feed/donasi.
+    if (!test && client.labsCekBeli) {
+      try { const beli = await client.labsCekBeli({ id: info.i, name: info.n, amount: info.r, message: info.m }); if (beli) { cfg.save(); cfg.addLog?.('bagibagi', `${info.n} ${rupiah(info.r)} → beli script`); return { ok: true, beli: true }; } } catch (e) { d.lastError = 'labsCekBeli: ' + String(e.message || e); }
+    }
     const seq = antre(info);
     const row = { seq, id: info.i, name: info.n, amount: info.r, message: info.m, map: kodeMap(info.m), test, time: new Date().toISOString() };
     d.donations.unshift(row); d.donations = d.donations.slice(0, 100);
